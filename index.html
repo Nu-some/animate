@@ -386,8 +386,9 @@ renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.outputEncoding=THREE.LinearEncoding;
 stage.appendChild(renderer.domElement);
 /* ---- visual quality: textures, sky, clouds, post-processing ---- */
-let HQ=!/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)&&!!THREE.EffectComposer&&!!THREE.SSAOPass;
-const forceHQ=location.hash==='#hq';let composer=null,bloom=null,fxaa=null,ssao=null;if(forceHQ)HQ=!!THREE.EffectComposer;
+// HD (soft shadows, ambient occlusion, glow) is the default everywhere; the HD button turns it off by hand, and #fast starts without it
+let HQ=!!THREE.EffectComposer&&location.hash!=='#fast';
+const forceHQ=true;let composer=null,bloom=null,fxaa=null,ssao=null;
 function canvasTex(w,h,draw,rep){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;if(rep)t.repeat.set(rep,rep);t.anisotropy=4;return t;}
 function noiseTex(lo,hi,blot,rep){return canvasTex(256,256,(c,w,h)=>{const img=c.createImageData(w,h);for(let i=0;i<w*h;i++){const v=lo+Math.random()*(hi-lo);img.data[i*4]=img.data[i*4+1]=img.data[i*4+2]=v;img.data[i*4+3]=255;}c.putImageData(img,0,0);
  for(let i=0;i<blot;i++){c.fillStyle=`rgba(${Math.random()<.5?60:120},${Math.random()<.5?70:110},40,${Math.random()*.06})`;c.beginPath();c.arc(Math.random()*w,Math.random()*h,8+Math.random()*30,0,7);c.fill();}},rep);}
@@ -1814,7 +1815,7 @@ function setupComposer(on){composer=null;bloom=null;if(!on||!THREE.EffectCompose
  fxaa=new THREE.ShaderPass(THREE.FXAAShader);fxaa.material.uniforms.resolution.value.set(1/(innerWidth*pr),1/(innerHeight*pr));composer.addPass(fxaa);
 }catch(e){console.warn('post-processing off',e);composer=null;}}
 let fpsT=0,fpsN=0,fpsLow=0;
-function fpsCheck(dt){if(!composer||forceHQ)return;fpsT+=dt;fpsN++;if(fpsT>=2){const f=fpsN/fpsT;fpsT=0;fpsN=0;if(f<24){if(++fpsLow>=2){setQuality(false);toast('Switched to fast mode for smoother motion');}}else fpsLow=0;}}
+function fpsCheck(dt){} // no automatic downgrade: the view stays HD unless the HD button is switched off
 function setQuality(on){HQ=on;setupComposer(on);$('#hqBtn').setAttribute('aria-pressed',String(on));applyLight();}
 newVoyage();buildVessel();vesselGroup.position.set(76,0,4);
 if(!reduceMotion){fly={t:0,dur:5.5,p0:camera.position.clone(),p1:new THREE.Vector3(66,60,84),t0:new THREE.Vector3(14,0,4),t1:new THREE.Vector3(14,0,4)};}else{camera.position.set(66,60,84);}
