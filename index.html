@@ -1033,7 +1033,7 @@ const OT={
    massif(g,{x:24,z:-108,rx:15,rz:14,h:25,rough:.1,cliff:1.5,prof:[[0,1],[.4,.72],[.7,.42],[.9,.18],[1,.05]],cols:MC});
    massif(g,{x:-82,z:-104,rx:11,rz:10,h:21,rough:.12,cliff:1.4,prof:[[0,1],[.45,.68],[.75,.34],[.92,.14],[1,.04]],cols:MC});
    hill(g,16,.42,0x8a9a62,-104,-88);hill(g,10,.5,0x7f9a5a,52,-96);
-   fynbos(g,[[-112,-60,-80,-62],[-30,10,-82,-70],[-120,-78,70,100]]);
+   fynbos(g,[[-112,-60,-80,-62],[-30,10,-84,-72],[-120,-78,70,100]]);
    CITY(g,0xd8d2c0);skyline(g,{n:50,x0:40,x1:84,z0:-66,z1:-110,hMin:5,hMax:20,cols:[0xeef1f2,0xcfe3ee,0x9fc6d6,0xe2dccd]});
    skyline(g,{n:16,x0:88,x1:110,z0:-84,z1:-110,hMin:12,hMax:30,cols:[0xcfe3ee,0x9fc6d6,0xeef1f2],wMin:3,wMax:5,box:true});
    stadium(g,96,-66,7,0xf4f6f6);lighthouse(g,110,-62,9,0xd04a3a,0xf4f6f6);ferris(g,104,-74,5,0xf4f6f6,A);
@@ -1128,7 +1128,7 @@ const DT={
  MBA:{ground:0xcfae7c,desc:"Mombasa, Kenya: the Tusks arching over Moi Avenue, Fort Jesus on the old harbour, dhows, baobabs and coconut palms.",
   build(g,A){[-1,1].forEach(s=>{archOver(g,-20,-60+s*3,6,0xf1ece0,Math.PI/2);});fort(g,20,-72,16,0xc9a065);bx(g,14,.3,6,0x8a8f90,-20,-.2,-60).castShadow=false;roofTown(g,{n:40,x0:-76,x1:-40,z0:-92,z1:-66,walls:[0xefe6d2,0xe2d6bc],roofs:[0x8a8f90,0xb06a3a]});boats(g,70,-20,5,[0x8a6a45,0xf4f1e8],A,true);scatter(g,'baobab',[[-78,42,-92,-80]],.35);scatter(g,'palm',RECTS_D,.9);}}
 };
-const RECTS_O=[[-165,-140,50,78],[-135,-112,20,45],[-75,-62,-56,-40],[-25,-5,-56,-40],[-62,-36,66,80],[-30,0,76,86],[52,70,-78,-64],[-70,-62,-28,-6],[-120,-100,-60,-44],[-150,-126,-8,24],[-112,-76,56,100],[-50,-20,92,118],[-170,-140,86,112],[-272,-246,-66,-40],[-234,-210,-66,-8],[-210,-180,-66,-42],[-274,-252,-110,-70],[-196,-176,-110,-70],[-126,-80,256,274],[-30,-12,206,274]];
+const RECTS_O=[[-165,-140,50,78],[-135,-112,20,45],[-75,-62,-56,-40],[-56,-36,-78,-66],[-62,-36,66,80],[-30,0,76,86],[52,70,-78,-64],[-70,-62,-28,-6],[-120,-100,-60,-44],[-150,-126,-8,24],[-112,-76,56,100],[-50,-20,92,118],[-170,-140,86,112],[-272,-246,-66,-40],[-234,-210,-66,-8],[-210,-180,-66,-42],[-274,-252,-110,-70],[-196,-176,-110,-70],[-126,-80,256,274],[-30,-12,206,274]];
 function clearGroup(g){while(g.children.length){const c=g.children.pop();c.traverse(o=>{if(o.geometry)o.geometry.dispose();});}}
 let destKey='ABJ';
 function applyOriginTheme(k){const th=OT[k]||OT.CPT;clearGroup(themeO);themeAnimsO=[];land.material.color.setHex(th.ground).lerp(new THREE.Color(0xf1f1ee),th.lerp==null?.55:th.lerp);land2.material=land.material;orchardGround.material.color.setHex(th.orchard);orchardGround2.material=orchardGround.material;th.build(themeO,themeAnimsO);}
@@ -1161,7 +1161,7 @@ function addKitScenery(){
  for(let i=0;i<9;i++)kit('bush',4.5,-27+i*2.6,0,-3.2,0);for(let i=0;i<8;i++)kit('bush',4.5,-60+i*3,0,60.5,0);
  for(let i=0;i<6;i++)kit(pick(['box_A','box_B']),5,28+(i%3)*1.4,0,-22+Math.floor(i/3)*1.3,0);
  // city blocks between the streets, and the inland town
- kitBlock(world,-54,-36,-24,-6,6);kitBlock(world,6,14,-24,-6,6);kitBlock(world,6,14,6,24,6);kitBlock(world,-54,-36,6,24,6);kitBlock(world,-24,-6,6,24,6);
+ kitBlock(world,-54,-36,-24,-6,6);kitBlock(world,6,14,-24,-6,6);kitBlock(world,-54,-36,-50,-44,6);kitBlock(world,-24,-6,-50,-50,6);kitBlock(world,6,14,-50,-36,6);for(let i=0;i<3;i++)kit('bench',4.2,-24+i*4,0,-37.4,0);kit('bush',4.5,-10,0,-37.6,0);kit('bush',4.5,-20,0,-37.6,0);kitBlock(world,6,14,6,24,6);kitBlock(world,-54,-36,6,24,6);kitBlock(world,-24,-6,6,24,6);
  kitBlock(world,-274,-250,-34,-25,6.5);kitBlock(world,-274,-256,13,24,6.5);kitBlock(world,-26,-6,66,74,6.5);kit('watertower',5,-272,0,-8,0);
  kitBlock(world,-62,-16,186,194,6.5);kitBlock(world,-20,-12,222,250,6.5);kitBlock(world,-246,-204,-110,-104,6.5);kitBlock(world,-250,-236,-96,-80,6.5);kitBlock(world,-212,-198,-96,-80,6.5);kit('watertower',5,-200,0,-108,0);
  for(let c=0;c<4;c++)kit(pick(CARS.slice(0,4)),4.4,-44+c*1.9,0,236,0);
@@ -1194,7 +1194,7 @@ const labelsEl=$('#labels');const labels=[];
 function addLabel(text,cls,pos,obj){const el=document.createElement('div');el.className='lbl '+(cls||'');el.textContent=text;labelsEl.appendChild(el);const L={el,pos:pos?new THREE.Vector3(...pos):null,obj};labels.push(L);return L;}
 const ICON={leaf:'M5 19c0-8 6-14 14-14 0 8-6 14-14 14zM5 19l7-7',box:'M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10',building:'M4 21V5h10v16M14 9h6v12M7 8h2M7 12h2M7 16h2',truck:'M2 7h11v9H2zM13 10h5l3 3v3h-8M6 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM17 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z',plane:'M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z',bolt:'M13 2L4 14h7l-1 8 9-12h-7z',gate:'M4 21V8h4v13M8 10h12M16 10v11',anchor:'M12 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM12 7v14M5 12H3a9 9 0 0 0 18 0h-2M8 10h8',snow:'M12 2v20M4 6l16 12M20 6L4 18',scale:'M4 18h16M6 18v-4h12v4M12 14V6M9 6h6',shield:'M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z',warehouse:'M3 21V9l9-5 9 5v12M7 21v-7h10v7'};
 function areaLabel(title,sub,icon,pos){const L=addLabel('','area',pos);L.el.innerHTML=`<i><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="${ICON[icon]}"/></svg></i><span><b></b><small></small></span>`;L.t=L.el.querySelector('b');L.s=L.el.querySelector('small');L.t.textContent=title;L.s.textContent=sub;return L;}
-const areaLabels={farm:areaLabel('Citrus orchard','Navel oranges · picking','leaf',[-150,6,-26]),apples:areaLabel('Apple orchard','Royal Gala · deciduous','leaf',[-191,6,-40]),grapes:areaLabel('Table grapes','Trellised vineyard','leaf',[-191,6,12]),cold:areaLabel('Bin cold room','Pre-cooling bins','snow',[-113,7.5,-16]),pack:areaLabel('Packhouse','Wash, pack & palletise','box',[-98,8.5,-13]),store:areaLabel('Pallet cold store','Ready for loading','snow',[-83,7.5,-13]),depot:areaLabel('Empty depot','Wash & PTI','box',[37,8,-47]),weigh:areaLabel('Weighbridge','VGM weighing','scale',[27,5,-4]),stage:areaLabel('Plug-in depot','Reefer power when vessels are late','bolt',[8,6,54]),gate:areaLabel('Port gate','Security & check-in','gate',[36,7,0]),port:areaLabel('Port of Cape Town','Export to global markets','anchor',[60,22,6]),air:areaLabel('Air freight terminal','Pallets by air','plane',[34,10,76]),hq:areaLabel('GFS HQ','Operations, planning & control','building',[-15,15,-15]),trans:areaLabel('Transporter yard','Trucks park here between jobs','truck',[-48,8,48]),market:areaLabel('Local market','Supermarket & local cold room','warehouse',[-16,8,54]),town:areaLabel('Inland town','Client depot · long-distance trucks','building',[-262,9,-2]),bay:areaLabel('Bay City','Client depot B · over the big bridge','building',[-100,14,236]),bridge:areaLabel('Bay bridge','Trucks and cars cross the bay','truck',[-70,16,152]),forest:areaLabel('Forest town','Country store · road through the forest','leaf',[-224,9,-106])};
+const areaLabels={farm:areaLabel('Citrus orchard','Navel oranges · picking','leaf',[-150,6,-26]),apples:areaLabel('Apple orchard','Royal Gala · deciduous','leaf',[-191,6,-40]),grapes:areaLabel('Table grapes','Trellised vineyard','leaf',[-191,6,12]),cold:areaLabel('Bin cold room','Pre-cooling bins','snow',[-113,7.5,-16]),pack:areaLabel('Packhouse','Wash, pack & palletise','box',[-98,8.5,-13]),store:areaLabel('Pallet cold store','Ready for loading','snow',[-83,7.5,-13]),depot:areaLabel('Empty depot','Wash & PTI','box',[37,8,-47]),weigh:areaLabel('Weighbridge','VGM weighing','scale',[27,5,-4]),stage:areaLabel('Plug-in depot','Reefer power when vessels are late','bolt',[8,6,54]),gate:areaLabel('Port gate','Security & check-in','gate',[36,7,0]),port:areaLabel('Port of Cape Town','Export to global markets','anchor',[60,22,6]),air:areaLabel('Air freight terminal','Pallets by air','plane',[34,10,76]),hq:areaLabel('GFS HQ','Operations, planning & control','building',[-15,15,-15]),trans:areaLabel('Transporter yard','Trucks park here between jobs','truck',[-48,8,48]),market:areaLabel('Local market','Supermarket & local cold room','warehouse',[-16,8,54]),town:areaLabel('Inland town','Client depot · long-distance trucks','building',[-262,9,-2]),labia:areaLabel('The Labia Theatre','Independent cinema · Orange Street','building',[-15,11,-41]),bay:areaLabel('Bay City','Client depot B · over the big bridge','building',[-100,14,236]),bridge:areaLabel('Bay bridge','Trucks and cars cross the bay','truck',[-70,16,152]),forest:areaLabel('Forest town','Country store · road through the forest','leaf',[-224,9,-106])};
 const LBL_OFF={COO:[34,-6],LFW:[-30,-6],APP:[40,-22],KBI:[44,8],DLA:[34,-26],LBV:[-6,30],PDG:[-48,26],PLU:[40,-4],PSD:[44,-6],DAM:[-40,-8],CKY:[-34,8],ABJ:[-10,26]};
 Object.entries(portPins).forEach(([k,g])=>{const p=PORTS[k];const L=addLabel(p.name,'port'+(p.role==='o'?' o':''),null,g);L.offY=4.2;L.isMap=true;L.off=LBL_OFF[k]||[0,0];});
 const destLabels={port:areaLabel('Port of discharge','Discharging','anchor',[40,20,0]),stack:areaLabel('Discharge stack','Plugged in','box',[24,6,-1]),customs:areaLabel('Customs','Scanning & inspection','shield',[12,7,-26]),wh:areaLabel('Client warehouse','Forklift unloading','warehouse',[-18,8,-6]),dep:areaLabel('Shipping line depot','Empty returns','box',[-19,6,34])};Object.values(destLabels).forEach(L=>L.space=dest);
@@ -1213,7 +1213,7 @@ function updateLabels(){const w=innerWidth,h=innerHeight;const camToMap=camera.p
    ========================================================= */
 const ring=new THREE.Mesh(new THREE.TorusGeometry(1,.08,8,40),new THREE.MeshBasicMaterial({color:0x3dbb74}));ring.rotation.x=-Math.PI/2;ring.visible=false;scene.add(ring);
 let selected=null;let follow=null;let fly=null;
-function worldPosOf(sel){const o=sel.type==='truck'||sel.type==='voyager'?sel.ref.g:sel.type==='waiting'?waitShip:sel.type==='container'?(sel.ref.mesh||null):sel.type==='ship'?sel.ref.g:sel.type==='port'?portPins[sel.ref.key]:sel.type==='vessel'?vesselGroup:sel.type==='crane'?sel.ref.g:sel.type==='bintruck'||sel.type==='dtruck'||sel.type==='airtruck'?sel.ref.g:sel.type==='plane'?plane.g:sel.obj||null;
+function worldPosOf(sel){const o=sel.type==='truck'||sel.type==='voyager'||sel.type==='person'?sel.ref.g:sel.type==='waiting'?waitShip:sel.type==='container'?(sel.ref.mesh||null):sel.type==='ship'?sel.ref.g:sel.type==='port'?portPins[sel.ref.key]:sel.type==='vessel'?vesselGroup:sel.type==='crane'?sel.ref.g:sel.type==='bintruck'||sel.type==='dtruck'||sel.type==='airtruck'?sel.ref.g:sel.type==='plane'?plane.g:sel.obj||null;
  if(!o)return null;return o.getWorldPosition(new THREE.Vector3());}
 const AREA_VIEWS={overview:{t:[-60,0,50],d:[110,175,205]},bay:{t:[-70,0,222],d:[44,60,74]},forest:{t:[-230,0,-82],d:[30,44,52]},bridge:{t:[-70,0,150],d:[44,30,30]},air:{t:[34,0,95],d:[48,56,60]},farm:{t:[-140,0,-6],d:[30,40,46]},pack:{t:[-100,0,-12],d:[14,26,26]},city:{t:[-22,0,8],d:[46,66,76]},depot:{t:[38,0,-46],d:[26,30,36]},port:{t:[56,0,8],d:[46,48,60]},town:{t:[-258,0,0],d:[30,42,48]},sea:{t:[235,0,-12],d:[0,215,165]},network:{t:[0,0,MAPZ+8],d:[0,150,96]},dest:{t:[400,0,0],d:[-54,72,84]}};
 function flyTo(target,offset){const t1=new THREE.Vector3(...target);const off=offset?new THREE.Vector3(...offset):camera.position.clone().sub(controls.target).setLength(40);
@@ -1224,7 +1224,7 @@ function setArea(a){document.querySelectorAll('#areas button').forEach(b=>b.setA
 function select(sel,opts){selected=sel;follow=null;if(sel){aboutOpen=false;$('#aboutBtn').setAttribute('aria-pressed','false');}
  if(!sel){ring.visible=false;renderDetail();renderTracker();highlightLane(null);renderTable();return;}
  const p=worldPosOf(sel);
- if(p&&!(opts&&opts.noFly)){const isMap=p.z<-200;const dist=sel.type==='truck'||sel.type==='container'?30:sel.type==='ship'?34:sel.type==='port'?46:sel.type==='vessel'||sel.type==='voyager'||sel.type==='waiting'?70:sel.type==='town'||sel.type==='forest'?60:sel.type==='bay'?110:40;
+ if(p&&!(opts&&opts.noFly)){const isMap=p.z<-200;const dist=sel.type==='person'?18:sel.type==='truck'||sel.type==='container'?30:sel.type==='ship'?34:sel.type==='port'?46:sel.type==='vessel'||sel.type==='voyager'||sel.type==='waiting'?70:sel.type==='town'||sel.type==='forest'?60:sel.type==='bay'?110:40;
   const dir=camera.position.clone().sub(controls.target).normalize();if(dir.y<.45){dir.y=.55;dir.normalize();}
   flyTo([p.x,isMap?0:0,p.z],dir.multiplyScalar(dist).toArray());}
  if(['truck','bintruck','dtruck','airtruck','plane','ship','container','vessel'].includes(sel.type))follow={sel,last:p?p.clone():null};
@@ -1240,7 +1240,7 @@ renderer.domElement.addEventListener('pointerup',e=>{if(!downAt)return;const mov
  mouse.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(mouse,camera);
  const hits=ray.intersectObjects(scene.children,true);
  for(const h of hits){let o=h.object;if(o===ring)continue;while(o&&!o.userData.sel)o=o.parent;if(o){select(o.userData.sel);return;}}
- const VOL=new Map([[appleHit,'apples'],[grapeHit,'grapes'],[airHit,'airport'],[hqHit,'hq'],[transHit,'transport'],[marketHit,'market'],[townHit,'town'],[bayHit,'bay'],[forestHit,'forest'],[dStackHit,'dstack'],[customsHit,'customs'],[whHit,'warehouse'],[dDepotHit,'ddepot'],[farmHit,'farm'],[coldHit,'coldroom'],[stageHit,'staging'],[packHit,'pack'],[depotHit,'depot'],[yardHit,'yard']]);
+ const VOL=new Map([[theatreHit,'theatre'],[appleHit,'apples'],[grapeHit,'grapes'],[airHit,'airport'],[hqHit,'hq'],[transHit,'transport'],[marketHit,'market'],[townHit,'town'],[bayHit,'bay'],[forestHit,'forest'],[dStackHit,'dstack'],[customsHit,'customs'],[whHit,'warehouse'],[dDepotHit,'ddepot'],[farmHit,'farm'],[coldHit,'coldroom'],[stageHit,'staging'],[packHit,'pack'],[depotHit,'depot'],[yardHit,'yard']]);
  for(const h of hits){if(VOL.has(h.object)){select({type:VOL.get(h.object),obj:h.object});return;}}
  select(null);});
 
@@ -1285,6 +1285,8 @@ function renderDetail(){
  else if(s.type==='grapes'){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Table grapes · Block 14</div><h2>Trellised vineyard</h2><span class="chip ok">Crimson Seedless</span> <span class="chip">Thompson</span>`+kv([['Rows',16],['Harvest','Dec – Mar'],['Packed as','4.5 kg cartons with SO₂ pads'],['Cold chain','-0.5 °C']])+`<p class="hint">Grapes are packed straight from the vineyard into cartons and pre-cooled fast; they go by reefer container and by air.</p>`;}
  else if(s.type==='market'){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Local market</div><h2>Supermarket DC</h2><span class="chip ok">Receiving</span>`+kv([['Pallets delivered today',stats.local||0],['Local trucks',vehicles.filter(v=>v.kind==='local').length],['Keeps','Local cold room, +4 °C']])+`<p class="hint">Fruit that is not exported goes to the local market: supermarkets, wholesalers and the local cold room.</p>`;}
  else if(s.type==='town'){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Inland town</div><h2>Client depot & inland packhouse</h2><span class="chip ok">Linked by road</span>`+kv([['Pallets delivered to the client depot',stats.town||0],['Long-distance trucks',vehicles.filter(v=>v.kind==='haul').length],['Other exporters based here',vehicles.filter(v=>v.kind==='other').length]])+`<p class="hint">The road links the towns. GFS long-distance trucks deliver here, and other exporters' trucks drive from here through the city to the port.</p>`;}
+ else if(s.type==='theatre'){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Orange Street · ${esc(PORTS[origin].name)}</div><h2>The Labia Theatre</h2><span class="chip ok">${lyud.state==='film'?'Show on · Lyudmila inside':'Doors open'}</span>`+kv([['Opened','1949, the oldest independent cinema in town'],['Tonight','Two screens, art-house double bill'],['Regular','Lyudmila from Orange Court'],['Films she has seen',lyud.seen]])+`<p class="hint">Not everything in the city is about fruit. Lyudmila walks from her flat across the street to the Labia for the evening show, and home again when it ends.</p>`;}
+ else if(s.type==='person'){const L=s.ref;const st={home:'At home in her flat',toTheatre:'Walking to the Labia Theatre',film:'Watching the film',toHome:'Walking home'}[L.state];h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Orange Court, flat 4B</div><h2>Lyudmila</h2><span class="chip ok">${st}</span>`+kv([['Lives at','Orange Court, across from the Labia'],['Going to','The Labia Theatre'],['Films seen today',L.seen]])+`<p class="hint">She crosses at the zebra and is back after the credits.</p>`;}
  else if(s.type==='bay'){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Across the bay</div><h2>Bay City</h2><span class="chip ok">Linked by the big bridge</span>`+kv([['Pallets delivered to client depot B',stats.townB||0],['Freighter',plane.state==='parkedB'?'On the Bay City stand':plane.state.indexOf('B')>0?'Flying to or from Bay City':'At the main airport'],['Flights landed here today',plane.flightsB||0]])+`<p class="hint">The second city sits across the bay. Long-distance trucks and cars cross the bridge, and the GFS freighter flies between the two airports.</p>`;}
  else if(s.type==='forest'){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Through the forest</div><h2>Forest town</h2><span class="chip ok">Linked by road only</span>`+kv([['Pallets delivered to the country store',stats.forest||0]])+`<p class="hint">A small town at the end of a road through the forest. The local market truck delivers here between supermarket runs.</p>`;}
  else if(s.type==='voyager'||s.type==='waiting'){const vy=s.ref;h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">${s.type==='voyager'?'Sailing':'Waiting for a berth'}</div><h2>${esc(vy.name)}</h2><span class="chip ok">${s.type==='voyager'?{sail:'At sea to '+PORTS[destKey].name,berthing:'Berthing',discharge:'Discharging',leave:'Sailing on'}[vy.state]:'At anchor off '+PORTS[origin].name}</span>`+`<p class="hint">${s.type==='voyager'?'The loaded vessel crosses the sea to the port of discharge, where the containers are lifted off and plugged in again.':'Ships queue too. When the berth is busy the next vessel waits at anchor until the berthed ship has sailed.'}</p>`;}
@@ -1432,7 +1434,7 @@ function RE(a,b,two,bridge){const A=ROAD.nodes[a],B=ROAD.nodes[b];const len=A.p.
  const mk=(a,b)=>{const dir=ROAD.nodes[b].p.clone().sub(ROAD.nodes[a].p).normalize();const flat=new THREE.Vector3(dir.x,0,dir.z).normalize();const e={a,b,len,two:!!two,off:two?LANE:0,dir,left:new THREE.Vector3(flat.z,0,-flat.x),bridge:!!bridge,id:ROAD.edges.length,crv:new THREE.LineCurve3(ROAD.nodes[a].p,ROAD.nodes[b].p)};ROAD.edges.push(e);(ROAD.adj[a]=ROAD.adj[a]||[]).push(e);return e;};
  mk(a,b);if(two)mk(b,a);}
 // city grid
-[['N0',-60,-30],['N1',-30,-30],['N2',0,-30],['N3',20,-30],['C0',-60,0],['C1',-30,0],['C2',0,0],['CE',20,0],['S0',-60,30],['S1',-30,30],['S2',0,30],['S3',20,30],
+[['NN0',-60,-56],['NN1',-30,-56],['NN2',0,-56],['N0',-60,-30],['N1',-30,-30],['N2',0,-30],['N3',20,-30],['C0',-60,0],['C1',-30,0],['C2',0,0],['CE',20,0],['S0',-60,30],['S1',-30,30],['S2',0,30],['S3',20,30],
 // highway west, farm bays, roundabout, inland town
  ['F1',-74,0],['B1',-79,-4],['PB2',-83,-4],['PB',-96,-4],['B2',-106,-4],['F2',-112,0],['RA',-117,-5],['RB',-123,0],['RC',-117,5],['W1',-130,0],['IT',-240,0],['TA',-248,-8],['CD',-258,-8],['TB',-266,0],['TC',-258,8],['TD',-248,8],
 // port approach, empty depot loop, yard, market, plug-in depot, airport
@@ -1441,7 +1443,7 @@ function RE(a,b,two,bridge){const A=ROAD.nodes[a],B=ROAD.nodes[b];const len=A.p.
 // bay bridge (south) and Bay City; forest road (north of the inland town) and the forest town
  ['SW',-70,70],['SB',-70,104],['BR1',-70,130,7],['BR2',-70,174,7],['BC',-70,200],['BE',-25,200],['BD1',-32,210],['CDB',-50,216],['BD2',-68,210],['BX',-112,200],
  ['FR',-240,-40],['FT',-240,-70],['FA',-232,-78],['FS',-224,-86],['FB',-216,-78]].forEach(([k,x,z,y])=>RN(k,x,z,y));
-[['N0','N1'],['N1','N2'],['N2','N3'],['C0','C1'],['C1','C2'],['C2','CE'],['S0','S1'],['S1','S2'],['S2','S3'],['N0','C0'],['C0','S0'],['N1','C1'],['C1','S1'],['N2','C2'],['C2','S2'],['N3','CE'],['CE','S3'],['C0','F1'],['F1','F2'],['W1','RB'],['W1','IT'],['S3','AS'],['S0','SW'],['SW','SB'],['BC','BE'],['BC','BX'],['IT','FR'],['FR','FT']].forEach(([a,b])=>RE(a,b,true));
+[['N0','N1'],['N1','N2'],['N2','N3'],['C0','C1'],['C1','C2'],['C2','CE'],['S0','S1'],['S1','S2'],['S2','S3'],['N0','C0'],['C0','S0'],['N1','C1'],['C1','S1'],['N2','C2'],['C2','S2'],['N3','CE'],['CE','S3'],['NN0','NN1'],['NN1','NN2'],['N0','NN0'],['N1','NN1'],['N2','NN2'],['C0','F1'],['F1','F2'],['W1','RB'],['W1','IT'],['S3','AS'],['S0','SW'],['SW','SB'],['BC','BE'],['BC','BX'],['IT','FR'],['FR','FT']].forEach(([a,b])=>RE(a,b,true));
 [['SB','BR1'],['BR1','BR2'],['BR2','BC']].forEach(([a,b])=>RE(a,b,true,true));
 [['F1','B1'],['B1','PB2'],['PB2','PB'],['PB','B2'],['B2','F2'],['F2','RA'],['RA','RB'],['RB','RC'],['RC','F2'],['IT','TA'],['TA','CD'],['CD','TB'],['TB','TC'],['TC','TD'],['TD','IT'],
  ['CE','WB'],['WB','GT'],['GT','ST'],['ST','PX'],['PX','PY'],['PY','PO'],['PO','S3'],['N3','DX'],['DX','ED'],['ED','DN'],['DN','DW'],['DW','N3'],
@@ -1550,7 +1552,7 @@ function otherPlan(v){v.plan=[{at:'WB',do:'weigh'},{at:'GT',do:'gate'},{at:'ST',
 function localPlan(v){v.alt=!v.alt;v.plan=[{at:'PB2',do:'loadLocal'},{at:v.alt?'FS':'SM',do:'unloadLocal'},{at:'YD',do:'park'}];v.planI=0;}
 function haulPlan(v){v.plan=[{at:'PB2',do:'loadHaul'},{at:v.dest||'CD',do:'unloadTown'},{at:'YD',do:'park'}];v.planI=0;}
 function airPlan(v){v.plan=[{at:'PB2',do:'loadAir'},{at:'AC',do:'unloadAir'}];v.planI=0;}
-const CAR_NODES=['N0','N1','N2','N3','C0','C1','C2','CE','S0','S1','S2','S3','AS','IT','TB','BC','BE','BX','FT','FR'];
+const CAR_NODES=['NN0','NN1','NN2','N0','N1','N2','N3','C0','C1','C2','CE','S0','S1','S2','S3','AS','IT','TB','BC','BE','BX','FT','FR'];
 function carPlan(v){let k;do{k=pick(CAR_NODES);}while(k===v.node);v.plan=[{at:k,do:'pause'}];v.planI=0;}
 const PLATE=()=>'CA '+Math.floor(rnd(100,999))+'-'+Math.floor(rnd(100,999));
 function spawnFleet(){
@@ -1576,6 +1578,41 @@ box(world,44,.05,36,0xc9c4b4,-255,0,0).castShadow=false;
 shed(world,{x:-258,z:-17,w:14,d:8,h:4.6,panel:true,flat:true,units:3,wall:0xeef2f5,trim:0x2f5f9e,doors:[{at:0,w:3.2,h:3.2,open:true}],sign:'Client depot',signSub:'Inland distribution',signW:6});
 shed(world,{x:-248,z:17,w:10,d:7,h:4.2,wall:0xe9edf0,roof:0x7f8c93,trim:0xd68910,ry:Math.PI,doors:[{at:0,w:3,h:3.2,open:true}],sign:'Inland packhouse',signSub:'Other exporters',signW:6});
 const townHit=new THREE.Mesh(new THREE.BoxGeometry(44,8,40),new THREE.MeshBasicMaterial({visible:false}));townHit.position.set(-255,4,0);world.add(townHit);
+// ---- the Labia Theatre (Orange Street's old independent cinema) on the new north block, and Lyudmila's flat across the street
+const theatre=new THREE.Group();theatre.position.set(-15,0,-41);world.add(theatre);
+{const cream=0xf3e9d2,red=0xb8352b,dark=0x2c3633;
+ rbox(theatre,14,6.5,10,cream,0,0,0,.08);rbox(theatre,14.3,.5,10.3,dark,0,6.5,0,.05);           // hall and parapet band
+ rbox(theatre,8,1.6,10.2,cream,0,7,0,.06);rbox(theatre,3.6,1,10.4,cream,0,8.6,0,.06);           // stepped art-deco top
+ [-5.2,-2.6,2.6,5.2].forEach(x=>rbox(theatre,.5,6.4,.35,0xe2d3b4,x,0,5.1,.04));                 // pilasters on the front
+ rbox(theatre,10.4,.45,2.6,red,0,3.5,6.2,.08);rbox(theatre,10.4,.12,2.6,0xf2c14e,0,3.95,6.2,.04);// red marquee with a gold lip
+ const marquee=new THREE.Mesh(new THREE.PlaneGeometry(9.6,1.4),new THREE.MeshBasicMaterial({map:canvasTex(768,112,(c,w,h)=>{c.fillStyle='#f6efe0';c.fillRect(0,0,w,h);c.fillStyle='#b8352b';c.font='bold 72px Georgia, serif';c.textBaseline='middle';c.textAlign='center';c.fillText('THE LABIA',w/2,h/2+4);})}));marquee.position.set(0,2.75,7.52);theatre.add(marquee);
+ const blade=rbox(theatre,.35,4.6,1.6,red,6.9,1.6,5.4,.06);const neon=new THREE.Mesh(new THREE.PlaneGeometry(1.2,4.2),new THREE.MeshBasicMaterial({map:canvasTex(96,336,(c,w,h)=>{c.fillStyle='#b8352b';c.fillRect(0,0,w,h);c.fillStyle='#fff3c4';c.font='bold 54px Georgia, serif';c.textAlign='center';'LABIA'.split('').forEach((ch,i)=>c.fillText(ch,w/2,52+i*60));})}));neon.position.set(7.08,1.9,5.4);neon.rotation.y=Math.PI/2;theatre.add(neon);
+ [-1.3,1.3].forEach(x=>{const d=new THREE.Mesh(new THREE.BoxGeometry(1.2,2.6,.12),glassMat);d.position.set(x,1.3,5.12);theatre.add(d);});
+ [[-4,0x2e86c1],[4,0xd68910]].forEach(([x,col])=>{rbox(theatre,1.6,2.2,.1,0xf4f6f6,x,1.1,5.14,.02);rbox(theatre,1.3,1.9,.06,col,x,1.25,5.2,.02);}); // film posters
+ rbox(theatre,12,.06,3,0xd9cfbc,0,0,6.6,.02);                                                      // forecourt
+ const lamp=new THREE.PointLight(0xffd9a0,0,18,1.8);lamp.position.set(0,4.5,7.5);theatre.add(lamp);nightLights.push(lamp);}
+const theatreHit=new THREE.Mesh(new THREE.BoxGeometry(16,9,14),new THREE.MeshBasicMaterial({visible:false}));theatreHit.position.set(-15,4.5,-41);world.add(theatreHit);
+// Lyudmila's flat: a small apartment block with balconies on the block across the street
+const flat=new THREE.Group();flat.position.set(-45,0,-40);world.add(flat);
+{rbox(flat,9,13,8,0xe8dccb,0,0,0,.08);rbox(flat,9.3,.5,8.3,0x8a5a3a,0,13,0,.05);
+ for(let f=0;f<4;f++){rbox(flat,9.1,.3,.5,0xf4efe6,0,2.6+f*3,4.2,.03);for(let k=-1;k<=1;k++){const w=new THREE.Mesh(new THREE.BoxGeometry(1.4,1.5,.1),winMat);w.position.set(k*2.8,3.5+f*3,4.06);flat.add(w);rbox(flat,2,.8,1.2,0xd9cdb8,k*2.8,2.6+f*3,4.6,.04);}}
+ const d=new THREE.Mesh(new THREE.BoxGeometry(1.4,2.4,.12),M(0x5a3a2a));d.position.set(0,1.2,4.06);flat.add(d);rbox(flat,3,.2,1.6,0xc9c0b0,0,0,4.8,.02);
+ const pl=new THREE.Mesh(new THREE.PlaneGeometry(2.2,.6),new THREE.MeshBasicMaterial({map:canvasTex(352,96,(c,w,h)=>{c.fillStyle='#8a5a3a';c.fillRect(0,0,w,h);c.fillStyle='#fff3c4';c.font='bold 40px Georgia, serif';c.textAlign='center';c.textBaseline='middle';c.fillText('ORANGE COURT',w/2,h/2);})}));pl.position.set(0,2.9,4.1);flat.add(pl);}
+// pavement and a zebra crossing between the flat and the theatre
+box(world,46,.04,2.4,0xd9d3c6,-30,.02,-35.2).castShadow=false;
+for(let i=0;i<5;i++)box(world,.6,.025,2.2,0xf4f1e8,-32+i*1,.085,-35.2).castShadow=false;
+const lyud={g:makePerson(0xb8352b),state:'home',t:3,s:0,seen:0};
+{const hair=new THREE.Mesh(new THREE.SphereGeometry(.26,8,6),M(0xe8c45a));hair.position.y=1.14;hair.scale.y=.9;lyud.g.add(hair);lyud.g.children[2].visible=false;const bag=rbox(lyud.g,.28,.3,.14,0x2c3633,.3,.55,0,.03);}
+lyud.g.position.set(-45,0,-35.2);lyud.g.visible=false;world.add(lyud.g);tag(lyud.g,'person',lyud);
+const LYUD_PATH=[[-45,-34.6],[-33.5,-35.2],[-27,-35.2],[-15,-34.6]].map(([x,z])=>new THREE.Vector3(x,0,z));
+const LYUD_LEN=LYUD_PATH.reduce((a,p,i)=>i?a+p.distanceTo(LYUD_PATH[i-1]):0,0);
+function lyudStep(dt){const L=lyud;const g=L.g;
+ if(L.state==='home'||L.state==='film'){L.t-=dt;if(L.t<=0){L.state=L.state==='home'?'toTheatre':'toHome';L.s=L.state==='toTheatre'?0:LYUD_LEN;g.visible=true;if(L.state==='toTheatre')alertMsg('Lyudmila leaves Orange Court for the evening show at the Labia');}return;}
+ const dir=L.state==='toTheatre'?1:-1;L.s=clamp(L.s+dir*1.7*dt*(weather==='rain'?.8:1),0,LYUD_LEN);
+ let d=L.s,k=0;while(k<LYUD_PATH.length-2){const seg=LYUD_PATH[k].distanceTo(LYUD_PATH[k+1]);if(d<=seg)break;d-=seg;k++;}
+ const a=LYUD_PATH[k],b=LYUD_PATH[k+1];const u=clamp(d/(a.distanceTo(b)||1),0,1);g.position.lerpVectors(a,b,u);g.position.y=Math.abs(Math.sin(clockT*9))*.07;g.rotation.y=Math.atan2((b.x-a.x)*dir,(b.z-a.z)*dir);
+ if((dir>0&&L.s>=LYUD_LEN)||(dir<0&&L.s<=0)){g.visible=false;if(dir>0){L.state='film';L.t=rnd(26,40);L.seen++;}else{L.state='home';L.t=rnd(14,24);}}}
+
 // Bay City: towers on the waterfront, client depot B, an airstrip for the GFS freighter
 box(world,110,.05,24,0xc9c4b4,-70,0,208).castShadow=false;
 skyline(world,{n:30,x0:-126,x1:-84,z0:208,z1:234,hMin:9,hMax:30,cols:[0xcfe3ee,0x9fc6d6,0xeef1f2,0xe2dccd],box:true,wMin:3,wMax:6});skyline(world,{n:10,x0:-126,x1:-84,z0:184,z1:192,hMin:8,hMax:18,cols:[0xcfe3ee,0x9fc6d6,0xeef1f2],box:true,wMin:3,wMax:5});
@@ -1848,7 +1885,7 @@ function tick(now){requestAnimationFrame(tick);let dt=Math.max(0,Math.min(.05,(n
  const fs=[...binTrucks].sort((a,b)=>a.s-b.s);fs.forEach((t,i)=>{const ahead=fs[(i+1)%fs.length];binTruckStep(t,dt,ahead!==t?ahead:null);
   const p=farmCurve.getPointAt(cu(t.s,FLOOP),tmpP);const tg=farmCurve.getTangentAt(cu(t.s,FLOOP),tmpT);t.g.position.set(p.x,0,p.z);t.g.rotation.y=Math.atan2(tg.x,tg.z);});
  // road vehicles: trucks, long-distance, local, air and cars plan their own routes on the road network
- vehicles.forEach(v=>vehicleStep(v,dt));bayForkStep(dt);voyagerStep(dt);
+ vehicles.forEach(v=>vehicleStep(v,dt));bayForkStep(dt);voyagerStep(dt);lyudStep(dt);
  waitT+=dt;if(vessel.state==='berthed'&&waitT>20)waitShip.visible=true;
  // gate barrier
  if(gateOpenT>0){gateOpenT-=dt;gateBar.rotation.x=-Math.PI/2.4;gateBar.position.y=2.6;}else{gateBar.rotation.x=0;gateBar.position.y=1.3+.09;}
@@ -1877,10 +1914,10 @@ function tick(now){requestAnimationFrame(tick);let dt=Math.max(0,Math.min(.05,(n
  if(fly){fly.t+=dt/fly.dur;const k=ease(Math.min(1,fly.t));camera.position.lerpVectors(fly.p0,fly.p1,k);controls.target.lerpVectors(fly.t0,fly.t1,k);if(fly.t>=1){fly=null;if(follow){const p=worldPosOf(follow.sel);if(p)follow.last=p;}}}
  else if(follow){const p=worldPosOf(follow.sel);if(p&&follow.last){const d=p.clone().sub(follow.last);camera.position.add(d);controls.target.add(d);follow.last=p;}}
  // selection ring
- if(selected){const p=worldPosOf(selected.type==='container'&&!selected.ref.mesh?{type:'none'}:selected);
+ if(selected){const p=worldPosOf(selected.type==='container'&&!selected.ref.mesh?{type:'none'}:selected.type==='person'&&!selected.ref.g.visible?{type:'none'}:selected);
   const shipSel=selected.type==='container'&&(!selected.ref.mesh||selected.ref.where==='At sea')?ships.find(s=>s.boxes.includes(selected.ref)):null;
   const pp=shipSel?shipSel.g.getWorldPosition(new THREE.Vector3()):p;
-  if(pp){ring.visible=true;const big=['apples','grapes','airport','hq','transport','farm','pack','coldroom','depot','staging','yard','vessel','dstack','customs','warehouse','ddepot','market','town','bay','forest','voyager','waiting'].includes(selected.type)?(selected.type==='vessel'||selected.type==='voyager'||selected.type==='waiting'?30:selected.type==='town'||selected.type==='forest'?24:selected.type==='bay'?50:14):(selected.type==='port'||selected.type==='ship'||shipSel?2.6:4.8);ring.position.set(pp.x,(pp.z<-200?1.2:.2),pp.z);ring.scale.setScalar(big*(1+Math.sin(clockT*4)*.06));
+  if(pp){ring.visible=true;const big=['apples','grapes','airport','hq','transport','farm','pack','coldroom','depot','staging','yard','vessel','dstack','customs','warehouse','ddepot','market','town','bay','forest','voyager','waiting','theatre'].includes(selected.type)?(selected.type==='vessel'||selected.type==='voyager'||selected.type==='waiting'?30:selected.type==='town'||selected.type==='forest'?24:selected.type==='bay'?50:14):(selected.type==='port'||selected.type==='ship'||shipSel?2.6:selected.type==='person'?1.4:4.8);ring.position.set(pp.x,(pp.z<-200?1.2:.2),pp.z);ring.scale.setScalar(big*(1+Math.sin(clockT*4)*.06));
    selLabel.el.hidden=false;selLabel.obj=null;selLabel.pos=new THREE.Vector3(pp.x,pp.y+(pp.z<-200?6:selected.type==='vessel'||selected.type==='voyager'||selected.type==='waiting'?14:6),pp.z);selLabel.el.textContent=labelText(selected);}
   else{ring.visible=false;selLabel.el.hidden=true;}}
  else{ring.visible=false;selLabel.el.hidden=true;}
@@ -1891,10 +1928,10 @@ function tick(now){requestAnimationFrame(tick);let dt=Math.max(0,Math.min(.05,(n
  if(composer)composer.render();else renderer.render(scene,camera);updateLabels();fpsCheck(dt);
  if(toastT>0){toastT-=dt;if(toastT<=0)$('#toast').style.opacity=0;}
  uiT+=dt;if(uiT>.5){uiT=0;$('#clock').textContent=fmt(sim);renderKPIs();
-  if(!hoverDetail&&(!selected||['truck','bintruck','dtruck','airtruck','plane','airport','hq','transport','ship','pack','coldroom','depot','staging','vessel','yard','crane','farm','container','dstack','customs','warehouse','ddepot','market','town','bay','forest','voyager','waiting'].includes(selected.type)))renderDetail();
+  if(!hoverDetail&&(!selected||['truck','bintruck','dtruck','airtruck','plane','airport','hq','transport','ship','pack','coldroom','depot','staging','vessel','yard','crane','farm','container','dstack','customs','warehouse','ddepot','market','town','bay','forest','voyager','waiting','theatre','person'].includes(selected.type)))renderDetail();
   renderTracker();if(!hoverTable&&$('#tablebox').classList.contains('open'))renderTable();if(Math.random()<.1)refreshDatalist();}
 }
-function labelText(s){return s.type==='market'?'Supermarket DC':s.type==='town'?'Inland town':s.type==='bay'?'Bay City':s.type==='forest'?'Forest town':s.type==='voyager'?s.ref.name:s.type==='waiting'?'Waiting for a berth':s.type==='truck'?s.ref.plate:s.type==='container'?s.ref.id:s.type==='ship'?s.ref.name:s.type==='port'?s.ref.name:s.type==='vessel'?vessel.name:s.type==='crane'?s.ref.name:s.type==='farm'?'Block 7':s.type==='pack'?'Packhouse':s.type==='depot'?'Empty depot':s.type==='yard'?'Reefer stack':s.type==='bintruck'?s.ref.plate:s.type==='coldroom'?'Bin cold room':s.type==='apples'?'Apple orchard':s.type==='grapes'?'Table grapes':s.type==='staging'?'Plug-in depot':s.type==='airtruck'?s.ref.plate:s.type==='plane'?'GFS freighter':s.type==='airport'?'Air freight terminal':s.type==='hq'?'GFS HQ':s.type==='transport'?'Transporter office':s.type==='dtruck'?s.ref.plate:s.type==='dstack'?'Discharge stack':s.type==='customs'?'Customs':s.type==='warehouse'?'Client warehouse':s.type==='ddepot'?'Empty return depot':'';}
+function labelText(s){return s.type==='theatre'?'The Labia Theatre':s.type==='person'?'Lyudmila':s.type==='market'?'Supermarket DC':s.type==='town'?'Inland town':s.type==='bay'?'Bay City':s.type==='forest'?'Forest town':s.type==='voyager'?s.ref.name:s.type==='waiting'?'Waiting for a berth':s.type==='truck'?s.ref.plate:s.type==='container'?s.ref.id:s.type==='ship'?s.ref.name:s.type==='port'?s.ref.name:s.type==='vessel'?vessel.name:s.type==='crane'?s.ref.name:s.type==='farm'?'Block 7':s.type==='pack'?'Packhouse':s.type==='depot'?'Empty depot':s.type==='yard'?'Reefer stack':s.type==='bintruck'?s.ref.plate:s.type==='coldroom'?'Bin cold room':s.type==='apples'?'Apple orchard':s.type==='grapes'?'Table grapes':s.type==='staging'?'Plug-in depot':s.type==='airtruck'?s.ref.plate:s.type==='plane'?'GFS freighter':s.type==='airport'?'Air freight terminal':s.type==='hq'?'GFS HQ':s.type==='transport'?'Transporter office':s.type==='dtruck'?s.ref.plate:s.type==='dstack'?'Discharge stack':s.type==='customs'?'Customs':s.type==='warehouse'?'Client warehouse':s.type==='ddepot'?'Empty return depot':'';}
 /* =========================================================
    GUIDED TOUR — "How GFS works"
    ========================================================= */

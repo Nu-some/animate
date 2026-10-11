@@ -57,6 +57,7 @@ Buildings placed automatically along the streets are checked against every road 
 - **Air freight terminal:** a GFS air-freight truck brings pallets from the pallet cold store. They are built into ULDs and a freighter takes off and lands again.
 - **GFS HQ:** operations, planning and control.
 - **Transporter yard:** transport partners and dispatch. Every truck starts and ends its job here.
+- **The Labia Theatre:** the old independent cinema on the city's new north blocks. Lyudmila walks from her flat at Orange Court, over the zebra crossing, to the evening show and home again after the credits. Click her or the theatre.
 - **Supermarket DC and inland town:** the local market and the client depot at the far end of the road.
 
 ## Network
