@@ -424,12 +424,13 @@ const surfMats=[];
 function shoreline(parent,w,d,x,z){const beach=new THREE.Mesh(new THREE.BoxGeometry(w+3,.45,d+3),M(0xe9dfc3));beach.position.set(x,-.42,z);beach.receiveShadow=true;parent.add(beach);
  const sm=new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:.55,roughness:1});surfMats.push(sm);
  [[w+6,1.4,0,d/2+2.4],[w+6,1.4,0,-d/2-2.4],[1.4,d+6,w/2+2.4,0],[1.4,d+6,-w/2-2.4,0]].forEach(([a,b,dx,dz])=>{const m=new THREE.Mesh(new THREE.BoxGeometry(a,.06,b),sm);m.position.set(x+dx,-.5,z+dz);parent.add(m);});}
+const themeAnimsGlobal=[];
 const scene=new THREE.Scene();
 const DAY_SKY=new THREE.Color(0xa9cfe0),NIGHT_SKY=new THREE.Color(0x0b1626);
 scene.background=DAY_SKY.clone();
 scene.fog=new THREE.FogExp2(0xa9cfe0,0.0016);
 const camera=new THREE.PerspectiveCamera(38,innerWidth/innerHeight,1,1600);
-camera.position.set(60,56,70);
+camera.position.set(190,150,230);
 const controls=new THREE.OrbitControls(camera,renderer.domElement);
 controls.target.set(16,0,0);
 controls.mouseButtons={LEFT:THREE.MOUSE.PAN,MIDDLE:THREE.MOUSE.DOLLY,RIGHT:THREE.MOUSE.ROTATE};
@@ -1011,7 +1012,33 @@ function vineyard(g,x0,x1,z0,z1){for(let z=z0;z<=z1;z+=2.2){const n=Math.floor((
 function fynbos(g,rects){scatter(g,'shrub',rects,1.6);const pts=[];rects.forEach(([x0,x1,z0,z1])=>{for(let i=0;i<(x1-x0)*(z1-z0)/60;i++)pts.push([rnd(x0,x1),rnd(z0,z1)]);});
  const st=new THREE.InstancedMesh(new THREE.CylinderGeometry(.04,.06,1.3,5),M(0x5a6a3a),pts.length),fl=new THREE.InstancedMesh(new THREE.ConeGeometry(.32,.7,7),new THREE.MeshStandardMaterial({roughness:.8}),pts.length);const col=new THREE.Color();
  pts.forEach(([x,z],i)=>{dummy.position.set(x,.65,z);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();st.setMatrixAt(i,dummy.matrix);dummy.position.set(x,1.55,z);dummy.updateMatrix();fl.setMatrixAt(i,dummy.matrix);fl.setColorAt(i,col.setHex(pick([0xe88aa8,0xf2a7b9,0xd96a8a,0xf4c6a0])));});g.add(st,fl);}
-const CITY=(g,c)=>patch(g,42,54,c,92,-86); // visible city zone: x 30..112, z -62..-112 (land patch past the quay)
+const CITY=(g,c)=>patch(g,42,54,c,92,-86);
+// second berth: a feeder vessel alongside with a mobile harbour crane
+const feeder=new THREE.Group();feeder.position.set(76,0,60);world.add(feeder);shipHull(feeder,0x2c3633,8,34,0);
+{const ss=new THREE.Group();ss.position.set(0,2,-12);feeder.add(ss);rbox(ss,7,2,4.5,0xf4f5f2,0,0,0,.15);rbox(ss,6.4,2,4,0xf4f5f2,0,2,-.2,.15);rbox(ss,9,.3,2,0xf4f5f2,0,4,.6,.08);rbox(ss,2,3,2,0x2e86c1,0,4.2,-1.2,.2);
+ const w=new THREE.Mesh(new THREE.BoxGeometry(6.2,.5,.05),winMat);w.position.set(0,3,2.05);ss.add(w);
+ for(let b=0;b<4;b++)for(let r=0;r<3;r++)if(Math.random()<.7){const c=makeContainer(pick([0xc0392b,0x2e86c1,0xd68910,0x5d6d7e,0xeef1f2]));c.position.set(-2.2+r*2.2,2,-5+b*5.9);feeder.add(c);}}
+{const hc=new THREE.Group();hc.position.set(65.5,0,52);world.add(hc);rbox(hc,4.6,1.2,4.6,0x2c3633,0,0,0,.15);[[-1.6,-1.6],[1.6,-1.6],[-1.6,1.6],[1.6,1.6]].forEach(([x,z])=>wheel(hc,x,z,.5));
+ cylF(hc,2.2,2.4,1,0xf2c14e,0,0,20,1.2);rbox(hc,2.6,9,2.6,0xf2c14e,0,2.2,0,.2);rbox(hc,2.2,1.6,2,0xf4f6f6,1.2,3.4,1.6,.2);const bm=rbox(hc,.9,26,.9,0xf2c14e,0,0,0,.12);bm.position.set(3.5,16,0);bm.rotation.z=-.55;
+ const hook=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(15.6,26.5,0),new THREE.Vector3(15.6,9,0)]),new THREE.LineBasicMaterial({color:0x1c1f22}));hc.add(hook);rbox(hc,1.4,.5,1.2,0x2c3633,15.6,8.5,0,.1);}
+// straddle carriers working the reefer lanes
+const straddles=[];
+function makeStraddle(){const g=new THREE.Group();const C=0xf2c14e;[[-1.5,-3],[1.5,-3],[-1.5,3],[1.5,3]].forEach(([x,z])=>{rbox(g,.4,6.4,.4,C,x,.6,z,.08);wheel(g,x,z,.5);});
+ [-1.5,1.5].forEach(x=>rbox(g,.5,.5,7,C,x,6.6,0,.08));[-3,3].forEach(z=>rbox(g,3.6,.5,.5,C,0,6.6,z,.08));rbox(g,1.6,1.4,1.6,0xf4f6f6,1.6,4.6,-2.4,.2);
+ rbox(g,2.2,.3,6,0x2c3633,0,5.8,0,.05);const c=makeContainer(pick([0xeef1f2,0x2e86c1]));c.position.y=3.8;c.visible=false;g.add(c);world.add(g);return {g,c};}
+[13.5,20.5].forEach((z,i)=>{const o=makeStraddle();o.g.position.set(42+i*8,0,z);straddles.push({...o,z,x:42+i*8,dir:i?-1:1,v:rnd(2.2,3)});});
+function straddleStep(dt){straddles.forEach(s=>{s.x+=s.dir*s.v*dt;if(s.x>55){s.x=55;s.dir=-1;s.c.visible=!s.c.visible;}if(s.x<40){s.x=40;s.dir=1;s.c.visible=!s.c.visible;}s.g.position.set(s.x,0,s.z);s.g.rotation.y=s.dir>0?Math.PI/2:-Math.PI/2;});}
+// rubber-tyred gantry over the general stacks
+{const rt=new THREE.Group();rt.position.set(46,0,-15);world.add(rt);const C=0x2e86c1;[-8,8].forEach(x=>{rbox(rt,.6,11,.6,C,x,0,-5,.1);rbox(rt,.6,11,.6,C,x,0,5,.1);rbox(rt,.6,.6,10.6,C,x,11,0,.1);[-4,4].forEach(z=>wheel(rt,x,z,.55));});
+ [-.6,.6].forEach(z=>rbox(rt,17.4,.7,.5,C,0,11.3,z,.1));const tr=rbox(rt,2.4,.9,2.6,0xf2c14e,0,11.9,0,.1);rbox(rt,1.2,1.2,1.2,0xf4f6f6,-9,9,0,.2);
+ const sp=rbox(rt,2.3,.3,5.8,0x2c3633,0,8.4,0,.05);const cab=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-.8,11.9,0),new THREE.Vector3(-.8,8.7,0),new THREE.Vector3(.8,11.9,0),new THREE.Vector3(.8,8.7,0)]),new THREE.LineBasicMaterial({color:0x1c1f22}));rt.add(cab);
+ themeAnimsGlobal.push(dt=>{const x=Math.sin(clockT*.25)*6;tr.position.x=x;sp.position.x=x;const a=cab.geometry.attributes.position;a.setX(0,x-.8);a.setX(1,x-.8);a.setX(2,x+.8);a.setX(3,x+.8);a.needsUpdate=true;});}
+// port name gantry over the approach road
+const portSign=new THREE.Mesh(new THREE.PlaneGeometry(12,2.2),new THREE.MeshBasicMaterial({color:0xffffff}));
+{[-4.6,4.6].forEach(z=>rbox(world,.5,7,.5,0x2c3633,37,0,z,.06));rbox(world,.6,2.6,10.2,0x2c3633,37,6.6,0,.08);portSign.position.set(37.32,7.9,0);portSign.rotation.y=Math.PI/2;world.add(portSign);const back=portSign.clone();back.rotation.y=-Math.PI/2;back.position.x=36.68;world.add(back);portSign.userData.back=back;}
+function setPortSign(name){const t=canvasTex(1024,188,(c,w,h)=>{c.fillStyle='#0d1714';c.fillRect(0,0,w,h);c.fillStyle='#3dbb74';c.fillRect(0,h-14,w,14);c.fillStyle='#ffffff';c.font='bold 92px Arial, sans-serif';c.textBaseline='middle';c.textAlign='center';c.fillText(('PORT OF '+name).toUpperCase(),w/2,h/2-6);});
+ portSign.material.map=t;portSign.material.needsUpdate=true;portSign.userData.back.material=portSign.material;}
+ // visible city zone: x 30..112, z -62..-112 (land patch past the quay)
 const OT={
  CPT:{ground:0xa9c57c,lerp:.28,orchard:0x93b462,desc:"Table Mountain and its tablecloth cloud, Devil's Peak, Lion's Head and Signal Hill above the City Bowl; the Waterfront, Cape Town Stadium and Robben Island in the bay. Citrus and vineyards from the Boland behind.",
   build(g,A){const MC=[[0,0xa9c982],[.3,0xb6c486],[.55,0xc6b894],[.8,0xd3c3a0],[1,0xe0d3b2]];
@@ -1030,17 +1057,26 @@ const OT={
    patch(g,22,10,0xb9b08a,130,-150);hill(g,5,.4,0x8a9a62,126,-150);lighthouse(g,136,-150,6,0xf4f6f6,0x2c3633);
    capeDutch(g,-62,40,0);windpump(g,-52,60,A);vineyard(g,-74,-50,33,44);scatter(g,'umbrella',[[-70,-45,50,78]],.25);scatter(g,'round',[[44,64,48,78],[0,12,10,36],[30,37,24,33],[-30,-14,-60,-50]],1);
    scatter(g,'cypress',[[-75,-50,45,48]],1.2);}},
- PLZ:{ground:0xdccfa8,orchard:0x8fb262,desc:"Gqeberha (Port Elizabeth): the Campanile, the Donkin Reserve lighthouse and pyramid, aloes and the Sundays River Valley citrus.",
-  build(g,A){[[-95,-88,26],[-55,-94,30],[-12,-90,24]].forEach(([x,z,r])=>hill(g,r,.42,pick([0x9aa57f,0xa8ad86]),x,z));
+ PLZ:{ground:0xcfcf9a,lerp:.4,orchard:0x8fb262,desc:"Gqeberha (Port Elizabeth): the Campanile, the Donkin pyramid and lighthouse, Nelson Mandela Bay Stadium, the windy Algoa Bay shore, aloes and the Sundays River Valley citrus.",
+  build(g,A){const MC=[[0,0x9fb37a],[.6,0xb5b58a],[1,0xc9c39e]];patch(g,210,70,0xcfcf9a,-30,-128);
+   massif(g,{x:-70,z:-114,rx:34,rz:14,h:12,rough:.1,cliff:9,prof:[[0,1],[.5,.75],[1,.4]],cols:MC});massif(g,{x:14,z:-112,rx:28,rz:13,h:10,rough:.1,cliff:9,prof:[[0,1],[.5,.75],[1,.4]],cols:MC});
+   scatter(g,'aloe',[[-110,40,-96,-60]],1.4);scatter(g,'shrub',[[-110,40,-80,-60]],.8);
    CITY(g,0xdcd5c2);skyline(g,{n:44,x0:36,x1:108,z0:-76,z1:-110,hMin:3,hMax:12,cols:[0xf4f1e8,0xeae2d0,0xd9d0bc]});
    bx(g,2,16,2,0xb5553a,80,0,-64);cone(g,1.6,2.2,0x7a3a2a,80,-64,4,16);bx(g,2.6,1.4,2.6,0xb5553a,80,13,-64);
    cone(g,4,4,0xe8e2d4,96,-66,4);lighthouse(g,101,-66,7,0xf4f6f6,0xf4f6f6);stadium(g,52,-70,8,0xf4f6f6,0xb5553a);
-   scatter(g,'aloe',[[-110,30,-72,-58],[-70,-45,50,78]],1.2);scatter(g,'round',RECTS_O,.7);}},
- DUR:{ground:0xc8c895,orchard:0x82b05a,desc:"Durban: Moses Mabhida Stadium's arch, the Golden Mile beachfront towers and the green hills of KwaZulu-Natal.",
-  build(g,A){[[-100,-86,30],[-60,-92,34],[-18,-90,28]].forEach(([x,z,r])=>hill(g,r,.55,pick([0x5f8f4a,0x6a9a50,0x4f7f40]),x,z));
-   CITY(g,0xd9d2bc);bx(g,6,.3,54,0xeadcb0,110,-.25,-86).castShadow=false;skyline(g,{n:60,x0:84,x1:106,z0:-64,z1:-110,hMin:12,hMax:34,cols:[0xf4f1e8,0xeae2d0,0xdff0f4,0xe8d8c0],wMin:3,wMax:5});
-   skyline(g,{n:24,x0:58,x1:82,z0:-90,z1:-110,hMin:4,hMax:12,cols:[0xe8e2d4,0xcfe3ee]});stadium(g,48,-74,9,0xf4f6f6);archOver(g,48,-74,13,0xf4f6f6,0);
-   scatter(g,'palm',RECTS_O,1.1);scatter(g,'rain',[[-110,20,-72,-60]],.6);}},
+   for(let i=0;i<3;i++){const w=new THREE.Group();w.position.set(-96+i*9,0,-100);g.add(w);cylF(w,.25,.4,14,0xf4f6f6,0,0,8);const hub=new THREE.Group();hub.position.set(0,14,1);w.add(hub);for(let k=0;k<3;k++){const bl=new THREE.Mesh(new THREE.BoxGeometry(.5,7,.1),fm(0xf4f6f6));bl.position.y=3.5;const arm=new THREE.Group();arm.rotation.z=k*Math.PI*2/3;arm.add(bl);hub.add(arm);}A.push(dt=>{hub.rotation.z+=dt*(weather==='wind'?3:1.4);});}
+   boats(g,96,-50,4,[0xf4f6f6,0x2e86c1],A,true);scatter(g,'aloe',[[-70,-45,50,78]],1.2);scatter(g,'round',RECTS_O,.7);}},
+ DUR:{ground:0x9fc27a,lerp:.3,orchard:0x82b05a,desc:"Durban: the Bluff and the green hills of KwaZulu-Natal, Moses Mabhida Stadium's arch, the Golden Mile beachfront towers, the sugar terminal silos and the uShaka pier. Subtropical fruit from the Midlands behind.",
+  build(g,A){const MC=[[0,0x6fa852],[.5,0x7fb05a],[1,0x9ab874]];patch(g,210,70,0x9fc27a,-30,-128);
+   massif(g,{x:-60,z:-116,rx:46,rz:14,h:11,rough:.1,cliff:9,prof:[[0,1],[.5,.8],[1,.5]],cols:MC});
+   [[-104,-96,18,.55],[-20,-104,22,.6],[12,-98,16,.5],[40,-106,20,.5]].forEach(([x,z,r,sy])=>hill(g,r,sy,pick([0x6fa852,0x7fb05a,0x5f9a48]),x,z));
+   scatter(g,'rain',[[-112,40,-96,-62]],.7);scatter(g,'palm',[[-112,40,-70,-60]],.5);
+   CITY(g,0xd9d2bc);bx(g,6,.3,54,0xeadcb0,110,-.25,-86).castShadow=false;skyline(g,{n:40,x0:84,x1:106,z0:-64,z1:-110,hMin:12,hMax:34,cols:[0xf4f1e8,0xeae2d0,0xdff0f4,0xe8d8c0],wMin:3,wMax:5,box:true});
+   skyline(g,{n:24,x0:40,x1:82,z0:-90,z1:-110,hMin:4,hMax:12,cols:[0xe8e2d4,0xcfe3ee]});stadium(g,48,-74,9,0xf4f6f6);archOver(g,48,-74,13,0xf4f6f6,0);
+   for(let i=0;i<4;i++)cylF(g,2.2,2.2,12,0xe8e2d4,60+i*5,-66,16);lighthouse(g,112,-110,8,0xd04a3a,0xf4f6f6);
+   rbox(g,2.6,1.2,22,0xb8b4a8,112,.6,-72,.1);for(let i=0;i<5;i++)cylF(g,.3,.3,2,0x9aa6aa,112,-62-i*5,6);
+   boats(g,100,-50,5,[0xf4f6f6,0xf2c14e],A,true);
+   scatter(g,'palm',RECTS_O,1.1);scatter(g,'cane',[[-75,-50,33,44]],2.4);}},
  PSD:{ground:0xe3d3a5,orchard:0x9ab562,desc:"Port Said: the northern gate of the Suez Canal, the green domes of the Canal Authority building, its old lighthouse and date palms.",
   build(g,A){[[-95,-90,34],[-40,-94,40],[10,-92,26]].forEach(([x,z,r])=>hill(g,r,.18,0xe6cf98,x,z));
    CITY(g,0xe6dcc0);waterPatch(g,7,54,0x3f93b5,76,-86);skyline(g,{n:44,x0:82,x1:110,z0:-74,z1:-110,hMin:3,hMax:11,cols:[0xefe6d2,0xe2d6bc,0xf4f1e8]});
@@ -1324,7 +1360,7 @@ originSel.onchange=()=>setOrigin(originSel.value);
 const destSel=$('#destSel');Object.entries(PORTS).filter(([,p])=>p.role==='d').forEach(([k,p])=>{const o=document.createElement('option');o.value=k;o.textContent=p.name;destSel.appendChild(o);});destSel.value=destKey;
 function setDest(k,silent){applyDestTheme(k);destSel.value=k;destLabels.port.t.textContent='Port of '+PORTS[k].name;if(!silent)toast('Destination side now shows '+PORTS[k].name);renderDetail();}
 destSel.onchange=()=>{setDest(destSel.value);setArea('dest');};
-function setOrigin(k,silent){if(k!==origin||!themeO.children.length)applyOriginTheme(k);origin=k;originSel.value=k;areaLabels.port.t.textContent='Port of '+PORTS[k].name;
+function setOrigin(k,silent){if(k!==origin||!themeO.children.length)applyOriginTheme(k);origin=k;originSel.value=k;setPortSign(PORTS[k].name);areaLabels.port.t.textContent='Port of '+PORTS[k].name;
  areaLabels.depot.s.textContent='Wash & PTI · '+PORTS[k].name;
  if(vessel.state==='berthed'&&vessel.gfs===0)newVoyage();renderDetail();renderTable();if(!silent)toast('Local chain now runs from '+PORTS[k].name);}
 $('#weather').onchange=e=>{weather=e.target.value;applyWeather();};
@@ -1608,6 +1644,7 @@ let fpsT=0,fpsN=0,fpsLow=0;
 function fpsCheck(dt){if(!composer||forceHQ)return;fpsT+=dt;fpsN++;if(fpsT>=2){const f=fpsN/fpsT;fpsT=0;fpsN=0;if(f<24){if(++fpsLow>=2){setQuality(false);toast('Switched to fast mode for smoother motion');}}else fpsLow=0;}}
 function setQuality(on){HQ=on;setupComposer(on);$('#hqBtn').setAttribute('aria-pressed',String(on));applyLight();}
 newVoyage();buildVessel();vesselGroup.position.set(76,0,4);
+if(!reduceMotion){fly={t:0,dur:5.5,p0:camera.position.clone(),p1:new THREE.Vector3(60,56,70),t0:new THREE.Vector3(16,0,0),t1:new THREE.Vector3(16,0,0)};}else{camera.position.set(60,56,70);}
 ['ready','pti','wash'].forEach((sl,i)=>{const m=makeContainer();m.position.copy(DEPOT_POS[sl]);world.add(m);depotSlots[sl]={mesh:m,moving:false,timer:0,done:sl!=='wash'};if(sl==='wash'){depotSlots.wash.timer=2;depotSlots.wash.done=false;}});
 stats.washed=14;stats.ptiPassed=13;stats.released=11;
 const startOffsets=[STOPS[0].s-14,STOPS[1].s-18,STOPS[2].s-12,STOPS[3].s-6,STOPS[4].s+24];
@@ -1664,7 +1701,7 @@ function tick(now){requestAnimationFrame(tick);let dt=Math.max(0,Math.min(.05,(n
  // pallet stock visual
  const shown=Math.min(60,Math.ceil(stats.coldStore/3.5));for(let i=0;i<60;i++){if(i<shown){dummy.position.set(12.5+(i%3)*1.25,.65+Math.floor(i/30)*1.35,-19+Math.floor((i%30)/3)*1.3);dummy.scale.set(1,1,1);}else{dummy.scale.set(0,0,0);}dummy.rotation.set(0,0,0);dummy.updateMatrix();palletI.setMatrixAt(i,dummy.matrix);palletBaseI.setMatrixAt(i,dummy.matrix);}palletI.instanceMatrix.needsUpdate=true;palletBaseI.instanceMatrix.needsUpdate=true;
  const cs=[...clientTrucks].sort((a,b)=>a.s-b.s);cs.forEach((t,i)=>{const ahead=cs[(i+1)%cs.length];clientStep(t,dt,ahead!==t?ahead:null);const p=dCurve.getPointAt(cu(t.s,DLOOP),tmpP);const tg=dCurve.getTangentAt(cu(t.s,DLOOP),tmpT);t.g.position.set(p.x,0,p.z);t.g.rotation.y=Math.atan2(tg.x,tg.z);});
- destStep(dt);planeStep(dt);cityTrafficStep(dt);tourTick(dt);themeAnimsO.forEach(f=>f(dt));themeAnimsD.forEach(f=>f(dt));airTrucks.forEach(t=>{airTruckStep(t,dt);const p=airCurve.getPointAt(cu(t.s,ALOOP),tmpP);const tg=airCurve.getTangentAt(cu(t.s,ALOOP),tmpT);t.g.position.set(p.x,0,p.z);t.g.rotation.y=Math.atan2(tg.x,tg.z);});
+ destStep(dt);planeStep(dt);cityTrafficStep(dt);tourTick(dt);straddleStep(dt);themeAnimsGlobal.forEach(f=>f(dt));themeAnimsO.forEach(f=>f(dt));themeAnimsD.forEach(f=>f(dt));airTrucks.forEach(t=>{airTruckStep(t,dt);const p=airCurve.getPointAt(cu(t.s,ALOOP),tmpP);const tg=airCurve.getTangentAt(cu(t.s,ALOOP),tmpT);t.g.position.set(p.x,0,p.z);t.g.rotation.y=Math.atan2(tg.x,tg.z);});
  depotStep(dt);craneStep(dt);updateCables();vesselStep(dt);shipStep(dt);
  if(rain.visible){const a=rainGeo.attributes.position.array;for(let i=0;i<RAIN_N;i++){a[i*3+1]-=dt*38;if(a[i*3+1]<0)a[i*3+1]=60;}rainGeo.attributes.position.needsUpdate=true;rain.position.set(controls.target.x,0,controls.target.z);}
  // camera fly / follow
