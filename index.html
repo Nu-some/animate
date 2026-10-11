@@ -463,8 +463,8 @@ skyDome.renderOrder=-1;scene.add(skyDome);
 const clouds=new THREE.Group();scene.add(clouds);const cloudM=new THREE.MeshStandardMaterial({color:0xffffff,roughness:1,flatShading:true,transparent:true,opacity:.92});
 for(let i=0;i<16;i++){const c=new THREE.Group();const n=3+Math.floor(Math.random()*4);for(let k=0;k<n;k++){const m=new THREE.Mesh(new THREE.IcosahedronGeometry(rnd(4,8),1),cloudM);m.position.set(k*5-n*2.5,rnd(-1,2),rnd(-3,3));m.scale.y=.6;c.add(m);}
  c.position.set(rnd(-300,300),rnd(150,190),rnd(-420,360));c.scale.setScalar(rnd(.7,1.1));clouds.add(c);}
-const land=box(world,190,0.6,185,0xd8c9a3,-24,-0.6,-13);land.castShadow=false;shoreline(world,190,185,-24,-13);land.material=land.material.clone();land.material.map=groundTex;
-const orchardGround=box(world,46,0.06,56,0x93b462,-52,0,0);orchardGround.castShadow=false;orchardGround.material=orchardGround.material.clone();orchardGround.material.map=orchardTex; // orchard ground
+const land=box(world,190,0.6,185,0xd8c9a3,-24,-0.6,-13);land.castShadow=false;shoreline(world,190,185,-24,-13);const land2=box(world,110,0.6,72,0xd8c9a3,-72,-0.6,118);land2.castShadow=false;land2.material=land.material;shoreline(world,110,72,-72,118);land.material=land.material.clone();land.material.map=groundTex;
+const orchardGround=box(world,46,0.06,56,0x93b462,-52,0,0);orchardGround.castShadow=false;orchardGround.material=orchardGround.material.clone();orchardGround.material.map=orchardTex;const orchardGround2=box(world,40,0.06,84,0x93b462,-100,0,8);orchardGround2.castShadow=false;orchardGround2.material=orchardGround.material; // orchard ground
 box(world,26,0.05,22,0xbfb08a,-21,0,31).castShadow=false;   // depot slab
 box(world,26,0.05,40,0xb9b4a6,52,0,12).castShadow=false;    // port yard slab
 box(world,4,1.2,150,0xa9a397,69,-0.6,4).castShadow=false;   // quay wall
@@ -498,7 +498,7 @@ function makePerson(color){const g=new THREE.Group();cyl(g,.22,.26,.9,color,0,0,
 const pickers=[];
 for(let i=0;i<12;i++){const g=makePerson(pick([0x2f5f9e,0xd04a3a,0xe6c34a,0x3dbb74,0x7d5aa0]));
  const bag=new THREE.Mesh(new THREE.SphereGeometry(.3,8,6),M(0xf2992e));bag.position.set(0,.55,.28);g.add(bag);
- const near=trees.filter(t=>Math.abs(t[1])<9);const t=pick(near);g.position.set(t[0]+1.3,0,t[1]);world.add(g);
+ const near=trees.filter(t=>Math.abs(t[1])<9&&t[0]>-72);const t=pick(near);g.position.set(t[0]+1.3,0,t[1]);world.add(g);
  pickers.push({g,bag,tree:t,state:'pick',t:rnd(0,4),bin:null,load:Math.random(),from:null,to:null});}
 // bin cold room (pre-cools field bins before packing), against the packhouse west wall
 const coldRoom=new THREE.Group();world.add(coldRoom);
@@ -719,7 +719,7 @@ function createContainer(truck){
  const lanes=lanesFrom(origin);
  let pool=lanes.filter(l=>l.carriers.includes(vessel.carrier));if(!pool.length)pool=lanes;
  const lane=pick(pool);const carrier=lane.carriers.includes(vessel.carrier)?vessel.carrier:(lane.carriers[0]||'TBC');
- const c={id:isoNumber(OWNER[carrier]||'TBCU'),carrier,booking:'GFS'+(bookingSeq++),pol:origin,pod:lane.d,src:lane.src,pallets:0,commodity:'Navel oranges',setpoint:'+4.5 °C',vent:'25 m³/h',vgm:null,step:0,times:[sim,null,null,null,null,null,null,null,null,null],farm:FARM_NAME,truck:truck.id,mesh:null,where:'truck'};
+ const c={id:isoNumber(OWNER[carrier]||'TBCU'),carrier,booking:'GFS'+(bookingSeq++),pol:origin,pod:lane.d,src:lane.src,pallets:0,commodity:pick(OT[origin].products),setpoint:'+4.5 °C',vent:'25 m³/h',vgm:null,step:0,times:[sim,null,null,null,null,null,null,null,null,null],farm:FARM_NAME,truck:truck.id,mesh:null,where:'truck'};
  containers.unshift(c);if(containers.length>80)containers.pop();return c;}
 function addTruck(i,startS,preset){
  const {g,hl}=makeTruck(i);
@@ -843,19 +843,19 @@ const dLight=new THREE.PointLight(0xffc98a,0,60,1.6);dLight.position.set(-10,10,
 /* =========================================================
    AIRPORT, GFS HQ, TRANSPORTER OFFICE, CITY, TREES
    ========================================================= */
-// airfield
-box(world,32,.05,104,0xc9c4b4,-103,0,8).castShadow=false;
-box(world,8,.06,92,0x4a4f53,-105,.01,10).castShadow=false;
-for(let z=-30;z<=50;z+=6)box(world,.4,.02,3,0xf4f1e8,-105,.08,z).castShadow=false;
-box(world,5,.05,70,0x6a6f72,-96,0,12).castShadow=false;box(world,16,.05,20,0x8d9490,-91,0,-6).castShadow=false;
+// airfield (coastal, south-west)
+box(world,104,.05,62,0xc9c4b4,-72,0,118).castShadow=false;
+box(world,100,.06,8,0x4a4f53,-72,.01,138).castShadow=false;
+for(let x=-118;x<=-26;x+=6)box(world,3,.02,.4,0xf4f1e8,x,.08,138).castShadow=false;
+box(world,80,.05,5,0x6a6f72,-72,0,129).castShadow=false;box(world,22,.05,16,0x8d9490,-62,0,114).castShadow=false;
 const rLightMat=new THREE.MeshStandardMaterial({color:0xfff2c0,emissive:0xfff2c0,emissiveIntensity:.2});
-const rLights=new THREE.InstancedMesh(new THREE.SphereGeometry(.2,6,4),rLightMat,40);{let k=0;for(let z=-34;z<=56&&k<40;z+=4.6)[-109.3,-100.7].forEach(x=>{if(k<40){dummy.position.set(x,.15,z);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();rLights.setMatrixAt(k++,dummy.matrix);}});rLights.count=k;}world.add(rLights);
-box(world,9,5,22,0xe8eef0,-85,0,24);box(world,9.6,.4,22.6,0x5f8fa3,-85,5,24);
-for(let i=0;i<4;i++){const w=new THREE.Mesh(new THREE.BoxGeometry(.1,1,4),winMat);w.position.set(-80.44,3,16+i*5.4);world.add(w);}
-cyl(world,1,1.3,12,0xe8e2d4,-83,0,42,10);box(world,3.6,2.2,3.6,0x7fb3c9,-83,12,42);box(world,4,.4,4,0x2c3633,-83,14.2,42);
-shed(world,{x:-84,z:-12,w:12,d:14,h:5.6,wall:0xe9edf0,roof:0x7f8c93,trim:0x3dbb74,ry:Math.PI,doors:[{at:2,w:4,h:3.6,open:true},{at:-3,w:3,h:3.4}],sign:'GFS Air cargo',signW:6});
+const rLights=new THREE.InstancedMesh(new THREE.SphereGeometry(.2,6,4),rLightMat,40);{let k=0;for(let x=-120;x<=-24&&k<40;x+=4.8)[133.7,142.3].forEach(z=>{if(k<40){dummy.position.set(x,.15,z);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();rLights.setMatrixAt(k++,dummy.matrix);}});rLights.count=k;}world.add(rLights);
+box(world,22,5,9,0xe8eef0,-92,0,104);box(world,22.6,.4,9.6,0x5f8fa3,-92,5,104);
+for(let i=0;i<4;i++){const w=new THREE.Mesh(new THREE.BoxGeometry(4,1,.1),winMat);w.position.set(-100+i*5.4,3,108.56);world.add(w);}
+cyl(world,1,1.3,12,0xe8e2d4,-110,0,104,10);box(world,3.6,2.2,3.6,0x7fb3c9,-110,12,104);box(world,4,.4,4,0x2c3633,-110,14.2,104);
+shed(world,{x:-50,z:104,w:14,d:12,h:5.6,wall:0xe9edf0,roof:0x7f8c93,trim:0x3dbb74,ry:Math.PI,doors:[{at:3,w:4,h:3.6,open:true},{at:-3,w:3,h:3.4}],sign:'GFS Air cargo',signW:6});
 const uldI=new THREE.InstancedMesh(new THREE.BoxGeometry(1.5,1.6,1.5),M(0xb8c2c6,{metalness:.3,roughness:.5}),8);uldI.castShadow=true;world.add(uldI);
-const airHit=new THREE.Mesh(new THREE.BoxGeometry(34,8,100),new THREE.MeshBasicMaterial({visible:false}));airHit.position.set(-97,4,8);world.add(airHit);
+const airHit=new THREE.Mesh(new THREE.BoxGeometry(104,8,62),new THREE.MeshBasicMaterial({visible:false}));airHit.position.set(-72,4,118);world.add(airHit);
 // freighter
 const PLANE_Y=2.3;
 function makePlane(){const g=new THREE.Group();const W=0xf4f6f6;
@@ -870,13 +870,13 @@ function makePlane(){const g=new THREE.Group();const W=0xf4f6f6;
  const gear=new THREE.Group();[[0,6],[-1.4,0],[1.4,0]].forEach(([x,z])=>{const l=new THREE.Mesh(new THREE.BoxGeometry(.3,1.1,.3),M(0x2a2f2e));l.position.set(x,-1.75,z);gear.add(l);});g.add(gear);g.userData.gear=gear;
  g.rotation.order='YXZ';return g;}
 const plane={g:makePlane(),state:'parked',path:null,seg:0,segD:0,ulds:2,flights:0,palletsToday:0,loadT:0,awayT:0,onEnd:null};
-plane.g.position.set(-94,PLANE_Y,4);plane.g.rotation.y=0;world.add(plane.g);tag(plane.g,'plane',plane);
+plane.g.position.set(-62,PLANE_Y,116);plane.g.rotation.y=Math.PI/2;world.add(plane.g);tag(plane.g,'plane',plane);
 let airPallets=12;
 function planePath(pts,onEnd){plane.path=pts.map(p=>new THREE.Vector3(p[0],p[1],p[2]));plane.speeds=pts.map(p=>p[3]);plane.seg=0;plane.segD=0;plane.onEnd=onEnd;}
 // air freight truck loop: pallet cold store → air cargo terminal
-const AP=[[14,-24],[-10,-31],[-50,-31],[-78,-26],[-86,-21.5],[-82,-36],[-50,-38],[-10,-38],[18,-30]];
+const AP=[[14,-24],[-10,-32],[-50,-32],[-76,-31],[-79,-20],[-79,30],[-80,80],[-76,93],[-62,97],[-48,96],[-40,88],[-44,70],[-47,40],[-47,0],[-46,-24],[-20,-28]];
 const airCurve=new THREE.CatmullRomCurve3(AP.map(([x,z])=>new THREE.Vector3(x,0,z)),true,'centripetal');const ALOOP=airCurve.getLength();
-const ASTOPS=[{k:'cold',p:[14,-24]},{k:'air',p:[-86,-21.5]}];
+const ASTOPS=[{k:'cold',p:[14,-24]},{k:'air',p:[-48,96]}];
 const airTrucks=[];
 function makeAirTruck(){const g=new THREE.Group();cab(g,0x3dbb74,3.05,2.0);rbox(g,2.1,2.4,5.2,0xf4f6f6,0,.75,-.65,.14);rbox(g,2.14,.32,5.24,0x3dbb74,0,1.7,-.65,.05);
  [-1,1].forEach(sd=>{const pl=new THREE.Mesh(new THREE.PlaneGeometry(2.2,1.1),new THREE.MeshBasicMaterial({map:logoTex}));pl.position.set(sd*1.08,2.35,-.65);pl.rotation.y=sd*Math.PI/2;g.add(pl);});
@@ -1040,7 +1040,7 @@ function setPortSign(name){const t=canvasTex(1024,188,(c,w,h)=>{c.fillStyle='#0d
  portSign.material.map=t;portSign.material.needsUpdate=true;portSign.userData.back.material=portSign.material;}
  // visible city zone: x 30..112, z -62..-112 (land patch past the quay)
 const OT={
- CPT:{ground:0xa9c57c,lerp:.28,orchard:0x93b462,desc:"Table Mountain and its tablecloth cloud, Devil's Peak, Lion's Head and Signal Hill above the City Bowl; the Waterfront, Cape Town Stadium and Robben Island in the bay. Citrus and vineyards from the Boland behind.",
+ CPT:{products:['Navel oranges','Royal Gala apples','Crimson table grapes','Lemons'],ground:0xa9c57c,lerp:.28,orchard:0x93b462,desc:"Table Mountain and its tablecloth cloud, Devil's Peak, Lion's Head and Signal Hill above the City Bowl; the Waterfront, Cape Town Stadium and Robben Island in the bay. Citrus and vineyards from the Boland behind.",
   build(g,A){const MC=[[0,0xa9c982],[.3,0xb6c486],[.55,0xc6b894],[.8,0xd3c3a0],[1,0xe0d3b2]];
    patch(g,210,70,0xcdbd95,-30,-128);
    massif(g,{x:-26,z:-116,rx:42,rz:19,h:27,rough:.07,cliff:1.3,prof:[[0,1],[.35,.9],[.6,.78],[.82,.6],[.95,.55],[1,.53]],cols:MC});
@@ -1055,9 +1055,9 @@ const OT={
    for(let i=0;i<4;i++){rbox(g,6,3,4,0xf1ece0,70+i*6.5,0,-64,.1);const r=new THREE.Mesh(new THREE.CylinderGeometry(2.3,2.3,6.2,3,1),fm(0xb5553a));r.rotation.z=Math.PI/2;r.position.set(70+i*6.5,3.6,-64);r.scale.z=.9;g.add(r);}
    boats(g,96,-50,6,[0xf4f6f6,0x2e86c1,0xd04a3a],A,true);
    patch(g,22,10,0xb9b08a,130,-150);hill(g,5,.4,0x8a9a62,126,-150);lighthouse(g,136,-150,6,0xf4f6f6,0x2c3633);
-   capeDutch(g,-62,40,0);windpump(g,-52,60,A);vineyard(g,-74,-50,33,44);scatter(g,'umbrella',[[-70,-45,50,78]],.25);scatter(g,'round',[[44,64,48,78],[0,12,10,36],[30,37,24,33],[-30,-14,-60,-50]],1);
+   capeDutch(g,-62,40,0);windpump(g,-60,62,A);vineyard(g,-74,-50,33,44);scatter(g,'umbrella',[[-70,-45,50,78]],.25);scatter(g,'round',[[44,64,48,78],[0,12,10,36],[30,37,24,33],[-30,-14,-60,-50]],1);
    scatter(g,'cypress',[[-75,-50,45,48]],1.2);}},
- PLZ:{ground:0xcfcf9a,lerp:.4,orchard:0x8fb262,desc:"Gqeberha (Port Elizabeth): the Campanile, the Donkin pyramid and lighthouse, Nelson Mandela Bay Stadium, the windy Algoa Bay shore, aloes and the Sundays River Valley citrus.",
+ PLZ:{products:['Navel oranges','Lemons','Soft citrus'],ground:0xcfcf9a,lerp:.4,orchard:0x8fb262,desc:"Gqeberha (Port Elizabeth): the Campanile, the Donkin pyramid and lighthouse, Nelson Mandela Bay Stadium, the windy Algoa Bay shore, aloes and the Sundays River Valley citrus.",
   build(g,A){const MC=[[0,0x9fb37a],[.6,0xb5b58a],[1,0xc9c39e]];patch(g,210,70,0xcfcf9a,-30,-128);
    massif(g,{x:-70,z:-114,rx:34,rz:14,h:12,rough:.1,cliff:9,prof:[[0,1],[.5,.75],[1,.4]],cols:MC});massif(g,{x:14,z:-112,rx:28,rz:13,h:10,rough:.1,cliff:9,prof:[[0,1],[.5,.75],[1,.4]],cols:MC});
    scatter(g,'aloe',[[-110,40,-96,-60]],1.4);scatter(g,'shrub',[[-110,40,-80,-60]],.8);
@@ -1066,7 +1066,7 @@ const OT={
    cone(g,4,4,0xe8e2d4,96,-66,4);lighthouse(g,101,-66,7,0xf4f6f6,0xf4f6f6);stadium(g,52,-70,8,0xf4f6f6,0xb5553a);
    for(let i=0;i<3;i++){const w=new THREE.Group();w.position.set(-96+i*9,0,-100);g.add(w);cylF(w,.25,.4,14,0xf4f6f6,0,0,8);const hub=new THREE.Group();hub.position.set(0,14,1);w.add(hub);for(let k=0;k<3;k++){const bl=new THREE.Mesh(new THREE.BoxGeometry(.5,7,.1),fm(0xf4f6f6));bl.position.y=3.5;const arm=new THREE.Group();arm.rotation.z=k*Math.PI*2/3;arm.add(bl);hub.add(arm);}A.push(dt=>{hub.rotation.z+=dt*(weather==='wind'?3:1.4);});}
    boats(g,96,-50,4,[0xf4f6f6,0x2e86c1],A,true);scatter(g,'aloe',[[-70,-45,50,78]],1.2);scatter(g,'round',RECTS_O,.7);}},
- DUR:{ground:0x9fc27a,lerp:.3,orchard:0x82b05a,desc:"Durban: the Bluff and the green hills of KwaZulu-Natal, Moses Mabhida Stadium's arch, the Golden Mile beachfront towers, the sugar terminal silos and the uShaka pier. Subtropical fruit from the Midlands behind.",
+ DUR:{products:['Valencia oranges','Avocados','Litchis'],ground:0x9fc27a,lerp:.3,orchard:0x82b05a,desc:"Durban: the Bluff and the green hills of KwaZulu-Natal, Moses Mabhida Stadium's arch, the Golden Mile beachfront towers, the sugar terminal silos and the uShaka pier. Subtropical fruit from the Midlands behind.",
   build(g,A){const MC=[[0,0x6fa852],[.5,0x7fb05a],[1,0x9ab874]];patch(g,210,70,0x9fc27a,-30,-128);
    massif(g,{x:-60,z:-116,rx:46,rz:14,h:11,rough:.1,cliff:9,prof:[[0,1],[.5,.8],[1,.5]],cols:MC});
    [[-104,-96,18,.55],[-20,-104,22,.6],[12,-98,16,.5],[40,-106,20,.5]].forEach(([x,z,r,sy])=>hill(g,r,sy,pick([0x6fa852,0x7fb05a,0x5f9a48]),x,z));
@@ -1077,24 +1077,24 @@ const OT={
    rbox(g,2.6,1.2,22,0xb8b4a8,112,.6,-72,.1);for(let i=0;i<5;i++)cylF(g,.3,.3,2,0x9aa6aa,112,-62-i*5,6);
    boats(g,100,-50,5,[0xf4f6f6,0xf2c14e],A,true);
    scatter(g,'palm',RECTS_O,1.1);scatter(g,'cane',[[-75,-50,33,44]],2.4);}},
- PSD:{ground:0xe3d3a5,orchard:0x9ab562,desc:"Port Said: the northern gate of the Suez Canal, the green domes of the Canal Authority building, its old lighthouse and date palms.",
+ PSD:{products:['Valencia oranges','Mandarins','Medjool dates'],ground:0xe3d3a5,orchard:0x9ab562,desc:"Port Said: the northern gate of the Suez Canal, the green domes of the Canal Authority building, its old lighthouse and date palms.",
   build(g,A){[[-95,-90,34],[-40,-94,40],[10,-92,26]].forEach(([x,z,r])=>hill(g,r,.18,0xe6cf98,x,z));
    CITY(g,0xe6dcc0);waterPatch(g,7,54,0x3f93b5,76,-86);skyline(g,{n:44,x0:82,x1:110,z0:-74,z1:-110,hMin:3,hMax:11,cols:[0xefe6d2,0xe2d6bc,0xf4f1e8]});
    bx(g,18,6,6,0xf4f1e8,58,0,-68);[-6,0,6].forEach(dx=>dome(g,2.2,0x3a9a6a,58+dx,6,-68));cylF(g,1.6,2,16,0xe2d6bc,100,-64,8);cylF(g,2,2,1,0x2c3633,100,-64,8,16);put(g,new THREE.Mesh(new THREE.CylinderGeometry(1,1,1,8),glowM),100,17.5,-64);
    const ship=new THREE.Group();bx(ship,2.4,1.6,12,0x1f3f66,0,0,0);bx(ship,2,1.6,8,0xd68910,0,1.6,0);ship.position.set(76,0,-110);g.add(ship);A.push(dt=>{ship.position.z+=dt*2;if(ship.position.z>-62)ship.position.z=-110;});
    scatter(g,'palm',RECTS_O,.8);}},
- DAM:{ground:0xd9cba0,orchard:0x86b45a,desc:"Damietta: the Nile Delta's green fields and palm groves, minarets and the river meeting the Mediterranean.",
+ DAM:{products:['Valencia oranges','Pomegranates','Strawberries'],ground:0xd9cba0,orchard:0x86b45a,desc:"Damietta: the Nile Delta's green fields and palm groves, minarets and the river meeting the Mediterranean.",
   build(g,A){stripes(g,-45,-82,140,34,14,[0x6f9f4a,0x86b45a,0x5f8f40,0xa9b06a],'x');scatter(g,'palm',[[-115,20,-104,-66]],.6);
    CITY(g,0xe2d8bc);roofTown(g,{n:70,x0:40,x1:110,z0:-70,z1:-110,walls:[0xefe6d2,0xe2d6bc,0xd9c9a3],roofs:[0xd9c9a3,0xcfc2a0],hMin:2,hMax:6});
    bx(g,8,5,8,0xf1ece0,86,0,-70);dome(g,3.4,0x3a9a6a,86,5,-70);minaret(g,81,-65,14);minaret(g,91,-65,14);
    scatter(g,'palm',RECTS_O,1);}},
- PVE:{ground:0xcdbf9a,orchard:0x8fae5a,desc:"Port-Vendres: the Pyrenees running into the sea, terraced Banyuls vineyards, pastel Catalan houses and the harbour obelisk.",
+ PVE:{products:['Apricots','Peaches','Nectarines'],ground:0xcdbf9a,orchard:0x8fae5a,desc:"Port-Vendres: the Pyrenees running into the sea, terraced Banyuls vineyards, pastel Catalan houses and the harbour obelisk.",
   build(g,A){[[-104,-92,22,40],[-66,-96,26,46],[-24,-94,24,38],[14,-96,20,40]].forEach(([x,z,r,h])=>{cone(g,r,h,0x7f8a6a,x,z,6);cone(g,r*.32,h*.32,0xf4f6f6,x,z,6,h*.68);});
    for(let i=0;i<6;i++)bx(g,130,.8,2.2,i%2?0x6f8f45:0x8a7a55,-45,i*.8,-64-i*2.4).castShadow=false;
    CITY(g,0xd8ccb0);roofTown(g,{n:90,x0:38,x1:108,z0:-66,z1:-108,walls:[0xe8b87a,0xf0a08a,0xf2d27a,0xe8e2d4,0xd9a066],roofs:[0xb5553a,0xc0603a,0xa84a30]});
    bx(g,2.4,10,2.4,0xd9c9a3,84,0,-80);cone(g,1.8,3,0x8a6a45,84,-80,4,10);cylF(g,.7,1.2,12,0xf4f1e8,104,-64,4);fort(g,98,-100,8,0xc9a77a);
    scatter(g,'cypress',[[44,64,48,78],[-70,-45,50,78],[0,12,10,36]],.6);scatter(g,'olive',RECTS_O,1);}},
- RTM:{ground:0x9fbf86,orchard:0x7fae55,desc:"Rotterdam: Europe's biggest port. The Erasmus Bridge, the Euromast, the cube houses, windmills, greenhouses and polder canals.",
+ RTM:{products:['Conference pears','Elstar apples','Onions'],ground:0x9fbf86,orchard:0x7fae55,desc:"Rotterdam: Europe's biggest port. The Erasmus Bridge, the Euromast, the cube houses, windmills, greenhouses and polder canals.",
   build(g,A){stripes(g,-50,-82,140,40,9,[0x8fbf6a,0x9fcf7a,0x7faf5a],'x');for(let i=0;i<4;i++)waterPatch(g,140,1.2,0x4f9fc5,-50,-66-i*9.5);
    windmill(g,-96,-78,A);windmill(g,-66,-88,A);windmill(g,-36,-80,A);greenhouses(g,-16,-104,5,2);
    CITY(g,0xbfc4c0);waterPatch(g,82,9,0x3f8fb5,71,-78);skyline(g,{n:36,x0:36,x1:108,z0:-88,z1:-110,hMin:10,hMax:42,cols:[0x9fc6d6,0x7fa6b6,0xcfe3ee,0x5f7f8f],wMin:3,wMax:6});
@@ -1146,7 +1146,7 @@ const DT={
 const RECTS_O=[[-75,-48,32,44],[-70,-45,50,78],[44,64,48,78],[20,36,-52,-43],[-40,10,-52,-43],[0,12,10,36],[30,37,24,33],[-118,-112,-30,60],[-30,-14,-60,-50]];
 function clearGroup(g){while(g.children.length){const c=g.children.pop();c.traverse(o=>{if(o.geometry)o.geometry.dispose();});}}
 let destKey='ABJ';
-function applyOriginTheme(k){const th=OT[k]||OT.CPT;clearGroup(themeO);themeAnimsO=[];land.material.color.setHex(th.ground).lerp(new THREE.Color(0xf1f1ee),th.lerp==null?.55:th.lerp);orchardGround.material.color.setHex(th.orchard);th.build(themeO,themeAnimsO);}
+function applyOriginTheme(k){const th=OT[k]||OT.CPT;clearGroup(themeO);themeAnimsO=[];land.material.color.setHex(th.ground).lerp(new THREE.Color(0xf1f1ee),th.lerp==null?.55:th.lerp);land2.material=land.material;orchardGround.material.color.setHex(th.orchard);orchardGround2.material=orchardGround.material;th.build(themeO,themeAnimsO);}
 function applyDestTheme(k){const th=DT[k]||DT.ABJ;destKey=k;clearGroup(themeD);themeAnimsD=[];destLand.material.color.setHex(th.ground).lerp(new THREE.Color(0xf1f1ee),.45);th.build(themeD,themeAnimsD);}
 
 /* =========================================================
@@ -1187,6 +1187,22 @@ function addKitScenery(){
 }
 function cityTrafficStep(dt){if(!cityCars.length)return;cityCars.sort((a,b)=>a.s-b.s);cityCars.forEach((c,i)=>{const ahead=cityCars[(i+1)%cityCars.length];const gap=(ahead.s-c.s+CRL)%CRL;const v=gap<7?0:c.v;c.s=(c.s+v*dt)%CRL;const p=cityRing.getPointAt(c.s/CRL),t=cityRing.getTangentAt(c.s/CRL);c.o.position.set(p.x,0,p.z);c.o.rotation.y=Math.atan2(t.x,t.z);});}
 
+/* ---- deciduous blocks: apples and table grapes on the west side of the farm ---- */
+const appleTrees=[];for(let x=-116;x<=-86;x+=3.2)for(let z=-30;z<=4;z+=3.4)appleTrees.push([x+rnd(-.3,.3),z+rnd(-.3,.3),rnd(.85,1.1)]);
+{const n=appleTrees.length;const tr=new THREE.InstancedMesh(new THREE.CylinderGeometry(.12,.18,1.2,6),M(0x8a6a4a),n),cp=new THREE.InstancedMesh(new THREE.SphereGeometry(1.05,12,9),M(0x7fbf5a),n),fr=new THREE.InstancedMesh(new THREE.SphereGeometry(.2,7,6),M(0xd6262c,{emissive:0x3a0a0a,emissiveIntensity:.25}),n*6);
+ appleTrees.forEach(([x,z,sc],i)=>{dummy.position.set(x,.6,z);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();tr.setMatrixAt(i,dummy.matrix);dummy.position.set(x,1.9,z);dummy.scale.set(sc,sc*1.15,sc);dummy.updateMatrix();cp.setMatrixAt(i,dummy.matrix);
+  for(let k=0;k<6;k++){const a=Math.random()*6.28;dummy.position.set(x+Math.cos(a)*1.0*sc,1.9+rnd(-.7,.7),z+Math.sin(a)*1.0*sc);dummy.scale.set(1,1,1);dummy.updateMatrix();fr.setMatrixAt(i*6+k,dummy.matrix);}});
+ tr.castShadow=cp.castShadow=true;world.add(tr,cp,fr);for(let z=-30;z<=4;z+=3.4)rbox(world,34,.02,.5,0x8a7a62,-101,.04,z+1.7,.01);}
+{const vines=[];for(let z=14;z<=48;z+=2.2)for(let x=-116;x<=-86;x+=.9)vines.push([x,z]);const n=vines.length;
+ const vm=new THREE.InstancedMesh(new THREE.SphereGeometry(.5,7,5),new THREE.MeshStandardMaterial({roughness:.9}),n);const col=new THREE.Color();
+ vines.forEach(([x,z],i)=>{dummy.position.set(x,.95,z);dummy.rotation.set(0,0,0);dummy.scale.set(.9,1.1,.55);dummy.updateMatrix();vm.setMatrixAt(i,dummy.matrix);vm.setColorAt(i,col.setHex(pick([0x5fa84a,0x6fb857,0x4f9a3f])));});vm.castShadow=true;world.add(vm);
+ const posts=[];for(let z=14;z<=48;z+=2.2)for(let x=-116;x<=-86;x+=5)posts.push([x,z]);const pm=new THREE.InstancedMesh(new THREE.CylinderGeometry(.05,.06,1.7,5),M(0x8a6a4a),posts.length);
+ posts.forEach(([x,z],i)=>{dummy.position.set(x,.85,z);dummy.scale.set(1,1,1);dummy.rotation.set(0,0,0);dummy.updateMatrix();pm.setMatrixAt(i,dummy.matrix);});world.add(pm);
+ for(let z=14;z<=48;z+=2.2){rbox(world,31,.02,.3,0x8a7a62,-101,.04,z+1.1,.01);const wire=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-116,1.5,z),new THREE.Vector3(-86,1.5,z)]),new THREE.LineBasicMaterial({color:0x6a6a6a}));world.add(wire);}
+ const bunches=new THREE.InstancedMesh(new THREE.SphereGeometry(.16,6,5),M(0x7a2a5a),Math.floor(n/3));for(let i=0;i<Math.floor(n/3);i++){const [x,z]=vines[i*3];dummy.position.set(x+rnd(-.2,.2),.62,z+rnd(-.15,.15));dummy.scale.set(1,1.5,1);dummy.updateMatrix();bunches.setMatrixAt(i,dummy.matrix);}world.add(bunches);}
+const grapeHit=new THREE.Mesh(new THREE.BoxGeometry(34,3,38),new THREE.MeshBasicMaterial({visible:false}));grapeHit.position.set(-101,1.5,31);world.add(grapeHit);
+const appleHit=new THREE.Mesh(new THREE.BoxGeometry(34,3,38),new THREE.MeshBasicMaterial({visible:false}));appleHit.position.set(-101,1.5,-13);world.add(appleHit);
+
 /* =========================================================
    LABELS
    ========================================================= */
@@ -1195,7 +1211,7 @@ const labelsEl=$('#labels');const labels=[];
 function addLabel(text,cls,pos,obj){const el=document.createElement('div');el.className='lbl '+(cls||'');el.textContent=text;labelsEl.appendChild(el);const L={el,pos:pos?new THREE.Vector3(...pos):null,obj};labels.push(L);return L;}
 const ICON={leaf:'M5 19c0-8 6-14 14-14 0 8-6 14-14 14zM5 19l7-7',box:'M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10',building:'M4 21V5h10v16M14 9h6v12M7 8h2M7 12h2M7 16h2',truck:'M2 7h11v9H2zM13 10h5l3 3v3h-8M6 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM17 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z',plane:'M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z',bolt:'M13 2L4 14h7l-1 8 9-12h-7z',gate:'M4 21V8h4v13M8 10h12M16 10v11',anchor:'M12 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM12 7v14M5 12H3a9 9 0 0 0 18 0h-2M8 10h8',snow:'M12 2v20M4 6l16 12M20 6L4 18',scale:'M4 18h16M6 18v-4h12v4M12 14V6M9 6h6',shield:'M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z',warehouse:'M3 21V9l9-5 9 5v12M7 21v-7h10v7'};
 function areaLabel(title,sub,icon,pos){const L=addLabel('','area',pos);L.el.innerHTML=`<i><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="${ICON[icon]}"/></svg></i><span><b></b><small></small></span>`;L.t=L.el.querySelector('b');L.s=L.el.querySelector('small');L.t.textContent=title;L.s.textContent=sub;return L;}
-const areaLabels={farm:areaLabel('Farm / Orchard','Citrus picking','leaf',[-60,6,-26]),cold:areaLabel('Bin cold room','Pre-cooling bins','snow',[-23,7.5,-16]),pack:areaLabel('Packhouse','Wash, pack & palletise','box',[-8,8.5,-13]),store:areaLabel('Pallet cold store','Ready for loading','snow',[7,7.5,-13]),depot:areaLabel('Empty depot','Wash & PTI','box',[-21,8,30]),weigh:areaLabel('Weighbridge','VGM weighing','scale',[14,5,-4]),stage:areaLabel('Plug-in depot','Reefer power when vessels are late','bolt',[22,6,11]),gate:areaLabel('Port gate','Security & check-in','gate',[30,7,0]),port:areaLabel('Port of Cape Town','Export to global markets','anchor',[60,22,6]),air:areaLabel('Air freight terminal','Pallets by air','plane',[-90,10,-12]),hq:areaLabel('GFS HQ','Operations, planning & control','building',[24,15,66]),trans:areaLabel('Transporter office','Transport partners & dispatch','truck',[-34,8,68])};
+const areaLabels={farm:areaLabel('Citrus orchard','Navel oranges · picking','leaf',[-60,6,-26]),apples:areaLabel('Apple orchard','Royal Gala · deciduous','leaf',[-101,6,-32]),grapes:areaLabel('Table grapes','Trellised vineyard','leaf',[-101,6,12]),cold:areaLabel('Bin cold room','Pre-cooling bins','snow',[-23,7.5,-16]),pack:areaLabel('Packhouse','Wash, pack & palletise','box',[-8,8.5,-13]),store:areaLabel('Pallet cold store','Ready for loading','snow',[7,7.5,-13]),depot:areaLabel('Empty depot','Wash & PTI','box',[-21,8,30]),weigh:areaLabel('Weighbridge','VGM weighing','scale',[14,5,-4]),stage:areaLabel('Plug-in depot','Reefer power when vessels are late','bolt',[22,6,11]),gate:areaLabel('Port gate','Security & check-in','gate',[30,7,0]),port:areaLabel('Port of Cape Town','Export to global markets','anchor',[60,22,6]),air:areaLabel('Air freight terminal','Pallets by air','plane',[-72,10,100]),hq:areaLabel('GFS HQ','Operations, planning & control','building',[24,15,66]),trans:areaLabel('Transporter office','Transport partners & dispatch','truck',[-34,8,68])};
 const LBL_OFF={COO:[34,-6],LFW:[-30,-6],APP:[40,-22],KBI:[44,8],DLA:[34,-26],LBV:[-6,30],PDG:[-48,26],PLU:[40,-4],PSD:[44,-6],DAM:[-40,-8],CKY:[-34,8],ABJ:[-10,26]};
 Object.entries(portPins).forEach(([k,g])=>{const p=PORTS[k];const L=addLabel(p.name,'port'+(p.role==='o'?' o':''),null,g);L.offY=4.2;L.isMap=true;L.off=LBL_OFF[k]||[0,0];});
 const destLabels={port:areaLabel('Port of discharge','Discharging','anchor',[40,20,DZ]),stack:areaLabel('Discharge stack','Plugged in','box',[24,6,DZ-1]),customs:areaLabel('Customs','Scanning & inspection','shield',[12,7,DZ-26]),wh:areaLabel('Client warehouse','Forklift unloading','warehouse',[-18,8,DZ-6]),dep:areaLabel('Shipping line depot','Empty returns','box',[-19,6,DZ+34])};
@@ -1216,7 +1232,7 @@ const ring=new THREE.Mesh(new THREE.TorusGeometry(1,.08,8,40),new THREE.MeshBasi
 let selected=null;let follow=null;let fly=null;
 function worldPosOf(sel){const o=sel.type==='truck'?sel.ref.g:sel.type==='container'?(sel.ref.mesh||null):sel.type==='ship'?sel.ref.g:sel.type==='port'?portPins[sel.ref.key]:sel.type==='vessel'?vesselGroup:sel.type==='crane'?sel.ref.g:sel.type==='bintruck'||sel.type==='dtruck'||sel.type==='airtruck'?sel.ref.g:sel.type==='plane'?plane.g:sel.obj||null;
  if(!o)return null;return o.getWorldPosition(new THREE.Vector3());}
-const AREA_VIEWS={overview:{t:[-12,0,6],d:[74,118,140]},air:{t:[-96,0,6],d:[52,58,62]},farm:{t:[-48,0,-6],d:[30,40,46]},pack:{t:[-10,0,-12],d:[14,26,26]},depot:{t:[-18,0,30],d:[26,30,36]},port:{t:[56,0,8],d:[46,48,60]},network:{t:[0,0,MAPZ+8],d:[0,150,96]},dest:{t:[0,0,DZ],d:[54,72,84]}};
+const AREA_VIEWS={overview:{t:[-12,0,6],d:[74,118,140]},air:{t:[-70,0,118],d:[48,56,60]},farm:{t:[-48,0,-6],d:[30,40,46]},pack:{t:[-10,0,-12],d:[14,26,26]},depot:{t:[-18,0,30],d:[26,30,36]},port:{t:[56,0,8],d:[46,48,60]},network:{t:[0,0,MAPZ+8],d:[0,150,96]},dest:{t:[0,0,DZ],d:[54,72,84]}};
 function flyTo(target,offset){const t1=new THREE.Vector3(...target);const off=offset?new THREE.Vector3(...offset):camera.position.clone().sub(controls.target).setLength(40);
  const p1=t1.clone().add(off);if(reduceMotion){controls.target.copy(t1);camera.position.copy(p1);return;}
  fly={t:0,dur:1.2,p0:camera.position.clone(),p1,t0:controls.target.clone(),t1};}
@@ -1239,7 +1255,7 @@ renderer.domElement.addEventListener('pointerup',e=>{if(!downAt)return;const mov
  mouse.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(mouse,camera);
  const hits=ray.intersectObjects(scene.children,true);
  for(const h of hits){let o=h.object;if(o===ring)continue;while(o&&!o.userData.sel)o=o.parent;if(o){select(o.userData.sel);return;}}
- const VOL=new Map([[airHit,'airport'],[hqHit,'hq'],[transHit,'transport'],[dStackHit,'dstack'],[customsHit,'customs'],[whHit,'warehouse'],[dDepotHit,'ddepot'],[farmHit,'farm'],[coldHit,'coldroom'],[stageHit,'staging'],[packHit,'pack'],[depotHit,'depot'],[yardHit,'yard']]);
+ const VOL=new Map([[appleHit,'apples'],[grapeHit,'grapes'],[airHit,'airport'],[hqHit,'hq'],[transHit,'transport'],[dStackHit,'dstack'],[customsHit,'customs'],[whHit,'warehouse'],[dDepotHit,'ddepot'],[farmHit,'farm'],[coldHit,'coldroom'],[stageHit,'staging'],[packHit,'pack'],[depotHit,'depot'],[yardHit,'yard']]);
  for(const h of hits){if(VOL.has(h.object)){select({type:VOL.get(h.object),obj:h.object});return;}}
  select(null);});
 
@@ -1279,6 +1295,8 @@ function renderDetail(){
  else if(s.type==='depot'){const st=depotSlots;h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Shipping line empty depot · ${esc(PORTS[origin].name)}</div><h2>Empty depot</h2><span class="chip ${st.ready?'ok':'warn'}">${st.ready?'Empty ready for collection':'Preparing next empty'}</span>`+
   `<ul class="lanes"><li><span>Wash bay</span><span class="chip ${st.wash&&!st.wash.done?'ok':''}">${st.wash?(st.wash.moving?'Moving in':st.wash.done?'Washed':'Washing'):'Free'}</span></li><li><span>PTI inspection</span><span class="chip ${st.pti&&!st.pti.done?'ok':''}">${st.pti?(st.pti.moving?'Moving in':st.pti.done?'Passed':'Running PTI'):'Free'}</span></li><li><span>Ready slot</span><span class="chip ${st.ready?'ok':''}">${st.ready?'Waiting for truck':'Empty'}</span></li></ul>`+
   kv([['Washed today',stats.washed||0],['PTI passed today',stats.ptiPassed||0],['Released to trucks',stats.released||0],['Empties on stack',empties.length],['Lines served',originCarriers().join(', ')]]);}
+ else if(s.type==='apples'){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Deciduous fruit · Block 12</div><h2>Apple orchard</h2><span class="chip ok">Royal Gala</span> <span class="chip">Granny Smith</span>`+kv([['Trees',appleTrees.length],['Harvest','Feb – Apr'],['Packed as','12.5 kg cartons, 4 layers'],['Cold chain','+0.5 °C to +1.5 °C']])+`<p class="hint">Deciduous fruit is picked in late summer and stored cold, so the packhouse keeps running when citrus is out of season.</p>`;}
+ else if(s.type==='grapes'){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Table grapes · Block 14</div><h2>Trellised vineyard</h2><span class="chip ok">Crimson Seedless</span> <span class="chip">Thompson</span>`+kv([['Rows',16],['Harvest','Dec – Mar'],['Packed as','4.5 kg cartons with SO₂ pads'],['Cold chain','-0.5 °C']])+`<p class="hint">Grapes are packed straight from the vineyard into cartons and pre-cooled fast; they go by reefer container and by air.</p>`;}
  else if(s.type==='airtruck'){const t=s.ref;h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">GFS air freight · ${esc(t.id)}</div><h2>${esc(t.plate)}</h2><span class="chip ok">${esc(t.status)}</span>`+kv([['Driver',esc(t.driver)],['Pallets on board',t.pallets+' / 10'],['Trips today',t.trips],['Route','Pallet cold store → air cargo terminal']]);}
  else if(s.type==='plane'||s.type==='airport'){const P=plane;const st={parked:'On stand, loading',taxi:'Taxiing to runway',takeoff:'Taking off',away:'In flight',landing:'Landing'}[P.state];
   h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Air freight terminal · ${esc(PORTS[origin].name)}</div><h2>${s.type==='plane'?'GFS freighter':'Air freight terminal'}</h2><span class="chip ${weather==='fog'||weather==='wind'?'warn':'ok'}">${weather==='fog'||weather==='wind'?'Departures held':esc(st)}</span>`+
@@ -1480,7 +1498,7 @@ function bgStep(){for(let i=bgQueue.length-1;i>=0;i--){const c=bgQueue[i];const 
 function destArrive(c){c.step=6;c.times[6]=sim;c.where='Discharged at '+PORTS[c.pod].name;const slot=DSTACK.find(x=>!x.used);
  const m=makeContainer(null,true);if(slot){slot.used=c;c.slot=slot;m.position.set(slot.x,slot.y,slot.z);dest.add(m);}c.mesh=m;tag(m,'container',c);destQueue.push(c);}
 function feedDestination(){let ls=LANES.filter(l=>l.d===destKey&&l.o===origin);if(!ls.length)ls=LANES.filter(l=>l.d===destKey);const l=ls.length?pick(ls):{o:origin,d:destKey,carriers:['MSC'],src:'Added manually'};
- const c={id:isoNumber(OWNER[l.carriers[0]]||'TBCU'),carrier:l.carriers[0]||'TBC',booking:'GFS'+(3900+Math.floor(rnd(0,200))),pol:l.o,pod:l.d,src:l.src,pallets:20,commodity:'Navel oranges',setpoint:'+4.5 °C',vent:'25 m³/h',vgm:Math.round(rnd(25400,25900)),farm:FARM_NAME,
+ const c={id:isoNumber(OWNER[l.carriers[0]]||'TBCU'),carrier:l.carriers[0]||'TBC',booking:'GFS'+(3900+Math.floor(rnd(0,200))),pol:l.o,pod:l.d,src:l.src,pallets:20,commodity:pick(OT[origin].products),setpoint:'+4.5 °C',vent:'25 m³/h',vgm:Math.round(rnd(25400,25900)),farm:FARM_NAME,
   step:5,times:[sim-15000,sim-14980,sim-14950,sim-14930,sim-14900,sim-14500,null,null,null,null],where:'At sea',shipped:true,vessel:'Earlier sailing'};containers.push(c);destArrive(c);}
 function clientStep(t,dt,ahead){const st=DSTOPS[t.stopIdx];const c=t.cont;
  if(t.dwell>0){t.v=0;
@@ -1516,14 +1534,14 @@ function airTruckStep(t,dt){const st=ASTOPS[t.stopIdx];
  if(dStop<=step+.02){t.s=st.s;t.v=0;t.dwell=.5;t.acc=0;}else t.s=(t.s+step)%ALOOP;}
 function planeStep(dt){const P=plane;
  if(P.state==='parked'){P.loadT+=dt;if(P.loadT>2.2&&airPallets>=4&&P.ulds<8){P.loadT=0;airPallets-=4;P.ulds++;}
-  if(P.ulds>=8&&weather!=='fog'&&weather!=='wind'){P.state='taxi';planePath([[-94,PLANE_Y,4,0],[-96,PLANE_Y,12,4],[-96,PLANE_Y,50,7],[-105,PLANE_Y,55,4],[-105,PLANE_Y,50,3]],()=>{P.state='takeoff';
-   planePath([[-105,PLANE_Y,50,0],[-105,PLANE_Y,20,16],[-105,PLANE_Y,-12,26],[-105,14,-60,30],[-105,46,-140,34],[-105,80,-230,38]],()=>{P.state='away';P.awayT=0;P.g.visible=false;P.flights++;P.palletsToday+=P.ulds*4;alertMsg(`GFS air freight departed: ${P.ulds} ULDs, ${P.ulds*4} pallets`);P.ulds=0;});});}}
- else if(P.state==='away'){P.awayT+=dt;if(P.awayT>28){P.state='landing';P.g.visible=true;planePath([[-105,60,190,0],[-105,26,120,30],[-105,PLANE_Y,56,26],[-105,PLANE_Y,10,16],[-105,PLANE_Y,-22,6],[-96,PLANE_Y,-24,4],[-96,PLANE_Y,-10,4],[-94,PLANE_Y,4,3]],()=>{P.state='parked';P.loadT=0;});}}
+  if(P.ulds>=8&&weather!=='fog'&&weather!=='wind'){P.state='taxi';planePath([[-62,PLANE_Y,116,0],[-54,PLANE_Y,122,4],[-32,PLANE_Y,129,7],[-24,PLANE_Y,136,4],[-26,PLANE_Y,138,3]],()=>{P.state='takeoff';
+   planePath([[-26,PLANE_Y,138,0],[-60,PLANE_Y,138,16],[-100,PLANE_Y,138,26],[-150,14,138,30],[-230,46,138,34],[-330,80,138,38]],()=>{P.state='away';P.awayT=0;P.g.visible=false;P.flights++;P.palletsToday+=P.ulds*4;alertMsg(`GFS air freight departed: ${P.ulds} ULDs, ${P.ulds*4} pallets`);P.ulds=0;});});}}
+ else if(P.state==='away'){P.awayT+=dt;if(P.awayT>28){P.state='landing';P.g.visible=true;planePath([[170,60,138,0],[90,26,138,30],[-10,PLANE_Y,138,26],[-60,PLANE_Y,138,16],[-104,PLANE_Y,138,6],[-114,PLANE_Y,131,4],[-90,PLANE_Y,126,4],[-66,PLANE_Y,121,4],[-62,PLANE_Y,116,3]],()=>{P.state='parked';P.loadT=0;});}}
  if(P.path){const a=P.path[P.seg],b=P.path[P.seg+1];const L=a.distanceTo(b)||1;P.segD+=P.speeds[P.seg+1]*dt;const k=Math.min(1,P.segD/L);
   P.g.position.lerpVectors(a,b,k);const dx=b.x-a.x,dz=b.z-a.z,dy=b.y-a.y;const h=Math.hypot(dx,dz);if(h>.01)P.g.rotation.y=Math.atan2(dx,dz);P.g.rotation.x=-Math.atan2(dy,h||1);
   P.g.userData.gear.visible=P.g.position.y<12;
   if(k>=1){P.seg++;P.segD=0;if(P.seg>=P.path.length-1){P.path=null;const f=P.onEnd;P.onEnd=null;if(f)f();}}}
- const staged=Math.min(8,Math.floor(airPallets/4));for(let i=0;i<8;i++){if(i<staged){dummy.position.set(-89+(i%4)*1.8,.8,-1+Math.floor(i/4)*1.8);dummy.scale.set(1,1,1);}else dummy.scale.set(0,0,0);dummy.rotation.set(0,0,0);dummy.updateMatrix();uldI.setMatrixAt(i,dummy.matrix);}uldI.instanceMatrix.needsUpdate=true;}
+ const staged=Math.min(8,Math.floor(airPallets/4));for(let i=0;i<8;i++){if(i<staged){dummy.position.set(-56+(i%4)*1.8,.8,110+Math.floor(i/4)*1.8);dummy.scale.set(1,1,1);}else dummy.scale.set(0,0,0);dummy.rotation.set(0,0,0);dummy.updateMatrix();uldI.setMatrixAt(i,dummy.matrix);}uldI.instanceMatrix.needsUpdate=true;}
 function destStep(dt){
  feedT+=dt;if(feedT>22){feedT=0;if(destQueue.length<3)feedDestination();}
  if(scanT>0){scanT-=dt;scanBeam.material.opacity=.25+.25*Math.sin(clockT*10);scanBeam.position.z=DZ*0-20+Math.sin(clockT*2)*2;}else scanBeam.material.opacity=0;
@@ -1658,7 +1676,7 @@ trucks.forEach(t=>{if(t.kind==='other')return;t.status=t.cont?(t.cont.loaded?'En
 // a couple already waiting in the stack
 for(let i=0;i<3;i++){const t={g:new THREE.Group(),cont:null,trip:null};world.add(t.g);const c=createContainer({id:'TRK-0'+(i+1)});c.times=[sim-140,sim-120,sim-100,sim-70,null,null,null];c.step=3;c.gatedIn=true;c.pallets=20;c.loaded=true;c.vgm=25520+i*130;const m=makeContainer(null,true);c.mesh=m;tag(m,'container',c);t.g.add(m);t.cont=c;stats.gated++;dropToYard(t);world.remove(t.g);}
 // historic deliveries so the network has tracked boxes
-LANES.filter(l=>l.o===origin&&l.carriers.length).slice(0,3).forEach((l,i)=>{const arr=[];for(let k=0;k<3;k++){const c={id:isoNumber(OWNER[l.carriers[0]]),carrier:l.carriers[0],booking:'GFS'+(4100+i*10+k),pol:l.o,pod:l.d,src:l.src,pallets:20,commodity:'Navel oranges',setpoint:'+4.5 °C',vent:'25 m³/h',vgm:25600+k*90,step:5,times:[sim-2900,sim-2860,sim-2830,sim-2790,sim-2760,sim-2400,null],farm:FARM_NAME,mesh:null,where:'At sea',vessel:'',shipped:true};containers.push(c);arr.push(c);}
+LANES.filter(l=>l.o===origin&&l.carriers.length).slice(0,3).forEach((l,i)=>{const arr=[];for(let k=0;k<3;k++){const c={id:isoNumber(OWNER[l.carriers[0]]),carrier:l.carriers[0],booking:'GFS'+(4100+i*10+k),pol:l.o,pod:l.d,src:l.src,pallets:20,commodity:pick(OT[origin].products),setpoint:'+4.5 °C',vent:'25 m³/h',vgm:25600+k*90,step:5,times:[sim-2900,sim-2860,sim-2830,sim-2790,sim-2760,sim-2400,null],farm:FARM_NAME,mesh:null,where:'At sea',vessel:'',shipped:true};containers.push(c);arr.push(c);}
  const r=route(l.o,l.d);const sh=spawnShip(l.o,l.d,{carrier:l.carriers[0],boxes:arr,start:r.len*rnd(.2,.7)});arr.forEach(c=>c.vessel=sh.name);});
 stats.pallets=312;stats.bins=520;stats.turn=[52,47,58];
 onKit(()=>{addKitScenery();applyOriginTheme(origin);applyDestTheme(destKey);});loadKit();
@@ -1711,7 +1729,7 @@ function tick(now){requestAnimationFrame(tick);let dt=Math.max(0,Math.min(.05,(n
  if(selected){const p=worldPosOf(selected.type==='container'&&!selected.ref.mesh?{type:'none'}:selected);
   const shipSel=selected.type==='container'&&(!selected.ref.mesh||selected.ref.where==='At sea')?ships.find(s=>s.boxes.includes(selected.ref)):null;
   const pp=shipSel?shipSel.g.getWorldPosition(new THREE.Vector3()):p;
-  if(pp){ring.visible=true;const big=['airport','hq','transport','farm','pack','coldroom','depot','staging','yard','vessel','dstack','customs','warehouse','ddepot'].includes(selected.type)?(selected.type==='vessel'?30:14):(selected.type==='port'||selected.type==='ship'||shipSel?2.6:4.8);ring.position.set(pp.x,(pp.z<-200?1.2:.2),pp.z);ring.scale.setScalar(big*(1+Math.sin(clockT*4)*.06));
+  if(pp){ring.visible=true;const big=['apples','grapes','airport','hq','transport','farm','pack','coldroom','depot','staging','yard','vessel','dstack','customs','warehouse','ddepot'].includes(selected.type)?(selected.type==='vessel'?30:14):(selected.type==='port'||selected.type==='ship'||shipSel?2.6:4.8);ring.position.set(pp.x,(pp.z<-200?1.2:.2),pp.z);ring.scale.setScalar(big*(1+Math.sin(clockT*4)*.06));
    selLabel.el.hidden=false;selLabel.obj=null;selLabel.pos=new THREE.Vector3(pp.x,pp.y+(pp.z<-200?6:selected.type==='vessel'?14:6),pp.z);selLabel.el.textContent=labelText(selected);}
   else{ring.visible=false;selLabel.el.hidden=true;}}
  else{ring.visible=false;selLabel.el.hidden=true;}
@@ -1725,7 +1743,7 @@ function tick(now){requestAnimationFrame(tick);let dt=Math.max(0,Math.min(.05,(n
   if(!hoverDetail&&(!selected||['truck','bintruck','dtruck','airtruck','plane','airport','hq','transport','ship','pack','coldroom','depot','staging','vessel','yard','crane','farm','container','dstack','customs','warehouse','ddepot'].includes(selected.type)))renderDetail();
   renderTracker();if(!hoverTable&&$('#tablebox').classList.contains('open'))renderTable();if(Math.random()<.1)refreshDatalist();}
 }
-function labelText(s){return s.type==='truck'?s.ref.plate:s.type==='container'?s.ref.id:s.type==='ship'?s.ref.name:s.type==='port'?s.ref.name:s.type==='vessel'?vessel.name:s.type==='crane'?s.ref.name:s.type==='farm'?'Block 7':s.type==='pack'?'Packhouse':s.type==='depot'?'Empty depot':s.type==='yard'?'Reefer stack':s.type==='bintruck'?s.ref.plate:s.type==='coldroom'?'Bin cold room':s.type==='staging'?'Plug-in depot':s.type==='airtruck'?s.ref.plate:s.type==='plane'?'GFS freighter':s.type==='airport'?'Air freight terminal':s.type==='hq'?'GFS HQ':s.type==='transport'?'Transporter office':s.type==='dtruck'?s.ref.plate:s.type==='dstack'?'Discharge stack':s.type==='customs'?'Customs':s.type==='warehouse'?'Client warehouse':s.type==='ddepot'?'Empty return depot':'';}
+function labelText(s){return s.type==='truck'?s.ref.plate:s.type==='container'?s.ref.id:s.type==='ship'?s.ref.name:s.type==='port'?s.ref.name:s.type==='vessel'?vessel.name:s.type==='crane'?s.ref.name:s.type==='farm'?'Block 7':s.type==='pack'?'Packhouse':s.type==='depot'?'Empty depot':s.type==='yard'?'Reefer stack':s.type==='bintruck'?s.ref.plate:s.type==='coldroom'?'Bin cold room':s.type==='apples'?'Apple orchard':s.type==='grapes'?'Table grapes':s.type==='staging'?'Plug-in depot':s.type==='airtruck'?s.ref.plate:s.type==='plane'?'GFS freighter':s.type==='airport'?'Air freight terminal':s.type==='hq'?'GFS HQ':s.type==='transport'?'Transporter office':s.type==='dtruck'?s.ref.plate:s.type==='dstack'?'Discharge stack':s.type==='customs'?'Customs':s.type==='warehouse'?'Client warehouse':s.type==='ddepot'?'Empty return depot':'';}
 /* =========================================================
    GUIDED TOUR — "How GFS works"
    ========================================================= */
@@ -1735,7 +1753,7 @@ function focus(sel,dist){select(sel,{noFly:true});const p=worldPosOf(sel);if(!p)
 const firstGfsTruck=pred=>trucks.find(t=>t.kind!=='other'&&pred(t))||trucks.find(t=>t.kind!=='other');
 const TOUR=[
  {t:()=>'Welcome to the GFS chain',x:()=>`This mini world shows how fresh fruit travels from a farm near ${O()} to a customer in ${D()}. Many companies each do one step. GFS organises all of them.`,g:'Follow the steps. Each one shows something real moving in the world.',go:()=>setArea('overview')},
- {t:()=>'1. Picking the fruit',x:()=>'Farm workers pick the fruit by hand and tip it into big wooden bins in the orchard.',g:'GFS plans how much fruit is coming and when it must ship.',go:()=>focus({type:'farm',obj:farmHit},75)},
+ {t:()=>'1. Picking the fruit',x:()=>'Farm workers pick the fruit by hand and tip it into big wooden bins. This farm grows citrus, apples and table grapes, so there is always something in season.',g:'GFS plans how much fruit is coming and when it must ship.',go:()=>focus({type:'farm',obj:farmHit},75)},
  {t:()=>'2. Bins to the cold room',x:()=>'Bin trucks carry the full bins to the cold room, so the fruit cools down quickly and stays fresh.',go:()=>focus({type:'bintruck',ref:binTrucks[0]},38)},
  {t:()=>'3. Washing and packing',x:()=>`In the packhouse the fruit is washed, dried, sorted by size and quality, and packed into 15 kg cartons. ${CARTONS_PER_PALLET} cartons make one pallet.`,go:()=>focus({type:'pack',obj:packHit},50)},
  {t:()=>'4. Waiting in the cold store',x:()=>'Finished pallets wait in the pallet cold store at about +4 °C until transport arrives.',g:'GFS books space on a ship and orders an empty container from the shipping line.',go:()=>{select(null);flyTo([7,0,-13],TOUR_DIR.clone().multiplyScalar(40).toArray());}},

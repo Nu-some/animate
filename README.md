@@ -27,7 +27,7 @@ Pick an **Origin** and a **Destination** in the top bar. The landscape and landm
 | | | Mombasa | The Tusks, Fort Jesus, dhows, baobabs |
 
 ## Origin side
-1. Pickers fill field bins in the orchard.
+1. Pickers fill field bins in the orchard. The farm has three blocks: citrus, apples and trellised table grapes, and containers carry what the origin grows.
 2. Bin trucks take the bins to the bin cold room.
 3. The packhouse tips, washes, dries, grades and packs the fruit into cartons. Pallets go to the pallet cold store.
 4. The shipping line's empty depot washes and inspects (PTI) the empties.
