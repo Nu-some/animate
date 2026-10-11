@@ -113,6 +113,9 @@ td.mono{font-family:var(--f-data);font-size:12px;font-variant-numeric:tabular-nu
 tbody tr{cursor:pointer}
 tbody tr:hover{background:rgba(255,255,255,.05)}
 tbody tr.sel{background:rgba(61,187,116,.16)}
+body.bar-off .topbar{display:none!important}
+#barBtn{position:fixed;z-index:6;top:calc(14px + env(safe-area-inset-top,0px));right:20px;width:32px;height:32px;border-radius:10px;display:grid;place-items:center;padding:0;color:var(--fg)}
+.topbar{margin-right:44px}
 body.clean .detail,body.clean .bottom,body.clean #labels .lbl.area{display:none!important}
 .topbar .seg button,.ctl{font-size:13px}
 .ctl,.search,.iconbtn{height:30px}.iconbtn{width:30px}
@@ -144,6 +147,7 @@ body.clean .detail,body.clean .bottom,body.clean #labels .lbl.area{display:none!
 <div id="stage"></div>
 <div id="labels"></div>
 
+<button class="panel" id="barBtn" aria-label="Hide top bar" aria-pressed="true" title="Show or hide the top bar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path id="barIcon" d="M6 15l6-6 6 6"/></svg></button>
 <div class="hud">
   <header class="topbar panel">
     <div class="brand">
@@ -860,9 +864,11 @@ $('#toggleLists').onclick=()=>{const o=$('#tablebox').classList.toggle('open');$
 $('#journeyBtn').onclick=()=>{const t=$('#tracker');t.hidden=!t.hidden;$('#journeyBtn').setAttribute('aria-pressed',String(!t.hidden));renderTracker();};
 $('#aboutBtn').onclick=()=>{aboutOpen=!aboutOpen;$('#aboutBtn').setAttribute('aria-pressed',String(aboutOpen));if(aboutOpen&&selected)select(null);else renderDetail();};
 function toggleClean(){const on=document.body.classList.toggle('clean');$('#cleanBtn').setAttribute('aria-pressed',String(on));}
+function setBar(show){document.body.classList.toggle('bar-off',!show);$('#barBtn').setAttribute('aria-pressed',String(show));$('#barBtn').setAttribute('aria-label',show?'Hide top bar':'Show top bar');$('#barIcon').setAttribute('d',show?'M6 15l6-6 6 6':'M6 9l6 6 6-6');setTb();}
+$('#barBtn').onclick=()=>setBar(document.body.classList.contains('bar-off'));
 $('#cleanBtn').onclick=toggleClean;
-addEventListener('keydown',e=>{if((e.key==='h'||e.key==='H')&&!/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName))toggleClean();});
-function setTb(){document.documentElement.style.setProperty('--tb',$('.topbar').getBoundingClientRect().bottom+'px');}setTb();addEventListener('resize',setTb);
+addEventListener('keydown',e=>{if((e.key==='h'||e.key==='H')&&!/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)){const off=!document.body.classList.contains('clean');document.body.classList.toggle('clean',off);$('#cleanBtn').setAttribute('aria-pressed',String(off));setBar(!off);}});
+function setTb(){const r=$('.topbar').getBoundingClientRect();document.documentElement.style.setProperty('--tb',(r.height?r.bottom:40)+'px');}setTb();addEventListener('resize',setTb);
 const qlist=$('#qlist');
 function refreshDatalist(){qlist.innerHTML=[...allTrucks().map(t=>t.plate),...containers.slice(0,20).map(c=>c.id),...Object.values(PORTS).map(p=>p.name)].map(v=>`<option value="${esc(v)}">`).join('');}
 $('#searchForm').onsubmit=e=>{e.preventDefault();const q=$('#q').value.trim().toLowerCase().replace(/\s+/g,'');if(!q)return;const norm=s=>s.toLowerCase().replace(/[\s-]+/g,'');
