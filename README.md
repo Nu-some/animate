@@ -4,7 +4,7 @@ A live 3D operations view of the GFS export chain, built as a single HTML file w
 
 **Website:** every push publishes the page to GitHub Pages at `https://nu-some.github.io/animate/` (see `.github/workflows/pages.yml`). GitHub Pages must be enabled for the repository under Settings → Pages → Source: GitHub Actions.
 
-Press **How GFS works** for a guided, plain-language tour through every step of the job.
+A guided, plain-language tour exists but is tucked away: press **T** on the keyboard, or use the small "Guided tour" link at the end of the About panel (the ⓘ button).
 
 ## Every port has its own look
 Pick an **Origin** and a **Destination** in the top bar. The landscape and landmarks change with each port:

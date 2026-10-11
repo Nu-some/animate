@@ -141,10 +141,7 @@ body.clean .detail,body.clean .bottom,body.clean #labels .lbl.area{display:none!
 #fallback{position:fixed;inset:0;display:grid;place-items:center;padding:16px;text-align:center}
 
 
-.tour-cta{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:7;display:flex;align-items:center;gap:12px;padding:12px 20px 12px 14px;border-radius:999px;border:0;background:var(--accent);color:#08130e;box-shadow:0 10px 30px rgba(0,0,0,.3);text-align:left;cursor:pointer}
-.tour-cta b{display:block;font:700 16px/1.1 var(--f-display)}.tour-cta small{display:block;font-size:12px;opacity:.8}
-.tour-cta svg{flex:none;width:34px;height:34px;padding:8px;border-radius:50%;background:#08130e;color:var(--accent)}
-body.touring .tour-cta,body.touring .detail,body.touring .bottom{display:none!important}
+body.touring .detail,body.touring .bottom{display:none!important}
 .tour{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));width:min(640px,calc(100% - 32px));z-index:8;padding:16px 18px;background:var(--glass-strong)}
 .tour-top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
 .tour-count{font:600 12px var(--f-data);color:var(--accent)}
@@ -218,7 +215,6 @@ body.touring .tour-cta,body.touring .detail,body.touring .bottom{display:none!im
     <div class="ctl"><span class="clock" id="clock">06:30</span><span class="live">SIM</span></div>
     <div class="seg" aria-label="Lighting"><button id="dayBtn" aria-pressed="true">Day</button><button id="nightBtn" aria-pressed="false">Night</button></div>
     <div class="seg" aria-label="Panels"><button id="journeyBtn" aria-pressed="false" title="Container journey">View journey</button><button id="toggleLists" aria-pressed="false" title="Trucks, containers and lanes">Lists</button></div>
-    <button class="iconbtn" id="tourBtn2" aria-label="How GFS works (guided tour)" title="How GFS works (guided tour)"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></button>
     <button class="iconbtn" id="aboutBtn" aria-label="About this chain" aria-pressed="false" title="About this chain"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button>
     <button class="iconbtn" id="hqBtn" aria-pressed="false" aria-label="High quality graphics" title="High quality graphics (soft shadows, glow)"><span style="font:700 10px var(--f-data)">HD</span></button>
     <button class="iconbtn" id="cleanBtn" aria-label="Hide panels (H)" aria-pressed="false" title="Hide panels (H)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
@@ -248,7 +244,6 @@ body.touring .tour-cta,body.touring .detail,body.touring .bottom{display:none!im
   </section>
 </div>
 <div class="toast panel" id="toast" style="opacity:0"></div>
-<button class="tour-cta" id="tourCta"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg><span><b>How GFS works</b><small>A 3-minute guided tour, step by step</small></span></button>
 <section class="tour panel" id="tour" hidden aria-live="polite">
   <div class="tour-top"><span class="tour-count" id="tourCount">1 / 20</span><div class="tour-dots" id="tourDots"></div><button class="closebtn" id="tourClose" aria-label="Exit tour">×</button></div>
   <h3 id="tourTitle"></h3>
@@ -1243,7 +1238,7 @@ function renderDetail(){
  if(!s){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Origin · ${esc(PORTS[origin].name)}</div><h2>Today's chain</h2><p class="hint">${esc(OT[origin].desc)}</p>
   <p class="hint">Pickers fill field bins, bin trucks take them to the bin cold room, and the packhouse washes, grades and packs the fruit into cartons. Reefer trucks collect empties at the depot, load pallets at the packhouse and drop them at the port, where cranes load the vessel. Other exporters' trucks share the road, gate and stacks. GFS reefers carry a green roof tag. Click anything to follow it.</p>`+
   kv([['Bins collected today',stats.bins.toLocaleString('en-ZA')],['Bins in cold room',Math.floor(stats.binsCold)],['Cartons packed today',(stats.pallets*CARTONS_PER_PALLET).toLocaleString('en-ZA')],['GFS trucks on the road',vehicles.filter(t=>['gfs','local','haul','air'].includes(t.kind)).length],['Other exporters on the road',vehicles.filter(t=>t.kind==='other').length],['Cold store stock',stats.coldStore+' plts'],['Yard reefers plugged',YARD.filter(y=>y.used).length+' / '+YARD.length],['Vessel at berth',vessel.state==='berthed'?esc(vessel.name):vessel.state==='anchored'||vessel.state==='toAnchor'?esc(vessel.name)+' (delayed)':'—'],['Reefers at staging depot',stagingQ.length],['Lanes from '+PORTS[origin].name,lanesFrom(origin).length]])+
-  `<p class="hint">Lanes and carriers come from the FREIGHT 2025 sheet. Rates are not shown. Ports marked "Added manually" are not in that sheet yet.</p>`;}
+  `<p class="hint">Lanes and carriers come from the FREIGHT 2025 sheet. Rates are not shown. Ports marked "Added manually" are not in that sheet yet. <a href="#" data-tour style="color:var(--muted);opacity:.6">Guided tour</a></p>`;}
  else if(s.type==='truck'){const t=s.ref;const c=t.cont;
   if(t.kind==='other'){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">${esc(t.shipper)}</div><h2>${esc(t.plate)}</h2><span class="chip">${esc(t.status)}</span>`+kv([['Company',esc(t.company)],['Container',t.cont?esc(t.cont.id):'—'],['Next stop',esc(nextStopName(t))],['Speed',Math.round(t.v*7)+' km/h']])+`<p class="hint">Not a GFS load. Other exporters come in from the inland town and share the same weighbridge, gate queue and stacks.</p>`;}
   else if(t.kind==='local'||t.kind==='haul'){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">${t.kind==='local'?'GFS local delivery':'GFS long-distance'} · ${esc(t.id)}</div><h2>${esc(t.plate)}</h2><span class="chip ok">${esc(t.status)}</span>`+kv([['Company',esc(t.company)],['Driver',esc(t.driver)],['Pallets on board',t.pallets+' / '+(t.kind==='local'?10:20)],['Trips today',t.trips],['Next stop',esc(nextStopName(t))],['Route',t.kind==='local'?'Pallet cold store → supermarket DC':'Pallet cold store → client depot, inland town'],['Speed',Math.round(t.v*7)+' km/h']])+`<p class="hint">${t.kind==='local'?'Not everything is exported: local market fruit goes by truck to the supermarket distribution centre and the local cold room.':'Long-distance loads drive on the road that links the cities, from the transporter yard to the client depot in the next town.'}</p>`;}
@@ -1850,7 +1845,10 @@ function tourShow(i){tourI=clamp(i,0,TOUR.length-1);const st=TOUR[tourI];tourT=0
  try{st.go();}catch(e){setArea('overview');}}
 function tourStart(){document.body.classList.add('touring');$('#tour').hidden=false;tourAuto=true;$('#tourPlay').textContent='Pause';aboutOpen=false;tourShow(0);}
 function tourEnd(){document.body.classList.remove('touring');$('#tour').hidden=true;tourI=-1;select(null);setArea('overview');}
-$('#tourCta').onclick=tourStart;$('#tourBtn2').onclick=tourStart;$('#tourClose').onclick=tourEnd;
+$('#tourClose').onclick=tourEnd;
+// the guided tour is deliberately tucked away: press T, or the small link at the end of the About panel
+addEventListener('keydown',e=>{if(tourI<0&&(e.key==='t'||e.key==='T')&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!/input|select|textarea/i.test(e.target.tagName))tourStart();});
+detail.addEventListener('click',e=>{if(e.target.closest('[data-tour]')){e.preventDefault();tourStart();}});
 $('#tourNext').onclick=()=>{if(tourI>=TOUR.length-1)tourEnd();else tourShow(tourI+1);};
 $('#tourPrev').onclick=()=>tourShow(tourI-1);
 $('#tourPlay').onclick=()=>{tourAuto=!tourAuto;tourT=0;$('#tourPlay').textContent=tourAuto?'Pause':'Play';};
