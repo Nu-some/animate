@@ -57,3 +57,11 @@ All trucks, containers and timings are simulated. Container numbers use valid IS
 ## Credits
 - Buildings, cars, streetlights, traffic lights and street props: **KayKit City Builder Bits** by Kay Lousberg (kaylousberg.com). The licence is CC0, so commercial use is allowed. The models are embedded in `index.html`.
 - Trucks, containers, cranes, vessels, aircraft and all logistics equipment are modelled in code.
+
+## Web addresses
+
+| Address | What it needs |
+|---|---|
+| `https://nu-some.github.io/animate/` | Enable GitHub Pages on this repo: Settings → Pages → Source: **GitHub Actions**, then run the **Publish website** workflow once. Free. |
+| `https://nu-some.github.io/` (shorter) | Create a public repo named exactly `Nu-some.github.io` and put `index.html` in it. GitHub publishes it automatically. Free. |
+| `https://nusome.io` (your own domain) | 1. Buy `nusome.io` from a registrar (Cloudflare, Namecheap, GoDaddy; a `.io` costs about US$35–60 a year). 2. At the registrar add DNS records: four `A` records for `@` → `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`, and a `CNAME` for `www` → `nu-some.github.io`. 3. Add a file named `CNAME` containing `nusome.io` to the site repo, and set the custom domain under Settings → Pages. 4. Tick **Enforce HTTPS** once the certificate is issued (up to a day). |
