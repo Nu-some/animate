@@ -442,7 +442,7 @@ function shoreline(parent,w,d,x,z,skipW){const beach=new THREE.Mesh(new THREE.Bo
  const wet=new THREE.Mesh(new THREE.BoxGeometry(w+5.5,.1,d+5.5),M(0xd2c9ab));wet.position.set(x,-.56,z);parent.add(wet);
  const shallow=new THREE.Mesh(new THREE.BoxGeometry(w+16,.04,d+16),new THREE.MeshStandardMaterial({color:0x8fdce6,transparent:true,opacity:.26,roughness:.3,depthWrite:false}));shallow.position.set(x,-.57,z);shallow.castShadow=false;shallow.receiveShadow=false;parent.add(shallow);
  const sm=new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:.55,roughness:1});surfMats.push(sm);const sm2=new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:.25,roughness:1});surfMats.push(sm2);
- [[w+6,1.4,0,d/2+2.4],[w+6,1.4,0,-d/2-2.4],[1.4,d+6,w/2+2.4,0],[1.4,d+6,-w/2-2.4,0]].forEach(([a,b,dx,dz],i)=>{if(skipW&&i===3)return;const m=new THREE.Mesh(new THREE.BoxGeometry(a,.06,b),sm);m.position.set(x+dx,-.5,z+dz);parent.add(m);const o=new THREE.Mesh(new THREE.BoxGeometry(a>b?a+4:2.2,.05,a>b?2.2:b+4),sm2);o.position.set(x+dx*1.0+(a>b?0:Math.sign(dx)*2.4),-.52,z+dz+(a>b?Math.sign(dz)*2.4:0));parent.add(o);});}
+ [[w+6,1.4,0,d/2+2.4],[w+6,1.4,0,-d/2-2.4],[1.4,d+6,w/2+2.4,0],[1.4,d+6,-w/2-2.4,0]].forEach(([a,b,dx,dz],i)=>{if(skipW&&i===3)return;const m=new THREE.Mesh(new THREE.BoxGeometry(a,.06,b),sm);m.position.set(x+dx,-.5,z+dz);parent.add(m);const o=new THREE.Mesh(new THREE.BoxGeometry(a>b?a:3.2,.05,a>b?3.2:b),sm2);o.position.set(x+dx+(a>b?0:Math.sign(dx)*2.6),-.52,z+dz+(a>b?Math.sign(dz)*2.6:0));parent.add(o);});}
 const themeAnimsGlobal=[];
 const scene=new THREE.Scene();
 const DAY_SKY=new THREE.Color(0xa9cfe0),NIGHT_SKY=new THREE.Color(0x0b1626);
@@ -833,7 +833,22 @@ const dCurve=new THREE.CatmullRomCurve3(DP.map(([x,z])=>new THREE.Vector3(x,0,z)
 const DLOOP=dCurve.getLength();
 const DSTOPS=[{k:'pickup',p:[28,-18]},{k:'customs',p:[12,-20]},{k:'warehouse',p:[-14,-18]},{k:'return',p:[-20,24.5]}];
 const clientTrucks=[];const destQueue=[];
-const dLight=new THREE.PointLight(0xffc98a,0,60,1.6);dLight.position.set(-10,10,0);dest.add(dLight);nightLights.push(dLight);
+const dLight=new THREE.PointLight(0xffc98a,0,60,1.6);dLight.position.set(-10,10,0);dest.add(dLight);
+// quay furniture, a second crane, general stacks, port warehouses, a town and a palm promenade
+for(let z=-40;z<=40;z+=6){cyl(dest,.28,.34,.7,0x2c3633,44.3,0,z,10);cyl(dest,.42,.42,.12,0x2c3633,44.3,.7,z,10);rbox(dest,.5,.9,2.2,0x1c1f22,46.2,-.75,z+3,.2);}
+{const {g,tr,sp,cable}=makeSTS(0x2e86c1);g.position.set(40,0,-30);dest.add(g);const cr={g,tr,sp,cable,name:'STS Discharge',moves:0,state:'idle'};tag(g,'crane',cr);}
+{const n=60;const tb=new THREE.InstancedMesh(new THREE.BoxGeometry(1.9,1.9,5.6),new THREE.MeshStandardMaterial({roughness:.8}),n);let k=0;const col=new THREE.Color();
+ for(let c=0;c<5&&k<n;c++)for(let r=0;r<2&&k<n;r++)for(let t=0;t<3&&k<n;t++){if(Math.random()<.25)continue;dummy.position.set(22+c*2.3,.95+t*1.95,-34-r*6.4);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();tb.setMatrixAt(k,dummy.matrix);tb.setColorAt(k,col.setHex(pick([0xc0392b,0x2e86c1,0x8e44ad,0xd68910,0x117a65,0x5d6d7e,0xeef1f2])));k++;}
+ tb.count=k;tb.castShadow=true;tb.receiveShadow=true;dest.add(tb);box(dest,16,.05,18,0xb9b4a6,26,0,-37).castShadow=false;}
+[-36,0,36].forEach(z=>{cyl(dest,.22,.3,13,0x9aa6aa,42,0,z,8);const hd=new THREE.Mesh(RB(1.6,.5,1.2,.12),winMat);hd.position.set(42,13.2,z);dest.add(hd);});
+shed(dest,{x:-48,z:-38,w:24,d:11,h:5.2,wall:0xe9edf0,roof:0x7f8c93,trim:0x2e86c1,ry:Math.PI,doors:[{at:-6,w:3.6,h:3.4,open:true},{at:6,w:3.6,h:3.4}],sign:'Port warehouse 2',signW:7});
+shed(dest,{x:-48,z:-56,w:24,d:11,h:5.2,panel:true,flat:true,units:4,wall:0xf4f7f8,trim:0x2e86c1,ry:Math.PI,doors:[{at:0,w:4,h:3.6}],sign:'Cold store',signSub:'Fruit & fish',signW:7});
+box(dest,54,.05,40,0xc3c8c2,-48,0,-48).castShadow=false;
+box(dest,50,.05,2.6,0xd6d2c6,-55,.045,0).castShadow=false;roadRibbon(new THREE.LineCurve3(new THREE.Vector3(-36,0,0),new THREE.Vector3(-80,0,0)),2.2,0x5d6266,true,.06,dest);
+box(dest,40,.05,40,0xc9c4b4,-60,0,22).castShadow=false;
+for(let x=-74;x<=-46;x+=7)for(let z=8;z<=40;z+=8){if(Math.random()<.2)continue;rbox(dest,4.6,rnd(4,9),4.6,pick([0xf1ece0,0xe8d9c0,0xd9c7a8,0xc9b89a,0xf4f6f6]),x+rnd(-.5,.5),0,z+rnd(-.5,.5),.08);}
+for(let x=-76;x<=-30;x+=6){const t=new THREE.Group();cyl(t,.14,.22,4.6,0x8a6a45,0,0,0,6);const c=new THREE.Mesh(new THREE.IcosahedronGeometry(1.4,0),M(pick([0x3f8a3a,0x4f9a45,0x357a33]),{flatShading:true}));c.position.y=4.8;c.scale.y=.38;t.add(c);t.position.set(x,0,43);dest.add(t);}
+const dKitBlocks=()=>{kitBlock(dest,-76,-46,8,40,6.5);};nightLights.push(dLight);
 
 
 /* =========================================================
@@ -1162,7 +1177,7 @@ function lampsAlong(crv,len,step,off,parent,dz){const pts=[];for(let d=step/2;d<
 const poolMat=new THREE.MeshBasicMaterial({color:0xffd59a,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending});
 const headMat=new THREE.MeshStandardMaterial({color:0xfff1cc,emissive:0xffd27a,emissiveIntensity:0});
 let lampPools=null,lampHeads=null;
-function buildLampGlow(){const extra=[[63.2,13.2,-52,9],[63.2,13.2,-22,9],[63.2,13.2,34,9],[63.2,13.2,62,9],[-70,8,124,5],[-70,8,140,5],[-70,8,156,5],[-70,8,172,5],[-70,8,186,5],[-15,4.6,-33.5,5],[-45,3.2,-35.4,3.5],[8,4.4,54,6],[37,4.4,-47,7],[-48,4.4,48,7],[44,4.4,74,6],[-83,4.4,-8,6],[-96,4.4,-8,6],[-16,4.4,50,6],[-224,4,-90,5],[-258,4,-11,5],[-50,4,220,6],[-36,4,236,6]];
+function buildLampGlow(){const extra=[[63.2,13.2,-52,9],[63.2,13.2,-22,9],[63.2,13.2,34,9],[63.2,13.2,62,9],[-70,8,124,5],[-70,8,140,5],[-70,8,156,5],[-70,8,172,5],[-70,8,186,5],[-15,4.6,-33.5,5],[-45,3.2,-35.4,3.5],[8,4.4,54,6],[37,4.4,-47,7],[-48,4.4,48,7],[44,4.4,74,6],[-83,4.4,-8,6],[-96,4.4,-8,6],[-16,4.4,50,6],[-224,4,-90,5],[-258,4,-11,5],[-50,4,220,6],[-36,4,236,6],[358,13.2,36,9],[358,13.2,0,9],[358,13.2,-36,9],[410,5,0,6],[448,5,-22,6]];
  const all=lampPts.map(l=>({p:l.p,r:4.2})).concat(extra.map(([x,y,z,r])=>({p:new THREE.Vector3(x,y,z),r})));
  lampPools=new THREE.InstancedMesh(new THREE.CircleGeometry(1,20),poolMat,all.length);lampHeads=new THREE.InstancedMesh(new THREE.SphereGeometry(.32,8,6),headMat,all.length);
  all.forEach((l,i)=>{dummy.position.set(l.p.x,.09,l.p.z);dummy.rotation.set(-Math.PI/2,0,0);dummy.scale.set(l.r,l.r,1);dummy.updateMatrix();lampPools.setMatrixAt(i,dummy.matrix);dummy.position.set(l.p.x,l.p.y,l.p.z);dummy.rotation.set(0,0,0);dummy.scale.set(l.r/4.2,l.r/4.2,l.r/4.2);dummy.updateMatrix();lampHeads.setMatrixAt(i,dummy.matrix);});
@@ -1184,7 +1199,7 @@ function addKitScenery(){
  kitBlock(world,-62,-16,186,194,6.5);kitBlock(world,-20,-12,222,250,6.5);kitBlock(world,-246,-204,-110,-104,6.5);kitBlock(world,-250,-236,-96,-80,6.5);kitBlock(world,-212,-198,-96,-80,6.5);kit('watertower',5,-200,0,-108,0);
  for(let c=0;c<4;c++)kit(pick(CARS.slice(0,4)),4.4,-44+c*1.9,0,236,0);
  for(let i=0;i<7;i++){const o=kit(CARS[i%CARS.length],4.4,0,0,0,0);if(o){const v=makeVehicle({kind:'car',g:o,speed:rnd(6.5,8.5),onPlanDone:carPlan});placeAtStop(v,CAR_NODES[i%CAR_NODES.length]);carPlan(v);v.plan.unshift({at:v.node,do:'pause'});v.dwell=rnd(.5,4);cityCars.push(v);vehicles.push(v);}}
- for(let c=0;c<6;c++)kit(pick(CARS.slice(0,4)),4.4,-26+c*1.9,0,4,0,dest);
+ for(let c=0;c<6;c++)kit(pick(CARS.slice(0,4)),4.4,-26+c*1.9,0,4,0,dest);dKitBlocks();
  lampsAlong(dCurve,DLOOP,18,3.4,dest);
 }
 
@@ -1231,7 +1246,7 @@ function updateLabels(){const w=innerWidth,h=innerHeight;const camToMap=camera.p
    ========================================================= */
 const ring=new THREE.Mesh(new THREE.TorusGeometry(1,.08,8,40),new THREE.MeshBasicMaterial({color:0x3dbb74}));ring.rotation.x=-Math.PI/2;ring.visible=false;scene.add(ring);
 let selected=null;let follow=null;let fly=null;
-function worldPosOf(sel){const o=sel.type==='truck'||sel.type==='voyager'||sel.type==='person'?sel.ref.g:sel.type==='waiting'?waitShip:sel.type==='container'?(sel.ref.mesh||null):sel.type==='ship'?sel.ref.g:sel.type==='port'?portPins[sel.ref.key]:sel.type==='vessel'?vesselGroup:sel.type==='crane'?sel.ref.g:sel.type==='bintruck'||sel.type==='dtruck'||sel.type==='airtruck'?sel.ref.g:sel.type==='plane'?plane.g:sel.obj||null;
+function worldPosOf(sel){const o=sel.type==='truck'||sel.type==='voyager'||sel.type==='person'||sel.type==='ferry'?sel.ref.g:sel.type==='waiting'?waitShip:sel.type==='container'?(sel.ref.mesh||null):sel.type==='ship'?sel.ref.g:sel.type==='port'?portPins[sel.ref.key]:sel.type==='vessel'?vesselGroup:sel.type==='crane'?sel.ref.g:sel.type==='bintruck'||sel.type==='dtruck'||sel.type==='airtruck'?sel.ref.g:sel.type==='plane'?plane.g:sel.obj||null;
  if(!o)return null;return o.getWorldPosition(new THREE.Vector3());}
 const AREA_VIEWS={overview:{t:[-60,0,50],d:[110,175,205]},bay:{t:[-70,0,222],d:[44,60,74]},forest:{t:[-230,0,-82],d:[30,44,52]},bridge:{t:[-70,0,150],d:[44,30,30]},air:{t:[34,0,95],d:[48,56,60]},farm:{t:[-140,0,-6],d:[30,40,46]},pack:{t:[-100,0,-12],d:[14,26,26]},city:{t:[-22,0,8],d:[46,66,76]},depot:{t:[38,0,-46],d:[26,30,36]},port:{t:[56,0,8],d:[46,48,60]},town:{t:[-258,0,0],d:[30,42,48]},sea:{t:[235,0,-12],d:[0,215,165]},network:{t:[0,0,MAPZ+8],d:[0,150,96]},dest:{t:[400,0,0],d:[-54,72,84]}};
 function flyTo(target,offset){const t1=new THREE.Vector3(...target);const off=offset?new THREE.Vector3(...offset):camera.position.clone().sub(controls.target).setLength(40);
@@ -1307,6 +1322,7 @@ function renderDetail(){
  else if(s.type==='person'){const L=s.ref;const st={home:'At home in her flat',toTheatre:'Walking to the Labia Theatre',film:'Watching the film',toHome:'Walking home'}[L.state];h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Orange Court, flat 4B</div><h2>Lyudmila</h2><span class="chip ok">${st}</span>`+kv([['Lives at','Orange Court, across from the Labia'],['Going to','The Labia Theatre'],['Films seen today',L.seen]])+`<p class="hint">She crosses at the zebra and is back after the credits.</p>`;}
  else if(s.type==='bay'){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Across the bay</div><h2>Bay City</h2><span class="chip ok">Linked by the big bridge</span>`+kv([['Pallets delivered to client depot B',stats.townB||0],['Freighter',plane.state==='parkedB'?'On the Bay City stand':plane.state.indexOf('B')>0?'Flying to or from Bay City':'At the main airport'],['Flights landed here today',plane.flightsB||0]])+`<p class="hint">The second city sits across the bay. Long-distance trucks and cars cross the bridge, and the GFS freighter flies between the two airports.</p>`;}
  else if(s.type==='forest'){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Through the forest</div><h2>Forest town</h2><span class="chip ok">Linked by road only</span>`+kv([['Pallets delivered to the country store',stats.forest||0]])+`<p class="hint">A small town at the end of a road through the forest. The local market truck delivers here between supermarket runs.</p>`;}
+ else if(s.type==='ferry'){const F=s.ref;h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Bay ferry</div><h2>Bay City ferry</h2><span class="chip ok">${F.state==='dock'?'Loading at the pier':F.dir>0?'Crossing to Bay City':'Crossing to the port'}</span>`+kv([['Route','Port pier ↔ Bay City pier'],['Crossings today',F.trips],['Carries','Cars, bikes and people']])+`<p class="hint">The quick way across the bay when you are not driving a truck.</p>`;}
  else if(s.type==='voyager'||s.type==='waiting'){const vy=s.ref;h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">${s.type==='voyager'?'Sailing':'Waiting for a berth'}</div><h2>${esc(vy.name)}</h2><span class="chip ok">${s.type==='voyager'?{sail:'At sea to '+PORTS[destKey].name,berthing:'Berthing',discharge:'Discharging',leave:'Sailing on'}[vy.state]:'At anchor off '+PORTS[origin].name}</span>`+`<p class="hint">${s.type==='voyager'?'The loaded vessel crosses the sea to the port of discharge, where the containers are lifted off and plugged in again.':'Ships queue too. When the berth is busy the next vessel waits at anchor until the berthed ship has sailed.'}</p>`;}
  else if(s.type==='airtruck'){const t=s.ref;h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">GFS air freight · ${esc(t.id)}</div><h2>${esc(t.plate)}</h2><span class="chip ok">${esc(t.status)}</span>`+kv([['Driver',esc(t.driver)],['Pallets on board',t.pallets+' / 10'],['Trips today',t.trips],['Route','Pallet cold store → air cargo terminal']]);}
  else if(s.type==='plane'||s.type==='airport'){const P=plane;const st={parked:'On stand, loading',taxi:'Taxiing to runway',takeoff:'Flying to Bay City',parkedB:'On the Bay City stand, unloading',taxiB:'Taxiing at Bay City',takeoffB:'Flying back from Bay City',landing:'Landing'}[P.state]||P.state;
@@ -1468,7 +1484,9 @@ function RE(a,b,two,bridge){const A=ROAD.nodes[a],B=ROAD.nodes[b];const len=A.p.
  ['S0','Y1'],['Y1','YD'],['YD','Y2'],['Y2','S1'],['S1','M1'],['M1','SM'],['SM','M2'],['M2','S2'],['S2','P1'],['P1','PD'],['PD','P2'],['P2','S3'],['AS','AC'],['AC','AB'],['AB','AS'],['BE','BD1'],['BD1','CDB'],['CDB','BD2'],['BD2','BC'],['FT','FA'],['FA','FS'],['FS','FB'],['FB','FT']].forEach(([a,b])=>RE(a,b,false));
 const NODE_NAMES={ED:'Empty depot',PB:'Farm packhouse',PB2:'Pallet cold store',WB:'Weighbridge',PD:'Plug-in depot',GT:'Port gate',ST:'Reefer stack',YD:'Transporter yard',SM:'Local market',CD:'Client depot, inland town',TD:'Inland packhouse',AC:'Air cargo terminal',IT:'Inland town',CDB:'Client depot, Bay City',FS:'Country store, forest town',BC:'Bay City',FT:'Forest town'};
 // draw the roads
-{const done=new Set();ROAD.edges.forEach(e=>{if(e.bridge)return;const key=e.a<e.b?e.a+e.b:e.b+e.a;if(e.two){if(done.has(key))return;done.add(key);const A=ROAD.nodes[e.a],B=ROAD.nodes[e.b];const city=Math.max(A.x,B.x)<=22&&Math.min(A.x,B.x)>=-62&&Math.max(A.z,B.z)<=32&&Math.min(A.z,B.z)>=-58;roadRibbon(e.crv,city?3.6:4.4,city?0xd6d2c6:0x8fae5e,false,.045);roadRibbon(e.crv,2.4,0x5d6266,true);}else{roadRibbon(e.crv,2.0,0x8d9a7c,false,.045);roadRibbon(e.crv,1.5,0x676d70,false);}});
+const CHAINS=[['S0','Y1','YD','Y2','S1'],['S1','M1','SM','M2','S2'],['S2','P1','PD','P2','S3'],['AS','AC','AB','AS'],['N3','DX','ED','DN','DW','N3'],['IT','TA','CD','TB','TC','TD','IT'],['FT','FA','FS','FB','FT'],['BE','BD1','CDB','BD2','BC'],['F1','B1','PB2','PB','B2','F2'],['F2','RA','RB','RC','F2'],['CE','WB','GT','ST','PX','PY','PO','S3']];
+const chained=new Set();CHAINS.forEach(ch=>{for(let i=0;i<ch.length-1;i++)chained.add(ch[i]+'>'+ch[i+1]);const closed=ch[0]===ch[ch.length-1];const pts=(closed?ch.slice(0,-1):ch).map(k=>ROAD.nodes[k].p.clone());const crv=new THREE.CatmullRomCurve3(pts,closed,'catmullrom',.35);roadRibbon(crv,2.0,0x8d9a7c,false,.045);roadRibbon(crv,1.5,0x676d70,false);});
+{const done=new Set();ROAD.edges.forEach(e=>{if(e.bridge)return;if(!e.two&&chained.has(e.a+'>'+e.b))return;const key=e.a<e.b?e.a+e.b:e.b+e.a;if(e.two){if(done.has(key))return;done.add(key);const A=ROAD.nodes[e.a],B=ROAD.nodes[e.b];const city=Math.max(A.x,B.x)<=22&&Math.min(A.x,B.x)>=-62&&Math.max(A.z,B.z)<=32&&Math.min(A.z,B.z)>=-58;roadRibbon(e.crv,city?3.6:4.4,city?0xd6d2c6:0x8fae5e,false,.045);roadRibbon(e.crv,2.4,0x5d6266,true);}else{roadRibbon(e.crv,2.0,0x8d9a7c,false,.045);roadRibbon(e.crv,1.5,0x676d70,false);}});
  Object.values(ROAD.nodes).forEach(n=>{if(n.y)return;const es=ROAD.adj[n.k]||[];const two=es.some(e=>e.two);if(two)box(world,4.8,.03,4.8,0x5d6266,n.x,.045,n.z).castShadow=false;else cyl(world,1.5,1.5,.03,0x676d70,n.x,.045,n.z,14).castShadow=false;});
  // the bay bridge: two ramps, a long deck on two cable-stayed pylons, railings and a dashed centre line
  {const deckM=M(0x5d6266,{roughness:.9});const ramp=(z0,z1,y0,y1)=>{const L=Math.hypot(z1-z0,y1-y0);const m=new THREE.Mesh(new THREE.BoxGeometry(6,.6,L),deckM);m.position.set(-70,(y0+y1)/2-.3,(z0+z1)/2);m.rotation.x=-Math.atan2(y1-y0,z1-z0);m.castShadow=true;m.receiveShadow=true;world.add(m);[-2.9,2.9].forEach(x=>{const r=new THREE.Mesh(new THREE.BoxGeometry(.2,.9,L),M(0xeef1f2));r.position.set(-70+x,(y0+y1)/2+.4,(z0+z1)/2);r.rotation.x=m.rotation.x;world.add(r);});};
@@ -1478,7 +1496,12 @@ const NODE_NAMES={ED:'Empty depot',PB:'Farm packhouse',PB2:'Pallet cold store',W
    for(let k=1;k<=5;k++)[-1,1].forEach(sg=>{[-2.9,2.9].forEach(x=>{const a=new THREE.Vector3(-70+x*1.4,22.4,z),b=new THREE.Vector3(-70+x,7.1,z+sg*k*5.5);const l=new THREE.Line(new THREE.BufferGeometry().setFromPoints([a,b]),new THREE.LineBasicMaterial({color:0xf4f6f6}));world.add(l);});});});
   for(let z=118;z<=186;z+=12)rbox(world,4,7,1.4,0x9aa6aa,-70,-1,z,.1);}
  // roundabout island and kerbs
- cyl(world,2.4,2.6,.5,0xa9c57c,-117,0,0,18);cyl(world,.9,1,2.2,0xe8e2d4,-117,0,0,10);}
+ cyl(world,2.4,2.6,.5,0xa9c57c,-117,0,0,18);cyl(world,.9,1,2.2,0xe8e2d4,-117,0,0,10);
+ {const ring=new THREE.Mesh(new THREE.RingGeometry(2.9,3.25,32),new THREE.MeshBasicMaterial({color:0xf4f1e8,side:THREE.DoubleSide}));ring.rotation.x=-Math.PI/2;ring.position.set(-117,.085,0);world.add(ring);}
+ // stop lines and zebra crossings where city streets meet
+ Object.values(ROAD.nodes).forEach(n=>{const es=(ROAD.adj[n.k]||[]).filter(e=>e.two);if(es.length<3)return;const city=n.x<=22&&n.x>=-62&&n.z<=32&&n.z>=-58;
+  es.forEach(e=>{const d=e.dir,l=e.left;const sx=n.x+d.x*4.2,sz=n.z+d.z*4.2;const stop=box(world,.35,.02,2.2,0xf4f1e8,sx+l.x*(-1.15),.088,sz+l.z*(-1.15));stop.rotation.y=Math.atan2(d.x,d.z)+Math.PI/2;stop.castShadow=false;
+   if(city){for(let k=-2;k<=2;k++){const zx=n.x+d.x*5.6+l.x*k*.95,zz=n.z+d.z*5.6+l.z*k*.95;const zb=box(world,.5,.02,1.6,0xf4f1e8,zx,.088,zz);zb.rotation.y=Math.atan2(d.x,d.z);zb.castShadow=false;}}});});}
 function routeNodes(a,b){if(a===b)return [];const dist={},prev={};const Q=new Set(Object.keys(ROAD.nodes));for(const k of Q)dist[k]=Infinity;dist[a]=0;
  while(Q.size){let u=null;for(const k of Q)if(u===null||dist[k]<dist[u])u=k;if(u===b||dist[u]===Infinity)break;Q.delete(u);(ROAD.adj[u]||[]).forEach(e=>{const nd=dist[u]+e.len;if(nd<dist[e.b]){dist[e.b]=nd;prev[e.b]=e;}});}
  if(dist[b]===Infinity)return null;const es=[];let k=b;while(k!==a){const e=prev[k];if(!e)return null;es.unshift(e);k=e.a;}return es;}
@@ -1662,7 +1685,34 @@ function voyagerStep(dt){for(let i=voyagers.length-1;i>=0;i--){const vy=voyagers
  else if(vy.state==='discharge'){vy.t+=dt;if(vy.t>2.2){vy.t=0;const box=g.children.find(o=>o.userData&&o.userData.sel&&o.userData.sel.type==='container');if(box){g.remove(box);const c=box.userData.sel.ref;if(c&&c.mesh===box)c.mesh=null;}else{vy.state='leave';vy.t=0;vy.hold=0;}}}
  else{vy.t+=dt;g.position.x+=dt*4;g.position.z+=dt*10;g.rotation.y+=(0.4-g.rotation.y)*Math.min(1,dt);const sc=Math.max(.01,1-vy.t/12);g.scale.setScalar(sc);if(vy.t>12){world.remove(g);voyagers.splice(i,1);if(selected&&selected.ref===vy)select(null);}}}}
 scatter(world,'pine',[[-272,-246,-66,-42],[-234,-212,-66,-10],[-274,-250,-112,-72],[-198,-176,-112,-70],[-252,-244,-62,-48],[-236,-230,-62,-48],[-252,-244,-32,-18],[-236,-230,-32,-18]],1.6);scatter(world,'round',[[-272,-246,-66,-42],[-234,-212,-64,-12],[-274,-250,-112,-72],[-198,-176,-112,-70]],.7);
-stripes(world,-150,66,44,26,10,[0x8fb45a,0xa3c468,0x7fa84e,0xc7b26a],'x');stripes(world,-30,106,44,22,8,[0xa9b56a,0x8fb45a,0xbfae6a],'z');stripes(world,-96,100,30,20,8,[0x9fbf5a,0x86b45a],'x');
+stripes(world,-150,66,44,26,10,[0x8fb45a,0xa3c468,0x7fa84e,0xc7b26a],'x');
+scatter(world,'shrub',[[-167,-165,-66,-10],[-119,-117,-66,-10],[-165,-119,-68,-66]],3.2);          // hedges round the citrus block
+scatter(world,'cypress',[[-209,-207,-40,-4],[-175,-173,-40,-4]],4.5);                              // windbreak rows by the apples
+scatter(world,'poplar',[[-236,-234,2,14],[-150,-134,3,5]],2.2);scatter(world,'umbrella',[[-112,-76,56,84],[-62,-36,66,80]],.5);
+scatter(world,'pine',[[-75,-62,-56,-40],[-56,-36,-78,-66],[52,70,-78,-64]],.9);
+scatter(world,'cane',[[-170,-10,119,123],[-130,-9,276,279]],1.2);                                   // reeds along the south shores
+scatter(world,'shrub',[[-70,-62,2,4],[-130,-74,-6,-4],[-130,-74,4,6],[-60,22,-62,-60]],1.6);        // verge bushes
+scatter(world,'palm',[[-2,70,64,66],[-128,-12,178,182]],1.4);                                        // palms along the airport road and Bay City's north shore
+scatter(world,'olive',[[-274,-250,-62,-44],[-274,-256,28,40]],.9);stripes(world,-30,106,44,22,8,[0xa9b56a,0x8fb45a,0xbfae6a],'z');stripes(world,-96,100,30,20,8,[0x9fbf5a,0x86b45a],'x');
+// islets, a lighthouse, buoys at the harbour mouth, fishing boats, gulls, and a ferry between the port and Bay City
+{const isle=new THREE.Group();world.add(isle);patch(isle,20,16,0xd9cfa9,150,72);hill(isle,7,.5,0x8a9a62,146,70);hill(isle,5,.45,0x9aaa6a,155,76);lighthouse(isle,154,67,9,0xf4f6f6,0xd04a3a);scatter(isle,'shrub',[[141,159,65,79]],1.4);shoreline(isle,20,16,150,72);
+ const isle2=new THREE.Group();world.add(isle2);patch(isle2,26,18,0xd9cfa9,262,-92);hill(isle2,9,.4,0x8a9a62,258,-92);scatter(isle2,'palm',[[250,274,-100,-84]],1.4);shoreline(isle2,26,18,262,-92);
+ const glow=new THREE.PointLight(0xffe0a0,0,40,1.5);glow.position.set(154,10.5,67);world.add(glow);nightLights.push(glow);
+ const buoyG=new THREE.Group();world.add(buoyG);const buoys=[];for(let i=0;i<7;i++){const b=new THREE.Group();cylF(b,.5,.6,1.1,i%2?0xd04a3a:0x3dbb74,0,0,8);sphere(b,.28,0xf4f6f6,0,1.3,0);b.position.set(84+i*6,-.2,-16+i*7);buoyG.add(b);buoys.push({b,ph:i});}
+ boats(world,120,40,5,[0xf4f6f6,0x2e86c1,0xd04a3a,0xf2c14e],themeAnimsGlobal,false);boats(world,200,120,4,[0xf4f6f6,0x2e86c1,0xd04a3a],themeAnimsGlobal,true);
+ const gulls=new THREE.InstancedMesh(new THREE.PlaneGeometry(1.1,.35),new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide}),12);world.add(gulls);
+ themeAnimsGlobal.push(dt=>{buoys.forEach(({b,ph})=>{b.position.y=-.2+Math.sin(clockT*1.4+ph)*.18;b.rotation.z=Math.sin(clockT*1.1+ph)*.12;});
+  for(let i=0;i<12;i++){const a=clockT*.35+i*.52,r=14+i*1.6;dummy.position.set(72+Math.cos(a)*r,17+Math.sin(clockT*2+i)*1.2+i*.3,10+Math.sin(a)*r);dummy.rotation.set(Math.sin(clockT*9+i)*.5,a+Math.PI/2,0);dummy.scale.set(1,1,1);dummy.updateMatrix();gulls.setMatrixAt(i,dummy.matrix);}gulls.instanceMatrix.needsUpdate=true;});}
+const ferry={g:new THREE.Group(),t:0,dir:1,state:'dock',dwell:6,trips:0};
+{const g=ferry.g;shipHull(g,0x2e86c1,5.2,16,0);rbox(g,4.2,2.2,7,0xf4f6f6,0,1.9,-1,.15);rbox(g,3.6,1.4,4,0xf4f6f6,0,4.1,-1.6,.15);rbox(g,.9,2,.9,0xd04a3a,0,5.5,-2.8,.1);
+ for(let i=0;i<3;i++)rbox(g,1.1,.7,2,pick([0xeef1f2,0x2f5f9e,0xd04a3a]),-1.2+i*1.2,1.9,4,.1);const w=new THREE.Mesh(new THREE.BoxGeometry(3.4,.6,.05),winMat);w.position.set(0,4.4,.45);g.add(w);
+ g.position.set(76,0,46);g.rotation.y=Math.PI;world.add(g);tag(g,'ferry',ferry);
+ [[74,44],[-6,202]].forEach(([x,z])=>{box(world,6,.8,3,0x9c978c,x,-.2,z);[-2,2].forEach(dx=>cyl(world,.2,.25,1.2,0x2c3633,x+dx,0,z,8));});}
+const FERRY_PATH=[[76,46],[86,120],[40,186],[-4,202]].map(([x,z])=>new THREE.Vector3(x,0,z));
+function ferryStep(dt){const F=ferry;if(F.state==='dock'){F.dwell-=dt;if(F.dwell<=0){F.state='sail';F.t=F.dir>0?0:1;}return;}
+ const L=FERRY_PATH.length-1;F.t+=F.dir*dt*.05;const u=clamp(F.t,0,1);const seg=Math.min(L-1,Math.floor(u*L));const k=u*L-seg;const a=FERRY_PATH[seg],b=FERRY_PATH[seg+1];
+ F.g.position.lerpVectors(a,b,k);F.g.position.y=Math.sin(clockT*1.6)*.08;const tr=Math.atan2((b.x-a.x)*F.dir,(b.z-a.z)*F.dir);let dr=tr-F.g.rotation.y;while(dr>Math.PI)dr-=2*Math.PI;while(dr<-Math.PI)dr+=2*Math.PI;F.g.rotation.y+=dr*Math.min(1,dt*2);
+ if(u<=0||u>=1){F.state='dock';F.dwell=rnd(8,14);F.dir*=-1;F.trips++;}}
 // a second ship waiting at anchor for the berth
 const waitShip=new THREE.Group();world.add(waitShip);{shipHull(waitShip,0x2c3633,10.4,60,3);const ss=new THREE.Group();ss.position.set(0,2,-23.5);waitShip.add(ss);rbox(ss,9.4,2.2,6,0xf4f5f2,0,0,0,.15);rbox(ss,8.8,2.1,5.4,0xf4f5f2,0,2.2,-.2,.15);rbox(ss,8.2,2,5,0xf4f5f2,0,4.3,-.3,.15);rbox(ss,2.6,4.2,2.8,0xd04a3a,0,6.6,-1.6,.25);
  for(let b=0;b<9;b++)for(let r=0;r<4;r++)for(let t=0;t<2;t++)if(Math.random()<.5){const c=makeContainer(pick([0xc0392b,0x2e86c1,0x8e44ad,0xd68910,0x5d6d7e,0x117a65]));c.position.set(-3.3+r*2.2,2+t*1.95,-17+b*5.9);waitShip.add(c);}}
@@ -1907,7 +1957,7 @@ function tick(now){requestAnimationFrame(tick);let dt=Math.max(0,Math.min(.05,(n
  const fs=[...binTrucks].sort((a,b)=>a.s-b.s);fs.forEach((t,i)=>{const ahead=fs[(i+1)%fs.length];binTruckStep(t,dt,ahead!==t?ahead:null);
   const p=farmCurve.getPointAt(cu(t.s,FLOOP),tmpP);const tg=farmCurve.getTangentAt(cu(t.s,FLOOP),tmpT);t.g.position.set(p.x,0,p.z);t.g.rotation.y=Math.atan2(tg.x,tg.z);});
  // road vehicles: trucks, long-distance, local, air and cars plan their own routes on the road network
- vehicles.forEach(v=>vehicleStep(v,dt));bayForkStep(dt);voyagerStep(dt);lyudStep(dt);
+ vehicles.forEach(v=>vehicleStep(v,dt));bayForkStep(dt);voyagerStep(dt);lyudStep(dt);ferryStep(dt);
  waitT+=dt;if(vessel.state==='berthed'&&waitT>20)waitShip.visible=true;
  // gate barrier
  if(gateOpenT>0){gateOpenT-=dt;gateBar.rotation.x=-Math.PI/2.4;gateBar.position.y=2.6;}else{gateBar.rotation.x=0;gateBar.position.y=1.3+.09;}
@@ -1950,10 +2000,10 @@ function tick(now){requestAnimationFrame(tick);let dt=Math.max(0,Math.min(.05,(n
  if(composer)composer.render();else renderer.render(scene,camera);updateLabels();fpsCheck(dt);
  if(toastT>0){toastT-=dt;if(toastT<=0)$('#toast').style.opacity=0;}
  uiT+=dt;if(uiT>.5){uiT=0;$('#clock').textContent=fmt(sim);renderKPIs();
-  if(!hoverDetail&&(!selected||['truck','bintruck','dtruck','airtruck','plane','airport','hq','transport','ship','pack','coldroom','depot','staging','vessel','yard','crane','farm','container','dstack','customs','warehouse','ddepot','market','town','bay','forest','voyager','waiting','theatre','person'].includes(selected.type)))renderDetail();
+  if(!hoverDetail&&(!selected||['truck','bintruck','dtruck','airtruck','plane','airport','hq','transport','ship','pack','coldroom','depot','staging','vessel','yard','crane','farm','container','dstack','customs','warehouse','ddepot','market','town','bay','forest','voyager','waiting','theatre','person','ferry'].includes(selected.type)))renderDetail();
   renderTracker();if(!hoverTable&&$('#tablebox').classList.contains('open'))renderTable();if(Math.random()<.1)refreshDatalist();}
 }
-function labelText(s){return s.type==='theatre'?'The Labia Theatre':s.type==='person'?'Lyudmila':s.type==='market'?'Supermarket DC':s.type==='town'?'Inland town':s.type==='bay'?'Bay City':s.type==='forest'?'Forest town':s.type==='voyager'?s.ref.name:s.type==='waiting'?'Waiting for a berth':s.type==='truck'?s.ref.plate:s.type==='container'?s.ref.id:s.type==='ship'?s.ref.name:s.type==='port'?s.ref.name:s.type==='vessel'?vessel.name:s.type==='crane'?s.ref.name:s.type==='farm'?'Block 7':s.type==='pack'?'Packhouse':s.type==='depot'?'Empty depot':s.type==='yard'?'Reefer stack':s.type==='bintruck'?s.ref.plate:s.type==='coldroom'?'Bin cold room':s.type==='apples'?'Apple orchard':s.type==='grapes'?'Table grapes':s.type==='staging'?'Plug-in depot':s.type==='airtruck'?s.ref.plate:s.type==='plane'?'GFS freighter':s.type==='airport'?'Air freight terminal':s.type==='hq'?'GFS HQ':s.type==='transport'?'Transporter office':s.type==='dtruck'?s.ref.plate:s.type==='dstack'?'Discharge stack':s.type==='customs'?'Customs':s.type==='warehouse'?'Client warehouse':s.type==='ddepot'?'Empty return depot':'';}
+function labelText(s){return s.type==='ferry'?'Bay ferry':s.type==='theatre'?'The Labia Theatre':s.type==='person'?'Lyudmila':s.type==='market'?'Supermarket DC':s.type==='town'?'Inland town':s.type==='bay'?'Bay City':s.type==='forest'?'Forest town':s.type==='voyager'?s.ref.name:s.type==='waiting'?'Waiting for a berth':s.type==='truck'?s.ref.plate:s.type==='container'?s.ref.id:s.type==='ship'?s.ref.name:s.type==='port'?s.ref.name:s.type==='vessel'?vessel.name:s.type==='crane'?s.ref.name:s.type==='farm'?'Block 7':s.type==='pack'?'Packhouse':s.type==='depot'?'Empty depot':s.type==='yard'?'Reefer stack':s.type==='bintruck'?s.ref.plate:s.type==='coldroom'?'Bin cold room':s.type==='apples'?'Apple orchard':s.type==='grapes'?'Table grapes':s.type==='staging'?'Plug-in depot':s.type==='airtruck'?s.ref.plate:s.type==='plane'?'GFS freighter':s.type==='airport'?'Air freight terminal':s.type==='hq'?'GFS HQ':s.type==='transport'?'Transporter office':s.type==='dtruck'?s.ref.plate:s.type==='dstack'?'Discharge stack':s.type==='customs'?'Customs':s.type==='warehouse'?'Client warehouse':s.type==='ddepot'?'Empty return depot':'';}
 /* =========================================================
    GUIDED TOUR — "How GFS works"
    ========================================================= */
