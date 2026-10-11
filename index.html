@@ -30,7 +30,7 @@ html,body{height:100%;margin:0}
 body{background:#a9cfe0;color:var(--fg);font:14px/1.45 var(--f-body);overflow:hidden}
 #stage{position:fixed;inset:0}
 #stage canvas{display:block;width:100%;height:100%;touch-action:none}
-.hud{position:fixed;inset:0;pointer-events:none;padding:calc(12px + env(safe-area-inset-top,0px)) 16px calc(12px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:minmax(0,1fr) 330px;grid-template-rows:auto auto minmax(0,1fr) auto;gap:12px}
+.hud{position:fixed;inset:0;pointer-events:none;padding:calc(10px + env(safe-area-inset-top,0px)) 16px calc(10px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:minmax(0,1fr) 300px;grid-template-rows:auto auto minmax(0,1fr) auto;gap:8px}
 .panel{pointer-events:auto;background:var(--glass);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 10px 30px rgba(0,0,0,.25)}
 button,select,input{font:inherit;color:inherit}
 button{cursor:pointer}
@@ -62,13 +62,14 @@ button{cursor:pointer}
 
 /* KPIs */
 .kpis{grid-column:1;display:flex;gap:10px;flex-wrap:wrap;align-self:start}
-.kpi{padding:10px 14px;min-width:170px;display:grid;gap:2px}
-.kpi span{color:var(--muted);font-size:11.5px}
-.kpi strong{font:700 26px/1.05 var(--f-display);font-variant-numeric:tabular-nums}
-.kpi em{font-style:normal;font-size:11.5px;color:var(--accent)}
+.kpi{padding:6px 12px;min-width:0;display:grid;gap:0}
+.kpi span{color:var(--muted);font-size:10.5px}
+.kpi strong{font:700 18px/1.15 var(--f-display);font-variant-numeric:tabular-nums}
+.kpi em{font-style:normal;font-size:10.5px;color:var(--accent)}
 
 /* detail */
-.detail{grid-column:2;grid-row:2/4;align-self:start;max-height:100%;overflow:auto;padding:14px}
+.detail{grid-column:2;grid-row:2/4;align-self:start;max-height:100%;overflow:auto;padding:12px}
+.detail[data-empty]{display:none}
 .detail h2{font:700 19px/1.15 var(--f-display);margin:2px 0 2px;text-wrap:balance}
 .eyebrow{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;border-radius:999px;padding:2px 8px;background:rgba(255,255,255,.08);white-space:nowrap}
@@ -88,8 +89,8 @@ button{cursor:pointer}
 
 /* bottom */
 .bottom{grid-column:1/-1;grid-row:4;display:grid;grid-template-columns:minmax(0,600px) minmax(0,1fr);gap:12px;align-items:end}
-.tracker{padding:12px 14px}
-.tracker header{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:10px}
+.tracker{padding:8px 12px}
+.tracker header{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
 .tracker h3{margin:0;font:700 15px/1.2 var(--f-display)}
 .tracker .sub{font:12px var(--f-data);color:var(--muted)}
 .steps{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));position:relative}
@@ -101,7 +102,8 @@ button{cursor:pointer}
 .step.now i{border-color:var(--accent);box-shadow:0 0 0 4px rgba(61,187,116,.25)}
 .step.done,.step.now{color:var(--fg)}
 .step time{font:9.5px var(--f-data);color:var(--muted)}
-.tablebox{padding:8px 10px 10px;min-width:0}
+.tablebox{padding:8px 10px 10px;min-width:0;display:none}
+.tablebox.open{display:block}
 .tabs{display:flex;gap:4px;align-items:center;margin-bottom:6px;flex-wrap:wrap}
 .tabs button{border:0;background:none;color:var(--muted);padding:5px 10px;border-radius:8px}
 .tabs button[aria-selected="true"]{background:rgba(255,255,255,.1);color:var(--fg);font-weight:600}
@@ -114,29 +116,26 @@ td.mono{font-family:var(--f-data);font-size:12px;font-variant-numeric:tabular-nu
 tbody tr{cursor:pointer}
 tbody tr:hover{background:rgba(255,255,255,.05)}
 tbody tr.sel{background:rgba(61,187,116,.16)}
-.toggle-lists{display:none;border:0;color:var(--fg)}
+.toggle-lists{border:0;color:var(--fg);cursor:pointer}
+body.clean .kpis,body.clean .detail,body.clean .bottom,body.clean #labels .lbl.area{display:none!important}
+.topbar .seg button,.ctl{font-size:13px}
+.ctl,.search,.iconbtn{height:30px}.iconbtn{width:30px}
 
 /* floating labels */
 #labels{position:fixed;inset:0;pointer-events:none;overflow:hidden}
-.lbl{position:absolute;left:0;top:0;transform:translate(-50%,-100%);background:rgba(13,23,20,.8);color:var(--fg);font-size:11px;font-weight:600;padding:3px 7px;border-radius:6px;white-space:nowrap;border:1px solid var(--line)}
-.lbl.area{font:700 12px var(--f-display);letter-spacing:.02em}
+.lbl{position:absolute;left:0;top:0;transform:translate(-50%,-100%);background:rgba(13,23,20,.72);color:var(--fg);font-size:10px;font-weight:600;padding:2px 6px;border-radius:6px;white-space:nowrap;border:1px solid var(--line)}
+.lbl.area{font:600 10.5px var(--f-display);letter-spacing:.02em;opacity:.9}
 .lbl.port{font-size:10.5px;padding:2px 6px}
 .lbl.port.o{border-color:rgba(61,187,116,.6)}
 .lbl.sel{background:var(--accent);color:#08130e;border-color:transparent}
-.toast{position:fixed;left:50%;top:calc(70px + env(safe-area-inset-top,0px));transform:translateX(-50%);padding:9px 14px;font-size:13px;z-index:9;transition:opacity .3s}
+.toast{position:fixed;left:50%;top:calc(var(--tb,64px) + 8px);transform:translateX(-50%);padding:9px 14px;font-size:13px;z-index:9;transition:opacity .3s}
 #fallback{position:fixed;inset:0;display:grid;place-items:center;padding:16px;text-align:center}
 
 @media (max-width:900px){
   .hud{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto}
   .detail{grid-column:1;grid-row:4;max-height:38vh}
-  .detail[data-empty]{display:none}
   .bottom{grid-row:5;grid-template-columns:minmax(0,1fr)}
   .kpis{flex-wrap:nowrap;overflow-x:auto}
-  .kpi{min-width:140px}
-  .kpi strong{font-size:21px}
-  .tablebox{display:none}
-  .tablebox.open{display:block}
-  .toggle-lists{display:inline-flex}
   .brand small{display:none}
 }
 @media (max-width:560px){
@@ -183,6 +182,8 @@ tbody tr.sel{background:rgba(61,187,116,.16)}
     </div>
     <div class="ctl"><span class="clock" id="clock">06:30</span><span class="live">SIM</span></div>
     <div class="seg" aria-label="Lighting"><button id="dayBtn" aria-pressed="true">Day</button><button id="nightBtn" aria-pressed="false">Night</button></div>
+    <button class="iconbtn" id="aboutBtn" aria-label="About this chain" aria-pressed="false" title="About this chain"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button>
+    <button class="iconbtn" id="cleanBtn" aria-label="Hide panels (H)" aria-pressed="false" title="Hide panels (H)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
     <div style="position:relative">
       <button class="iconbtn" id="bell" aria-label="Alerts" aria-expanded="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg><span class="badge" id="bellCount" hidden>0</span></button>
       <div class="alerts panel" id="alerts" hidden></div>
@@ -199,7 +200,7 @@ tbody tr.sel{background:rgba(61,187,116,.16)}
 
   <section class="bottom">
     <div class="tracker panel">
-      <header><h3>Container journey</h3><span class="sub" id="trkSub">Select a truck or container</span><button class="toggle-lists chip" id="toggleLists">Lists</button></header>
+      <header><h3>Container journey</h3><span class="sub" id="trkSub">Select a truck or container</span><button class="toggle-lists chip" id="toggleLists" aria-expanded="false">Show lists</button></header>
       <div class="steps" id="steps"></div>
     </div>
     <div class="tablebox panel" id="tablebox">
@@ -728,7 +729,7 @@ function flyTo(target,offset){const t1=new THREE.Vector3(...target);const off=of
  const p1=t1.clone().add(off);if(reduceMotion){controls.target.copy(t1);camera.position.copy(p1);return;}
  fly={t:0,dur:1.2,p0:camera.position.clone(),p1,t0:controls.target.clone(),t1};}
 function setArea(a){document.querySelectorAll('#areas button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.area===a)));const v=AREA_VIEWS[a];follow=null;flyTo(v.t,v.d);}
-function select(sel,opts){selected=sel;follow=null;
+function select(sel,opts){selected=sel;follow=null;if(sel){aboutOpen=false;$('#aboutBtn').setAttribute('aria-pressed','false');}
  if(!sel){ring.visible=false;renderDetail();renderTracker();highlightLane(null);renderTable();return;}
  const p=worldPosOf(sel);
  if(p&&!(opts&&opts.noFly)){const isMap=p.z<-200;const dist=sel.type==='truck'||sel.type==='container'?30:sel.type==='ship'?34:sel.type==='port'?46:sel.type==='vessel'?70:40;
@@ -757,10 +758,10 @@ const STEP_NAMES=['Empty collected','At farm','Packed & sealed','Weighed','In po
 const chipFor=s=>s.includes('Windbound')||s.includes('Waiting')?'warn':'ok';
 function carrierChips(arr,src){if(!arr.length)return `<span class="chip ${src==='Added manually'?'src':'warn'}">${src==='Added manually'?'Carrier TBC':'No quote on file'}</span>`;return arr.map(c=>`<span class="chip">${esc(c)}</span>`).join(' ');}
 function kv(rows){return '<dl class="kv">'+rows.map(([k,v])=>`<dt>${esc(k)}</dt><dd>${v}</dd>`).join('')+'</dl>';}
-const detail=$('#detail');detail.addEventListener('pointerenter',()=>hoverDetail=true);detail.addEventListener('pointerleave',()=>hoverDetail=false);
+let aboutOpen=false;const detail=$('#detail');detail.addEventListener('pointerenter',()=>hoverDetail=true);detail.addEventListener('pointerleave',()=>hoverDetail=false);
 function renderDetail(){
  const s=selected;let h='';
- if(!s){h=`<div class="eyebrow">Origin · ${esc(PORTS[origin].name)}</div><h2>Today's chain</h2>
+ if(!s){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Origin · ${esc(PORTS[origin].name)}</div><h2>Today's chain</h2>
   <p class="hint">Pickers fill field bins, bin trucks take them to the bin cold room, and the packhouse washes, grades and packs the fruit into cartons. Reefer trucks collect empties at the depot, load pallets at the packhouse and drop them at the port, where cranes load the vessel. Other exporters' trucks share the road, gate and stacks. GFS reefers carry a green roof tag. Click anything to follow it.</p>`+
   kv([['Bins collected today',stats.bins.toLocaleString('en-ZA')],['Bins in cold room',Math.floor(stats.binsCold)],['Cartons packed today',(stats.pallets*CARTONS_PER_PALLET).toLocaleString('en-ZA')],['GFS reefer trucks',trucks.filter(t=>t.kind!=='other').length],['Other exporters on the road',trucks.filter(t=>t.kind==='other').length],['Cold store stock',stats.coldStore+' plts'],['Yard reefers plugged',YARD.filter(y=>y.used).length+' / '+YARD.length],['Vessel at berth',vessel.state==='berthed'?esc(vessel.name):vessel.state==='anchored'||vessel.state==='toAnchor'?esc(vessel.name)+' (delayed)':'—'],['Reefers at staging depot',stagingQ.length],['Lanes from '+PORTS[origin].name,lanesFrom(origin).length]])+
   `<p class="hint">Lanes and carriers come from the FREIGHT 2025 sheet. Rates are not shown. Ports marked "Added manually" are not in that sheet yet.</p>`;}
@@ -809,8 +810,8 @@ function renderDetail(){
   h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">${esc(sh.carrier)} · Voy ${esc(sh.voyage)}</div><h2>${esc(sh.name)}</h2><span class="chip ok">${sh.done?'Arrived':'At sea'}</span>`+
   kv([['Lane',esc(PORTS[sh.o].name)+' → '+esc(PORTS[sh.d].name)],['GFS reefers',sh.boxes.length||sh.gfsCount],['Progress',pct+'%'],['Est. days to go',left+' d']])+`<div class="bar"><i style="width:${pct}%"></i></div>`+
   (sh.boxes.length?`<ul class="lanes">${sh.boxes.slice(0,6).map(c=>`<li><a href="#" data-cont="${esc(c.id)}" style="color:inherit;font-family:var(--f-data);font-size:12px">${esc(c.id)}</a><span class="chip">${c.pallets} plts</span></li>`).join('')}</ul>`:'');}
- detail.innerHTML=h;detail.hidden=false;detail.toggleAttribute('data-empty',!s);
- const cb=detail.querySelector('.closebtn');if(cb)cb.onclick=()=>select(null);
+ detail.innerHTML=h;detail.hidden=false;detail.toggleAttribute('data-empty',!s&&!aboutOpen);
+ const cb=detail.querySelector('.closebtn');if(cb)cb.onclick=()=>{aboutOpen=false;$('#aboutBtn').setAttribute('aria-pressed','false');select(null);};
  detail.querySelectorAll('[data-cont]').forEach(a=>a.onclick=e=>{e.preventDefault();const c=containers.find(x=>x.id===a.dataset.cont);if(c)selectContainer(c);});
  detail.querySelectorAll('[data-origin]').forEach(a=>a.onclick=e=>{e.preventDefault();setOrigin(a.dataset.origin);setArea('port');});
 }
@@ -858,7 +859,12 @@ function setOrigin(k,silent){origin=k;originSel.value=k;areaLabels.port.el.textC
  if(vessel.state==='berthed'&&vessel.gfs===0)newVoyage();renderDetail();renderTable();if(!silent)toast('Local chain now runs from '+PORTS[k].name);}
 $('#weather').onchange=e=>{weather=e.target.value;applyWeather();};
 $('#dayBtn').onclick=()=>{night=false;applyLight();};$('#nightBtn').onclick=()=>{night=true;applyLight();};
-$('#toggleLists').onclick=()=>$('#tablebox').classList.toggle('open');
+$('#toggleLists').onclick=()=>{const o=$('#tablebox').classList.toggle('open');$('#toggleLists').textContent=o?'Hide lists':'Show lists';$('#toggleLists').setAttribute('aria-expanded',String(o));renderTable();};
+$('#aboutBtn').onclick=()=>{aboutOpen=!aboutOpen;$('#aboutBtn').setAttribute('aria-pressed',String(aboutOpen));if(aboutOpen&&selected)select(null);else renderDetail();};
+function toggleClean(){const on=document.body.classList.toggle('clean');$('#cleanBtn').setAttribute('aria-pressed',String(on));}
+$('#cleanBtn').onclick=toggleClean;
+addEventListener('keydown',e=>{if((e.key==='h'||e.key==='H')&&!/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName))toggleClean();});
+function setTb(){document.documentElement.style.setProperty('--tb',$('.topbar').getBoundingClientRect().bottom+'px');}setTb();addEventListener('resize',setTb);
 const qlist=$('#qlist');
 function refreshDatalist(){qlist.innerHTML=[...allTrucks().map(t=>t.plate),...containers.slice(0,20).map(c=>c.id),...Object.values(PORTS).map(p=>p.name)].map(v=>`<option value="${esc(v)}">`).join('');}
 $('#searchForm').onsubmit=e=>{e.preventDefault();const q=$('#q').value.trim().toLowerCase().replace(/\s+/g,'');if(!q)return;const norm=s=>s.toLowerCase().replace(/[\s-]+/g,'');
@@ -1164,7 +1170,7 @@ function tick(now){requestAnimationFrame(tick);let dt=Math.min(.05,(now-last)/10
  if(toastT>0){toastT-=dt;if(toastT<=0)$('#toast').style.opacity=0;}
  uiT+=dt;if(uiT>.5){uiT=0;$('#clock').textContent=fmt(sim);renderKPIs();
   if(!hoverDetail&&(!selected||['truck','bintruck','dtruck','ship','pack','coldroom','depot','staging','vessel','yard','crane','farm','container','dstack','customs','warehouse','ddepot'].includes(selected.type)))renderDetail();
-  renderTracker();if(!hoverTable)renderTable();if(Math.random()<.1)refreshDatalist();}
+  renderTracker();if(!hoverTable&&$('#tablebox').classList.contains('open'))renderTable();if(Math.random()<.1)refreshDatalist();}
 }
 function labelText(s){return s.type==='truck'?s.ref.plate:s.type==='container'?s.ref.id:s.type==='ship'?s.ref.name:s.type==='port'?s.ref.name:s.type==='vessel'?vessel.name:s.type==='crane'?s.ref.name:s.type==='farm'?'Block 7':s.type==='pack'?'Packhouse':s.type==='depot'?'Empty depot':s.type==='yard'?'Reefer stack':s.type==='bintruck'?s.ref.plate:s.type==='coldroom'?'Bin cold room':s.type==='staging'?'Staging depot':s.type==='dtruck'?s.ref.plate:s.type==='dstack'?'Discharge stack':s.type==='customs'?'Customs':s.type==='warehouse'?'Client warehouse':s.type==='ddepot'?'Empty return depot':'';}
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
