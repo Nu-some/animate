@@ -61,11 +61,8 @@ button{cursor:pointer}
 .alerts p time{display:block;color:var(--muted);font:11px var(--f-data)}
 
 /* KPIs */
-.kpis{grid-column:1;display:flex;gap:10px;flex-wrap:wrap;align-self:start}
-.kpi{padding:6px 12px;min-width:0;display:grid;gap:0}
-.kpi span{color:var(--muted);font-size:10.5px}
-.kpi strong{font:700 18px/1.15 var(--f-display);font-variant-numeric:tabular-nums}
-.kpi em{font-style:normal;font-size:10.5px;color:var(--accent)}
+.stats{gap:12px;font-size:12px;color:var(--muted);white-space:nowrap;overflow-x:auto;max-width:100%}
+.stats b{color:var(--fg);font:600 13px var(--f-data);font-variant-numeric:tabular-nums}
 
 /* detail */
 .detail{grid-column:2;grid-row:2/4;align-self:start;max-height:100%;overflow:auto;padding:12px}
@@ -116,8 +113,7 @@ td.mono{font-family:var(--f-data);font-size:12px;font-variant-numeric:tabular-nu
 tbody tr{cursor:pointer}
 tbody tr:hover{background:rgba(255,255,255,.05)}
 tbody tr.sel{background:rgba(61,187,116,.16)}
-.toggle-lists{border:0;color:var(--fg);cursor:pointer}
-body.clean .kpis,body.clean .detail,body.clean .bottom,body.clean #labels .lbl.area{display:none!important}
+body.clean .detail,body.clean .bottom,body.clean #labels .lbl.area{display:none!important}
 .topbar .seg button,.ctl{font-size:13px}
 .ctl,.search,.iconbtn{height:30px}.iconbtn{width:30px}
 
@@ -135,7 +131,6 @@ body.clean .kpis,body.clean .detail,body.clean .bottom,body.clean #labels .lbl.a
   .hud{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto}
   .detail{grid-column:1;grid-row:4;max-height:38vh}
   .bottom{grid-row:5;grid-template-columns:minmax(0,1fr)}
-  .kpis{flex-wrap:nowrap;overflow-x:auto}
   .brand small{display:none}
 }
 @media (max-width:560px){
@@ -180,8 +175,15 @@ body.clean .kpis,body.clean .detail,body.clean .bottom,body.clean #labels .lbl.a
         <option value="delay">Vessel delayed</option>
       </select>
     </div>
+    <div class="stats ctl" aria-label="Today">
+      <span title="Containers gated in today"><b id="k1">0</b> gated in</span>
+      <span title="Pallets packed today"><b id="k2">0</b> pallets</span>
+      <span title="Average truck turnaround, depot to port drop"><b id="k3">–</b> turnaround</span>
+      <span hidden id="k1s"></span><span hidden id="k2s"></span><span hidden id="k3s"></span>
+    </div>
     <div class="ctl"><span class="clock" id="clock">06:30</span><span class="live">SIM</span></div>
     <div class="seg" aria-label="Lighting"><button id="dayBtn" aria-pressed="true">Day</button><button id="nightBtn" aria-pressed="false">Night</button></div>
+    <div class="seg" aria-label="Panels"><button id="journeyBtn" aria-pressed="false" title="Container journey">Journey</button><button id="toggleLists" aria-pressed="false" title="Trucks, containers and lanes">Lists</button></div>
     <button class="iconbtn" id="aboutBtn" aria-label="About this chain" aria-pressed="false" title="About this chain"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button>
     <button class="iconbtn" id="cleanBtn" aria-label="Hide panels (H)" aria-pressed="false" title="Hide panels (H)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
     <div style="position:relative">
@@ -190,17 +192,12 @@ body.clean .kpis,body.clean .detail,body.clean .bottom,body.clean #labels .lbl.a
     </div>
   </header>
 
-  <section class="kpis" aria-label="Today">
-    <div class="kpi panel"><span>Containers gated in today</span><strong id="k1">0</strong><em id="k1s">on the way to the vessel</em></div>
-    <div class="kpi panel"><span>Pallets packed today</span><strong id="k2">0</strong><em id="k2s">cold store 0 plts</em></div>
-    <div class="kpi panel"><span>Avg truck turnaround</span><strong id="k3">–</strong><em id="k3s">depot → port drop</em></div>
-  </section>
 
   <aside class="detail panel" id="detail" aria-live="polite"></aside>
 
   <section class="bottom">
-    <div class="tracker panel">
-      <header><h3>Container journey</h3><span class="sub" id="trkSub">Select a truck or container</span><button class="toggle-lists chip" id="toggleLists" aria-expanded="false">Show lists</button></header>
+    <div class="tracker panel" id="tracker" hidden>
+      <header><h3>Container journey</h3><span class="sub" id="trkSub">Select a truck or container</span></header>
       <div class="steps" id="steps"></div>
     </div>
     <div class="tablebox panel" id="tablebox">
@@ -859,7 +856,8 @@ function setOrigin(k,silent){origin=k;originSel.value=k;areaLabels.port.el.textC
  if(vessel.state==='berthed'&&vessel.gfs===0)newVoyage();renderDetail();renderTable();if(!silent)toast('Local chain now runs from '+PORTS[k].name);}
 $('#weather').onchange=e=>{weather=e.target.value;applyWeather();};
 $('#dayBtn').onclick=()=>{night=false;applyLight();};$('#nightBtn').onclick=()=>{night=true;applyLight();};
-$('#toggleLists').onclick=()=>{const o=$('#tablebox').classList.toggle('open');$('#toggleLists').textContent=o?'Hide lists':'Show lists';$('#toggleLists').setAttribute('aria-expanded',String(o));renderTable();};
+$('#toggleLists').onclick=()=>{const o=$('#tablebox').classList.toggle('open');$('#toggleLists').setAttribute('aria-pressed',String(o));renderTable();};
+$('#journeyBtn').onclick=()=>{const t=$('#tracker');t.hidden=!t.hidden;$('#journeyBtn').setAttribute('aria-pressed',String(!t.hidden));renderTracker();};
 $('#aboutBtn').onclick=()=>{aboutOpen=!aboutOpen;$('#aboutBtn').setAttribute('aria-pressed',String(aboutOpen));if(aboutOpen&&selected)select(null);else renderDetail();};
 function toggleClean(){const on=document.body.classList.toggle('clean');$('#cleanBtn').setAttribute('aria-pressed',String(on));}
 $('#cleanBtn').onclick=toggleClean;
@@ -1118,17 +1116,18 @@ applyLight();renderDetail();renderTracker();renderTable();renderKPIs();refreshDa
 
 let clockT=0,uiT=0,prodAcc=0,last=performance.now();
 const tmpP=new THREE.Vector3(),tmpT=new THREE.Vector3();
-function tick(now){requestAnimationFrame(tick);let dt=Math.min(.05,(now-last)/1000);last=now;clockT+=dt;
+function cu(sv,L){const u=((sv%L)+L)%L/L;return isFinite(u)?Math.min(u,.99999):0;}
+function tick(now){requestAnimationFrame(tick);let dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;clockT+=dt;
  sim+=dt; // 1 real second = 1 sim minute
  // production
  lineRunning=stats.binsCold>=BINS_PER_PALLET&&stats.coldStore<220;
  if(lineRunning){prodAcc+=dt*(weather==='peak'?2.0:weather==='rain'?1.1:1.35);while(prodAcc>=1){prodAcc-=1;stats.coldStore++;stats.pallets++;stats.binsCold-=BINS_PER_PALLET;stats.tipped+=BINS_PER_PALLET;}}
  const fs=[...binTrucks].sort((a,b)=>a.s-b.s);fs.forEach((t,i)=>{const ahead=fs[(i+1)%fs.length];binTruckStep(t,dt,ahead!==t?ahead:null);
-  const p=farmCurve.getPointAt(t.s/FLOOP,tmpP);const tg=farmCurve.getTangentAt(t.s/FLOOP,tmpT);t.g.position.set(p.x,0,p.z);t.g.rotation.y=Math.atan2(tg.x,tg.z);});
+  const p=farmCurve.getPointAt(cu(t.s,FLOOP),tmpP);const tg=farmCurve.getTangentAt(cu(t.s,FLOOP),tmpT);t.g.position.set(p.x,0,p.z);t.g.rotation.y=Math.atan2(tg.x,tg.z);});
  // trucks (ordered for give-way)
  const sorted=[...trucks].sort((a,b)=>a.s-b.s);
  sorted.forEach((t,i)=>{const ahead=sorted[(i+1)%sorted.length];truckStep(t,dt,ahead!==t?ahead:null);
-  const p=curve.getPointAt(t.s/LOOP,tmpP);const tg=curve.getTangentAt(t.s/LOOP,tmpT);t.g.position.set(p.x,0,p.z);t.g.rotation.y=Math.atan2(tg.x,tg.z);});
+  const p=curve.getPointAt(cu(t.s,LOOP),tmpP);const tg=curve.getTangentAt(cu(t.s,LOOP),tmpT);t.g.position.set(p.x,0,p.z);t.g.rotation.y=Math.atan2(tg.x,tg.z);});
  // other exporters: fresh loaded box joins from the highway at the top of the loop
  trucks.forEach(t=>{if(t.kind==='other'&&!t.cont&&t.s>SPAWN_S&&t.s<SPAWN_S+8)giveOtherBox(t);});
  // gate barrier
@@ -1150,7 +1149,7 @@ function tick(now){requestAnimationFrame(tick);let dt=Math.min(.05,(now-last)/10
  packers.forEach((g,i)=>{g.rotation.z=lineRunning?Math.sin(clockT*5+i)*.06:0;});
  // pallet stock visual
  const shown=Math.min(60,Math.ceil(stats.coldStore/3.5));for(let i=0;i<60;i++){if(i<shown){dummy.position.set(12.5+(i%3)*1.25,.65+Math.floor(i/30)*1.35,-19+Math.floor((i%30)/3)*1.3);dummy.scale.set(1,1,1);}else{dummy.scale.set(0,0,0);}dummy.rotation.set(0,0,0);dummy.updateMatrix();palletI.setMatrixAt(i,dummy.matrix);}palletI.instanceMatrix.needsUpdate=true;
- const cs=[...clientTrucks].sort((a,b)=>a.s-b.s);cs.forEach((t,i)=>{const ahead=cs[(i+1)%cs.length];clientStep(t,dt,ahead!==t?ahead:null);const p=dCurve.getPointAt(t.s/DLOOP,tmpP);const tg=dCurve.getTangentAt(t.s/DLOOP,tmpT);t.g.position.set(p.x,0,p.z);t.g.rotation.y=Math.atan2(tg.x,tg.z);});
+ const cs=[...clientTrucks].sort((a,b)=>a.s-b.s);cs.forEach((t,i)=>{const ahead=cs[(i+1)%cs.length];clientStep(t,dt,ahead!==t?ahead:null);const p=dCurve.getPointAt(cu(t.s,DLOOP),tmpP);const tg=dCurve.getTangentAt(cu(t.s,DLOOP),tmpT);t.g.position.set(p.x,0,p.z);t.g.rotation.y=Math.atan2(tg.x,tg.z);});
  destStep(dt);
  depotStep(dt);craneStep(dt);vesselStep(dt);shipStep(dt);
  if(rain.visible){const a=rainGeo.attributes.position.array;for(let i=0;i<RAIN_N;i++){a[i*3+1]-=dt*38;if(a[i*3+1]<0)a[i*3+1]=60;}rainGeo.attributes.position.needsUpdate=true;rain.position.set(controls.target.x,0,controls.target.z);}
