@@ -102,4 +102,18 @@ Functionality is preserved throughout: no simulation, UI, tour, editor or data c
 | 9 | Detail pass | Truck mirrors, lights, mudguards; shed gutters, wall units, side signs; fences around the yard, the airport and the depot; people at the port and city; gantry lights | low |
 | 10 | Performance | Material and geometry cache, shadow frustum sized to the view, dead code removed, label update without allocation | medium (regression risk, done last with full re-test) |
 
-Steps 1 to 8 are the visible wins and will be done first; step 9 and 10 follow if time allows. The audit screenshots are kept in the session scratchpad for before/after comparison.
+## 5. Outcome
+
+All ten steps were carried out the same night, each tested headless (no page errors, zero road collisions for every theme, the delay/collect cycle, the full tour, every theme switch, every clickable type, the editor) and committed on its own:
+
+1. Ground: a painted multi-tone grass and earth texture, crop fields on the empty south-west ground, grass verges and pavements along every two-way road, hard shoulders along the loops.
+2. Shorelines: wet sand, a shallow turquoise halo and a double surf band on every land mass; a wake behind the sailing vessel; calmer water.
+3. Night: every street lamp, port mast, bridge light, runway light, floodlight and tower now glows and throws a warm light pool, plus real point lights at the hubs.
+4. Destination: quay furniture, a second crane, general stacks, port warehouses, a cold store, a port town of kit buildings, a palm promenade, masts.
+5. Origin themes: ground washout capped, Damietta and Rotterdam fields moved north of the new blocks, Port Elizabeth dunes clear of the depot.
+6. Roads: stop lines and zebra crossings at every city intersection, a marked roundabout, smooth curved one-way loops and port approach.
+7. Vegetation: hedges round the citrus block, cypress windbreaks by the apples, poplars, umbrella trees, pines, reeds on the south shores, verge bushes, palms, olives in the inland town.
+8. Sea: two islets, a lighthouse that shines at night, a buoy line at the harbour mouth, fishing boats, gulls over the port, and a clickable ferry that crosses between the port and Bay City.
+9. Details: mirrors, indicators, roof markers, side skirts and tail lights on trucks; gutters, downpipes and wall units on sheds; fences round the yard, the depot, the airfield and the plug-in depot; people at the gate, HQ, the theatre, the market and the cargo terminal.
+10. Performance: box geometries are cached (about 1,900 unique geometries became about 90 shared ones), the shadow frustum follows the camera distance so wide views keep shadows, dead code removed, per-frame label maths without allocation.
+
