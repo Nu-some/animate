@@ -38,6 +38,11 @@ Vehicles do not run on fixed loops. Each truck plans a trip on the road network 
 
 Ships queue as well: while one vessel is alongside, the next waits at anchor. When a loaded vessel sails it crosses the sea on the map to the port of discharge.
 
+## Layout editor
+Press **E** to open the layout editor. Click any building, shed, tree clump or prop to pick it, drag it to move it, press R to rotate, the arrow keys to nudge and Delete to hide it. Roads, trucks and ships are driven by the simulation and cannot be moved. Changes are saved in your browser and re-applied on every visit; **Export JSON** downloads them (and copies them to the clipboard) so they can be baked into `index.html` as `LAYOUT_OVERRIDES`, and **Import** loads such a file. The world is built with a fixed random seed so every object lands in the same place on every visit, which is what makes the saved positions stick.
+
+Buildings placed automatically along the streets are checked against every road corridor and dropped if they would stand on the road.
+
 ## Origin side
 1. Pickers fill field bins in the orchard. The farm has three blocks: citrus, apples and trellised table grapes, and containers carry what the origin grows.
 2. Bin trucks take the bins to the bin cold room.

@@ -142,6 +142,9 @@ body.clean .detail,body.clean .bottom,body.clean #labels .lbl.area{display:none!
 
 
 body.touring .detail,body.touring .bottom{display:none!important}
+#editor{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:9;width:min(320px,calc(100vw - 32px));background:var(--glass-strong);color:#e8efe9;border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px 14px;font:13px/1.4 var(--f-body);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+#editor .row{display:flex;align-items:center;gap:8px;justify-content:space-between;margin:4px 0}#editor p{margin:6px 0;color:#b9c7bd}#editor kbd{font:600 11px var(--f-data);background:rgba(255,255,255,.12);padding:1px 5px;border-radius:5px}#editor #editInfo{font:12px var(--f-data);background:rgba(255,255,255,.06);padding:6px 8px;border-radius:8px;margin:6px 0}
+#editor button,#editor .btn{cursor:pointer;background:var(--accent);color:#08130e;border:0;border-radius:999px;padding:6px 12px;font:600 12px var(--f-body)}#editor #editReset{background:rgba(255,255,255,.14);color:#e8efe9}#editor small{color:#8fa394}body.editing canvas{cursor:crosshair}
 .tour{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));width:min(640px,calc(100% - 32px));z-index:8;padding:16px 18px;background:var(--glass-strong)}
 .tour-top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
 .tour-count{font:600 12px var(--f-data);color:var(--accent)}
@@ -246,6 +249,13 @@ body.touring .detail,body.touring .bottom{display:none!important}
   </section>
 </div>
 <div class="toast panel" id="toast" style="opacity:0"></div>
+<div id="editor" hidden>
+  <div class="row"><b>Layout editor</b><button class="iconbtn" id="editClose" aria-label="Close editor">×</button></div>
+  <p>Click an object to pick it, drag to move. <kbd>R</kbd> / <kbd>Shift+R</kbd> rotate, arrows nudge, <kbd>Delete</kbd> hides, <kbd>Esc</kbd> unpicks, <kbd>E</kbd> closes. Roads, trucks and ships cannot be moved.</p>
+  <div id="editInfo">Nothing picked</div>
+  <div class="row"><button id="editExport">Export JSON</button><label class="btn">Import<input id="editImport" type="file" accept="application/json" hidden></label><button id="editReset">Reset</button></div>
+  <small id="editCount"></small>
+</div>
 <section class="tour panel" id="tour" hidden aria-live="polite">
   <div class="tour-top"><span class="tour-count" id="tourCount">1 / 20</span><div class="tour-dots" id="tourDots"></div><button class="closebtn" id="tourClose" aria-label="Exit tour">×</button></div>
   <h3 id="tourTitle"></h3>
@@ -334,6 +344,8 @@ const LAND={
    HELPERS
    ========================================================= */
 const $=s=>document.querySelector(s);
+// the world is built with a seeded random so that buildings and trees land in the same place on every visit (the layout editor relies on that); the simulation gets real randomness afterwards
+const __realRandom=Math.random;{let t=0x9e3779b9;Math.random=function(){t=(t+0x6D2B79F5)|0;let r=Math.imul(t^(t>>>15),1|t);r=(r+Math.imul(r^(r>>>7),61|r))^r;return((r^(r>>>14))>>>0)/4294967296;};}
 const rnd=(a,b)=>a+Math.random()*(b-a);
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -867,7 +879,7 @@ const sign=new THREE.Mesh(new THREE.PlaneGeometry(7,3.5),new THREE.MeshBasicMate
 const sign2=new THREE.Mesh(new THREE.PlaneGeometry(4,2),new THREE.MeshBasicMaterial({map:logoTex}));sign2.rotation.y=Math.PI/2;sign2.position.set(-7.88,9.5,-12);world.add(sign2);
 cyl(world,2.2,2.4,.6,0xd5dadb,-14,0,-4.5,16);const fw=cyl(world,1.9,1.9,.2,0x4fb3d9,-14,.6,-4.5,16);cyl(world,.3,.3,1.6,0xd5dadb,-14,.6,-4.5,8);
 let hqCars=null;{const cars=new THREE.InstancedMesh(new THREE.BoxGeometry(1.1,.8,2.1),new THREE.MeshStandardMaterial({roughness:.5}),24);const col=new THREE.Color();let k=0;
- for(let r=0;r<2;r++)for(let c=0;c<11;c++){if(Math.random()<.25)continue;dummy.position.set(-26+c*1.6,.45,-27+r*3.4);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();cars.setMatrixAt(k,dummy.matrix);cars.setColorAt(k,col.setHex(pick([0xeef1f2,0x2f5f9e,0xd04a3a,0x2c3633,0x9aa6aa])));k++;}
+ for(let r=0;r<2;r++)for(let c=0;c<11;c++){if(Math.random()<.25)continue;dummy.position.set(-26+c*1.6,.45,-24.5+r*3.4);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();cars.setMatrixAt(k,dummy.matrix);cars.setColorAt(k,col.setHex(pick([0xeef1f2,0x2f5f9e,0xd04a3a,0x2c3633,0x9aa6aa])));k++;}
  cars.count=k;cars.castShadow=true;world.add(cars);hqCars=cars;}
 const hqHit=new THREE.Mesh(new THREE.BoxGeometry(26,18,26),new THREE.MeshBasicMaterial({visible:false}));hqHit.position.set(-15,9,-15);world.add(hqHit);
 // transporter office & dispatch yard
@@ -1133,21 +1145,23 @@ function loadKit(){const el=document.getElementById('kitData');if(!el||!THREE.GL
 function kit(name,s,x,y,z,ry,parent){const src=KIT[name];if(!src)return null;const o=src.clone(true);o.scale.setScalar(s);o.position.set(x,y,z);o.rotation.y=ry||0;(parent||world).add(o);return o;}
 const BUILDINGS=['building_A_withoutBase','building_B_withoutBase','building_C_withoutBase','building_D_withoutBase','building_E_withoutBase','building_F_withoutBase','building_G_withoutBase','building_H_withoutBase'];
 const CARS=['car_hatchback','car_sedan','car_stationwagon','car_taxi','car_police'];
-function kitBlock(g,x0,x1,z0,z1,step,face){for(let x=x0;x<=x1;x+=step)for(let z=z0;z<=z1;z+=step){if(Math.random()<.18)continue;const s=rnd(3.8,4.8);kit(pick(BUILDINGS),s,x+rnd(-.6,.6),-.1*s,z+rnd(-.6,.6),face!=null?face:Math.floor(Math.random()*4)*Math.PI/2,g);}}
+function roadClear(o,margin){if(typeof ROAD==='undefined')return true;const b=new THREE.Box3().setFromObject(o);if(b.isEmpty())return true;const c=b.getCenter(new THREE.Vector3()),sz=b.getSize(new THREE.Vector3());const r=Math.hypot(sz.x,sz.z)/2;
+ for(const e of ROAD.edges){const a=ROAD.nodes[e.a].p,q=ROAD.nodes[e.b].p;const dx=q.x-a.x,dz=q.z-a.z;const L2=dx*dx+dz*dz||1;let t=((c.x-a.x)*dx+(c.z-a.z)*dz)/L2;t=Math.max(0,Math.min(1,t));const d=Math.hypot(c.x-(a.x+dx*t),c.z-(a.z+dz*t));if(d<(e.two?2.4:1.5)+r*.8+(margin||.6))return false;}return true;}
+function kitBlock(g,x0,x1,z0,z1,step,face){for(let x=x0;x<=x1;x+=step)for(let z=z0;z<=z1;z+=step){if(Math.random()<.18)continue;const s=rnd(3.8,4.8);const o=kit(pick(BUILDINGS),s,x+rnd(-.6,.6),-.1*s,z+rnd(-.6,.6),face!=null?face:Math.floor(Math.random()*4)*Math.PI/2,g);if(o&&g===world&&!roadClear(o))g.remove(o);}}
 function lampsAlong(crv,len,step,off,parent,dz){const pts=[];for(let d=step/2;d<len;d+=step){const u=d/len;const p=crv.getPointAt(u),t=crv.getTangentAt(u);const n=new THREE.Vector3(t.z,0,-t.x).normalize();const q=p.clone().addScaledVector(n,off);kit('streetlight',4.2,q.x,0,q.z-(dz||0),Math.atan2(-n.z,n.x),parent);}}
 const cityCars=[];
 function addKitScenery(){
  if(hqCars)hqCars.visible=false;
- for(let r=0;r<2;r++)for(let c=0;c<10;c++)if(Math.random()<.8)kit(pick(CARS.slice(0,4)),4.4,-26+c*1.9,0,-27+r*3.6,r?Math.PI:0);
+ for(let r=0;r<2;r++)for(let c=0;c<10;c++)if(Math.random()<.8)kit(pick(CARS.slice(0,4)),4.4,-26+c*1.9,0,-24.5+r*3.6,r?Math.PI:0);
  for(let c=0;c<5;c++)if(Math.random()<.8)kit(pick(CARS.slice(0,3)),4.4,-46+c*1.9,0,58,0);
  ROAD.edges.filter(e=>e.two&&e.a<e.b).forEach(e=>lampsAlong(e.crv,e.len,22,3.4));
  kit('trafficlight_A',4,33.5,0,-3.4,Math.PI/2);kit('trafficlight_A',4,24,0,-26,Math.PI);
  kit('dumpster',4,-86,0,-22,0);kit('dumpster',4,-82,0,-22,0);
- for(let i=0;i<4;i++)kit('bench',4.2,-22+i*3,0,-3,0);kit('firehydrant',4,-28,0,-3,0);kit('firehydrant',4,-4,0,-3,0);
- for(let i=0;i<9;i++)kit('bush',4.5,-27+i*2.6,0,-1.6,0);for(let i=0;i<8;i++)kit('bush',4.5,-60+i*3,0,60.5,0);
+ for(let i=0;i<4;i++)kit('bench',4.2,-22+i*3,0,-4.2,0);kit('firehydrant',4,-26,0,-3.6,0);kit('firehydrant',4,-4,0,-3.6,0);
+ for(let i=0;i<9;i++)kit('bush',4.5,-27+i*2.6,0,-3.2,0);for(let i=0;i<8;i++)kit('bush',4.5,-60+i*3,0,60.5,0);
  for(let i=0;i<6;i++)kit(pick(['box_A','box_B']),5,28+(i%3)*1.4,0,-22+Math.floor(i/3)*1.3,0);
  // city blocks between the streets, and the inland town
- kitBlock(world,-56,-34,-26,-5,6.5);kitBlock(world,4,16,-26,-5,6.5);kitBlock(world,4,16,5,26,6.5);kitBlock(world,-56,-34,5,26,6.5);
+ kitBlock(world,-54,-36,-24,-6,6);kitBlock(world,6,14,-24,-6,6);kitBlock(world,6,14,6,24,6);kitBlock(world,-54,-36,6,24,6);
  kitBlock(world,-274,-250,-34,-25,6.5);kitBlock(world,-274,-256,13,24,6.5);kitBlock(world,-26,-6,66,74,6.5);kit('watertower',5,-272,0,-8,0);
  kitBlock(world,-62,-16,186,194,6.5);kitBlock(world,-20,-12,222,250,6.5);kitBlock(world,-246,-204,-110,-104,6.5);kitBlock(world,-250,-236,-96,-80,6.5);kitBlock(world,-212,-198,-96,-80,6.5);kit('watertower',5,-200,0,-108,0);
  for(let c=0;c<4;c++)kit(pick(CARS.slice(0,4)),4.4,-44+c*1.9,0,236,0);
@@ -1243,7 +1257,7 @@ function renderDetail(){
  if(!s){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Origin · ${esc(PORTS[origin].name)}</div><h2>Today's chain</h2><p class="hint">${esc(OT[origin].desc)}</p>
   <p class="hint">Pickers fill field bins, bin trucks take them to the bin cold room, and the packhouse washes, grades and packs the fruit into cartons. Reefer trucks collect empties at the depot, load pallets at the packhouse and drop them at the port, where cranes load the vessel. Other exporters' trucks share the road, gate and stacks. GFS reefers carry a green roof tag. Click anything to follow it.</p>`+
   kv([['Bins collected today',stats.bins.toLocaleString('en-ZA')],['Bins in cold room',Math.floor(stats.binsCold)],['Cartons packed today',(stats.pallets*CARTONS_PER_PALLET).toLocaleString('en-ZA')],['GFS trucks on the road',vehicles.filter(t=>['gfs','local','haul','air'].includes(t.kind)).length],['Other exporters on the road',vehicles.filter(t=>t.kind==='other').length],['Cold store stock',stats.coldStore+' plts'],['Yard reefers plugged',YARD.filter(y=>y.used).length+' / '+YARD.length],['Vessel at berth',vessel.state==='berthed'?esc(vessel.name):vessel.state==='anchored'||vessel.state==='toAnchor'?esc(vessel.name)+' (delayed)':'—'],['Reefers at staging depot',stagingQ.length],['Lanes from '+PORTS[origin].name,lanesFrom(origin).length]])+
-  `<p class="hint">Lanes and carriers come from the FREIGHT 2025 sheet. Rates are not shown. Ports marked "Added manually" are not in that sheet yet. <a href="#" data-tour style="color:var(--muted);opacity:.6">Guided tour</a></p>`;}
+  `<p class="hint">Lanes and carriers come from the FREIGHT 2025 sheet. Rates are not shown. Ports marked "Added manually" are not in that sheet yet. <a href="#" data-tour style="color:var(--muted);opacity:.6">Guided tour</a> · <span style="opacity:.6">Press E to move things around</span></p>`;}
  else if(s.type==='truck'){const t=s.ref;const c=t.cont;
   if(t.kind==='other'){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">${esc(t.shipper)}</div><h2>${esc(t.plate)}</h2><span class="chip">${esc(t.status)}</span>`+kv([['Company',esc(t.company)],['Container',t.cont?esc(t.cont.id):'—'],['Next stop',esc(nextStopName(t))],['Speed',Math.round(t.v*7)+' km/h']])+`<p class="hint">Not a GFS load. Other exporters come in from the inland town and share the same weighbridge, gate queue and stacks.</p>`;}
   else if(t.kind==='local'||t.kind==='haul'){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">${t.kind==='local'?'GFS local delivery':'GFS long-distance'} · ${esc(t.id)}</div><h2>${esc(t.plate)}</h2><span class="chip ok">${esc(t.status)}</span>`+kv([['Company',esc(t.company)],['Driver',esc(t.driver)],['Pallets on board',t.pallets+' / '+(t.kind==='local'?10:20)],['Trips today',t.trips],['Next stop',esc(nextStopName(t))],['Route',t.kind==='local'?'Pallet cold store → supermarket DC / forest town store':t.dest==='CDB'?'Pallet cold store → over the bay bridge → Bay City client depot':'Pallet cold store → client depot, inland town'],['Speed',Math.round(t.v*7)+' km/h']])+`<p class="hint">${t.kind==='local'?'Not everything is exported: local market fruit goes by truck to the supermarket distribution centre and the local cold room.':'Long-distance loads drive on the road that links the cities, from the transporter yard to the client depot in the next town.'}</p>`;}
@@ -1564,7 +1578,7 @@ shed(world,{x:-248,z:17,w:10,d:7,h:4.2,wall:0xe9edf0,roof:0x7f8c93,trim:0xd68910
 const townHit=new THREE.Mesh(new THREE.BoxGeometry(44,8,40),new THREE.MeshBasicMaterial({visible:false}));townHit.position.set(-255,4,0);world.add(townHit);
 // Bay City: towers on the waterfront, client depot B, an airstrip for the GFS freighter
 box(world,110,.05,24,0xc9c4b4,-70,0,208).castShadow=false;
-skyline(world,{n:34,x0:-126,x1:-84,z0:186,z1:232,hMin:9,hMax:30,cols:[0xcfe3ee,0x9fc6d6,0xeef1f2,0xe2dccd],box:true,wMin:3,wMax:6});
+skyline(world,{n:30,x0:-126,x1:-84,z0:208,z1:234,hMin:9,hMax:30,cols:[0xcfe3ee,0x9fc6d6,0xeef1f2,0xe2dccd],box:true,wMin:3,wMax:6});skyline(world,{n:10,x0:-126,x1:-84,z0:184,z1:192,hMin:8,hMax:18,cols:[0xcfe3ee,0x9fc6d6,0xeef1f2],box:true,wMin:3,wMax:5});
 shed(world,{x:-50,z:226,w:14,d:8,h:4.6,panel:true,flat:true,units:3,wall:0xeef2f5,trim:0x2e86c1,ry:Math.PI,doors:[{at:0,w:3.2,h:3.2,open:true}],sign:'Client depot B',signSub:'Bay City distribution',signW:6});
 box(world,90,.06,7,0x4a4f53,-75,.01,252).castShadow=false;for(let x=-118;x<=-32;x+=6)box(world,3,.02,.4,0xf4f1e8,x,.08,252).castShadow=false;
 box(world,24,.05,14,0x8d9490,-36,0,240).castShadow=false;shed(world,{x:-62,z:240,w:12,d:9,h:5,wall:0xe9edf0,roof:0x7f8c93,trim:0x3dbb74,doors:[{at:0,w:4,h:3.6,open:true}],sign:'GFS Air cargo · Bay City',signW:7});
@@ -1590,7 +1604,7 @@ function voyagerStep(dt){for(let i=voyagers.length-1;i>=0;i--){const vy=voyagers
  else if(vy.state==='berthing'){vy.t+=dt;let dr=-g.rotation.y;while(dr>Math.PI)dr-=2*Math.PI;while(dr<-Math.PI)dr+=2*Math.PI;g.rotation.y+=dr*Math.min(1,dt*1.2);if(vy.t>3){vy.state='discharge';vy.t=0;alertMsg(`${vy.name} alongside at ${PORTS[destKey].name}: discharging`);}}
  else if(vy.state==='discharge'){vy.t+=dt;if(vy.t>2.2){vy.t=0;const box=g.children.find(o=>o.userData&&o.userData.sel&&o.userData.sel.type==='container');if(box){g.remove(box);const c=box.userData.sel.ref;if(c&&c.mesh===box)c.mesh=null;}else{vy.state='leave';vy.t=0;vy.hold=0;}}}
  else{vy.t+=dt;g.position.x+=dt*4;g.position.z+=dt*10;g.rotation.y+=(0.4-g.rotation.y)*Math.min(1,dt);const sc=Math.max(.01,1-vy.t/12);g.scale.setScalar(sc);if(vy.t>12){world.remove(g);voyagers.splice(i,1);if(selected&&selected.ref===vy)select(null);}}}}
-scatter(world,'pine',[[-272,-246,-66,-42],[-234,-212,-66,-10],[-274,-250,-112,-72],[-198,-176,-112,-70],[-250,-230,-62,-48],[-250,-230,-32,-18]],1.6);scatter(world,'round',[[-272,-246,-66,-42],[-234,-212,-64,-12],[-274,-250,-112,-72],[-198,-176,-112,-70]],.7);
+scatter(world,'pine',[[-272,-246,-66,-42],[-234,-212,-66,-10],[-274,-250,-112,-72],[-198,-176,-112,-70],[-252,-244,-62,-48],[-236,-230,-62,-48],[-252,-244,-32,-18],[-236,-230,-32,-18]],1.6);scatter(world,'round',[[-272,-246,-66,-42],[-234,-212,-64,-12],[-274,-250,-112,-72],[-198,-176,-112,-70]],.7);
 // a second ship waiting at anchor for the berth
 const waitShip=new THREE.Group();world.add(waitShip);{shipHull(waitShip,0x2c3633,10.4,60,3);const ss=new THREE.Group();ss.position.set(0,2,-23.5);waitShip.add(ss);rbox(ss,9.4,2.2,6,0xf4f5f2,0,0,0,.15);rbox(ss,8.8,2.1,5.4,0xf4f5f2,0,2.2,-.2,.15);rbox(ss,8.2,2,5,0xf4f5f2,0,4.3,-.3,.15);rbox(ss,2.6,4.2,2.8,0xd04a3a,0,6.6,-1.6,.25);
  for(let b=0;b<9;b++)for(let r=0;r<4;r++)for(let t=0;t<2;t++)if(Math.random()<.5){const c=makeContainer(pick([0xc0392b,0x2e86c1,0x8e44ad,0xd68910,0x5d6d7e,0x117a65]));c.position.set(-3.3+r*2.2,2+t*1.95,-17+b*5.9);waitShip.add(c);}}
@@ -1780,6 +1794,48 @@ onKit(()=>{addKitScenery();applyOriginTheme(origin);applyDestTheme(destKey);});l
 setupComposer(HQ);$('#hqBtn').setAttribute('aria-pressed',String(!!composer));applyOriginTheme('CPT');applyDestTheme(destKey);destLabels.port.t.textContent='Port of '+PORTS[destKey].name;
 applyLight();renderDetail();renderTracker();renderTable();renderKPIs();refreshDatalist();setOrigin('CPT',true);
 
+/* =========================================================
+   LAYOUT EDITOR — press E. Pick, drag, rotate, hide and export objects.
+   Changes are kept in this browser (localStorage) and can be exported as JSON
+   to be baked into the page (LAYOUT_OVERRIDES below).
+   ========================================================= */
+const LAYOUT_OVERRIDES={};
+const EDIT_ROOTS=()=>[['world',world],['farm',farmG],['orchard',orchG],['depot',depot],['dest',dest]];
+const edit={on:false,sel:null,drag:null,over:{},ids:false};
+function editable(o){if(!o||o.isInstancedMesh||o===ring)return false;if(o.userData&&o.userData.sel){const t=o.userData.sel.type;if(['truck','airtruck','bintruck','dtruck','container','vessel','plane','voyager','waiting','ship','crane'].includes(t))return false;}
+ if(vehicles.some(v=>v.g===o)||clientTrucks.some(v=>v.g===o)||binTrucks.some(v=>v.g===o))return false;const b=new THREE.Box3().setFromObject(o);if(b.isEmpty())return false;const sz=b.getSize(new THREE.Vector3());if(sz.y<.8||sz.x>70||sz.z>70)return false;return true;}
+function assignEids(){if(edit.ids)return;edit.ids=true;EDIT_ROOTS().forEach(([nm,g])=>g.children.forEach((o,i)=>{if(o.userData.eid)return;o.userData.eid=nm+':'+i+':'+(o.name||o.type);o.userData.orig={p:o.position.toArray(),ry:o.rotation.y};}));}
+function loadLayout(){let saved={};try{saved=JSON.parse(localStorage.getItem('gfs-layout-v1')||'{}');}catch(e){}const all=Object.assign({},LAYOUT_OVERRIDES,saved);edit.over=saved;let n=0;
+ EDIT_ROOTS().forEach(([nm,g])=>g.children.forEach(o=>{const ov=all[o.userData.eid];if(!ov||!o.userData.orig)return;const op=o.userData.orig.p;if(ov.o&&(Math.abs(ov.o[0]-op[0])>.05||Math.abs(ov.o[1]-op[2])>.05))return; // stale: the object is not where it was when the edit was made
+  if(ov.p)o.position.fromArray(ov.p);if(ov.ry!=null)o.rotation.y=ov.ry;if(ov.hidden)o.visible=false;n++;}));return n;}
+function saveLayout(o){const ov=edit.over[o.userData.eid]=edit.over[o.userData.eid]||{};ov.p=o.position.toArray().map(v=>+v.toFixed(2));ov.ry=+o.rotation.y.toFixed(3);ov.hidden=!o.visible;ov.o=[+o.userData.orig.p[0].toFixed(2),+o.userData.orig.p[2].toFixed(2)];try{localStorage.setItem('gfs-layout-v1',JSON.stringify(edit.over));}catch(e){}editInfo();}
+const editBox=new THREE.BoxHelper(new THREE.Mesh(new THREE.BoxGeometry(1,1,1)),0xf2c14e);editBox.visible=false;scene.add(editBox);
+function editInfo(){const el=$('#editInfo');if(!el)return;const o=edit.sel;const n=Object.keys(edit.over).length;el.innerHTML=o?`<b>${esc(o.userData.eid)}</b><br>x ${o.position.x.toFixed(1)} · z ${o.position.z.toFixed(1)} · ${Math.round(o.rotation.y*180/Math.PI)}°${o.visible?'':' · hidden'}`:'Nothing picked';$('#editCount').textContent=n?n+' change'+(n===1?'':'s')+' saved in this browser':'No changes yet';}
+function editPick(e){mouse.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(mouse,camera);const hits=ray.intersectObjects(EDIT_ROOTS().map(r=>r[1]),true);
+ for(const h of hits){let o=h.object;if(o.isInstancedMesh)continue;const roots=EDIT_ROOTS().map(r=>r[1]);while(o&&o.parent&&!roots.includes(o.parent))o=o.parent;if(!o||!o.parent||!roots.includes(o.parent))continue;if(!editable(o))continue;return o;}return null;}
+function editSelect(o){edit.sel=o;if(o){editBox.setFromObject(o);editBox.visible=true;}else editBox.visible=false;editInfo();}
+const groundPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
+function setEdit(on){edit.on=on;document.body.classList.toggle('editing',on);$('#editor').hidden=!on;if(on){assignEids();select(null);follow=null;controls.autoRotate=false;toast('Layout editor: click an object, drag to move, R rotates, Delete hides, Esc unpicks');}else{editSelect(null);}editInfo();}
+renderer.domElement.addEventListener('pointerdown',e=>{if(!edit.on||e.button!==0)return;const o=editPick(e);editSelect(o);if(!o)return;
+ mouse.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(mouse,camera);const hit=new THREE.Vector3();if(!ray.ray.intersectPlane(groundPlane,hit))return;
+ const wp=o.getWorldPosition(new THREE.Vector3());edit.drag={o,off:wp.clone().sub(hit)};fly=null;controls.enabled=false;e.stopImmediatePropagation();},true);
+addEventListener('pointermove',e=>{if(!edit.drag)return;mouse.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(mouse,camera);const hit=new THREE.Vector3();if(!ray.ray.intersectPlane(groundPlane,hit))return;
+ const o=edit.drag.o;const wp=hit.add(edit.drag.off);const lp=o.parent.worldToLocal(wp.clone());o.position.x=lp.x;o.position.z=lp.z;editBox.setFromObject(o);editInfo();});
+addEventListener('pointerup',()=>{if(!edit.drag)return;saveLayout(edit.drag.o);edit.drag=null;controls.enabled=true;});
+addEventListener('keydown',e=>{if(/input|select|textarea/i.test(e.target.tagName)||e.ctrlKey||e.metaKey||e.altKey)return;
+ if(e.key==='e'||e.key==='E'){if(tourI>=0)return;setEdit(!edit.on);return;}
+ if(!edit.on)return;const o=edit.sel;
+ if(e.key==='Escape'){editSelect(null);return;}if(!o)return;
+ const step=e.shiftKey?2:.5;let changed=true;
+ if(e.key==='r')o.rotation.y+=Math.PI/12;else if(e.key==='R')o.rotation.y-=Math.PI/12;else if(e.key==='Delete'||e.key==='Backspace')o.visible=!o.visible;
+ else if(e.key==='ArrowLeft')o.position.x-=step;else if(e.key==='ArrowRight')o.position.x+=step;else if(e.key==='ArrowUp')o.position.z-=step;else if(e.key==='ArrowDown')o.position.z+=step;else changed=false;
+ if(changed){e.preventDefault();editBox.setFromObject(o);saveLayout(o);}});
+$('#editClose').onclick=()=>setEdit(false);
+$('#editReset').onclick=()=>{if(!confirm('Forget all layout changes saved in this browser and reload?'))return;try{localStorage.removeItem('gfs-layout-v1');}catch(e){}location.reload();};
+$('#editExport').onclick=()=>{const txt=JSON.stringify(edit.over,null,1);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'application/json'}));a.download='gfs-layout.json';a.click();if(navigator.clipboard)navigator.clipboard.writeText(txt).catch(()=>{});toast('Layout exported (also copied). Send the file and it gets baked into the site.');};
+$('#editImport').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{try{const j=JSON.parse(t);Object.assign(edit.over,j);localStorage.setItem('gfs-layout-v1',JSON.stringify(edit.over));location.reload();}catch(err){toast('That file is not a layout export');}});};
+onKit(()=>{assignEids();const n=loadLayout();if(n)console.info('layout: '+n+' saved changes applied');Math.random=__realRandom;});
+if(!THREE.GLTFLoader)Math.random=__realRandom;
 let clockT=0,uiT=0,prodAcc=0,last=performance.now();
 const tmpP=new THREE.Vector3(),tmpT=new THREE.Vector3();
 spawnFleet();warmUp(110);
