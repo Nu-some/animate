@@ -1,0 +1,1175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GFS Chainline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: full-bleed 3D world, frosted HUD panels pinned to the edges (top bar, KPIs, detail right, tracker + table bottom). */
+:root{
+  --ink:#0d1714;            /* panel base */
+  --glass:rgba(13,23,20,.74);
+  --glass-strong:rgba(13,23,20,.88);
+  --line:rgba(200,230,215,.14);
+  --fg:#eaf2ee;
+  --muted:#9db1a8;
+  --accent:#3dbb74;         /* GFS green */
+  --citrus:#f2992e;         /* fruit / destination ports */
+  --ok:#3dbb74; --warn:#f2c14e; --crit:#ef6a5a;
+  --f-display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --f-body:"Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+  --f-data:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r:14px;
+  color-scheme:dark;
+}
+html,body{height:100%;margin:0}
+[hidden]{display:none!important}
+body{background:#a9cfe0;color:var(--fg);font:14px/1.45 var(--f-body);overflow:hidden}
+#stage{position:fixed;inset:0}
+#stage canvas{display:block;width:100%;height:100%;touch-action:none}
+.hud{position:fixed;inset:0;pointer-events:none;padding:calc(12px + env(safe-area-inset-top,0px)) 16px calc(12px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:minmax(0,1fr) 330px;grid-template-rows:auto auto minmax(0,1fr) auto;gap:12px}
+.panel{pointer-events:auto;background:var(--glass);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 10px 30px rgba(0,0,0,.25)}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* top bar */
+.topbar{grid-column:1/-1;display:flex;align-items:center;gap:10px;padding:8px 10px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;padding-right:6px}
+.mark{width:30px;height:30px;border-radius:9px;background:var(--accent);display:grid;place-items:center}
+.brand b{font:700 18px/1 var(--f-display);letter-spacing:-.01em;display:block}
+.brand small{display:block;color:var(--muted);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;margin-top:3px}
+.search{flex:1 1 200px;min-width:0;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:10px;padding:0 10px;height:34px}
+.search input{flex:1;min-width:0;background:none;border:0;outline:none;height:100%}
+.search input::placeholder{color:var(--muted)}
+.seg{display:flex;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:10px;padding:2px;overflow-x:auto;max-width:100%}
+.seg button{background:none;border:0;padding:5px 10px;border-radius:8px;white-space:nowrap;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#08130e;font-weight:600}
+.ctl{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:10px;height:34px;padding:0 8px}
+.ctl select{background:transparent;border:0;outline:none;height:100%}
+.ctl select option{background:#14211d}
+.ctl label{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+.clock{font:600 15px/1 var(--f-data);font-variant-numeric:tabular-nums}
+.live{font-size:10px;letter-spacing:.08em;background:var(--crit);color:#fff;border-radius:5px;padding:2px 5px;font-weight:600}
+.iconbtn{position:relative;width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.06);display:grid;place-items:center}
+.badge{position:absolute;top:-5px;right:-5px;background:var(--crit);color:#fff;font:600 10px/16px var(--f-data);min-width:16px;border-radius:8px;padding:0 3px}
+.alerts{position:absolute;right:0;top:40px;width:300px;max-height:320px;overflow:auto;padding:8px;z-index:5}
+.alerts p{margin:0;padding:8px;border-bottom:1px solid var(--line);font-size:12.5px}
+.alerts p time{display:block;color:var(--muted);font:11px var(--f-data)}
+
+/* KPIs */
+.kpis{grid-column:1;display:flex;gap:10px;flex-wrap:wrap;align-self:start}
+.kpi{padding:10px 14px;min-width:170px;display:grid;gap:2px}
+.kpi span{color:var(--muted);font-size:11.5px}
+.kpi strong{font:700 26px/1.05 var(--f-display);font-variant-numeric:tabular-nums}
+.kpi em{font-style:normal;font-size:11.5px;color:var(--accent)}
+
+/* detail */
+.detail{grid-column:2;grid-row:2/4;align-self:start;max-height:100%;overflow:auto;padding:14px}
+.detail h2{font:700 19px/1.15 var(--f-display);margin:2px 0 2px;text-wrap:balance}
+.eyebrow{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;border-radius:999px;padding:2px 8px;background:rgba(255,255,255,.08);white-space:nowrap}
+.chip.ok{background:rgba(61,187,116,.18);color:#7fe0a8}
+.chip.warn{background:rgba(242,193,78,.18);color:#f6d483}
+.chip.crit{background:rgba(239,106,90,.2);color:#ffab9f}
+.chip.src{background:rgba(242,153,46,.16);color:#ffc27a}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin:12px 0 0;font-size:13px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;text-align:right;font-family:var(--f-data);font-size:12.5px;font-variant-numeric:tabular-nums;min-width:0;overflow-wrap:anywhere}
+.lanes{margin:12px 0 0;padding:0;list-style:none;display:grid;gap:6px}
+.lanes li{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:12.5px;border-top:1px solid var(--line);padding-top:6px}
+.closebtn{float:right;border:0;background:none;color:var(--muted);font-size:18px;line-height:1}
+.hint{color:var(--muted);font-size:12.5px;margin:8px 0 0}
+.bar{height:6px;border-radius:4px;background:rgba(255,255,255,.1);overflow:hidden;margin-top:4px}
+.bar i{display:block;height:100%;background:var(--accent)}
+
+/* bottom */
+.bottom{grid-column:1/-1;grid-row:4;display:grid;grid-template-columns:minmax(0,600px) minmax(0,1fr);gap:12px;align-items:end}
+.tracker{padding:12px 14px}
+.tracker header{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:10px}
+.tracker h3{margin:0;font:700 15px/1.2 var(--f-display)}
+.tracker .sub{font:12px var(--f-data);color:var(--muted)}
+.steps{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));position:relative}
+.steps::before{content:"";position:absolute;left:5%;right:5%;top:9px;height:2px;background:rgba(255,255,255,.14)}
+.steps .fill{position:absolute;left:5%;top:9px;height:2px;background:var(--accent);transition:width .4s}
+.step{display:grid;justify-items:center;text-align:center;gap:4px;position:relative;font-size:9.5px;line-height:1.2;color:var(--muted)}
+.step i{width:18px;height:18px;border-radius:50%;background:#1c2a25;border:2px solid rgba(255,255,255,.25);display:block}
+.step.done i{background:var(--accent);border-color:var(--accent)}
+.step.now i{border-color:var(--accent);box-shadow:0 0 0 4px rgba(61,187,116,.25)}
+.step.done,.step.now{color:var(--fg)}
+.step time{font:9.5px var(--f-data);color:var(--muted)}
+.tablebox{padding:8px 10px 10px;min-width:0}
+.tabs{display:flex;gap:4px;align-items:center;margin-bottom:6px;flex-wrap:wrap}
+.tabs button{border:0;background:none;color:var(--muted);padding:5px 10px;border-radius:8px}
+.tabs button[aria-selected="true"]{background:rgba(255,255,255,.1);color:var(--fg);font-weight:600}
+.tabs .note{margin-left:auto;font-size:11px;color:var(--muted)}
+.tscroll{max-height:178px;overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;color:var(--muted);font-weight:500;font-size:11px;letter-spacing:.04em;text-transform:uppercase;position:sticky;top:0;background:var(--glass-strong);padding:5px 8px}
+td{padding:5px 8px;border-top:1px solid var(--line);white-space:nowrap}
+td.mono{font-family:var(--f-data);font-size:12px;font-variant-numeric:tabular-nums}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:rgba(255,255,255,.05)}
+tbody tr.sel{background:rgba(61,187,116,.16)}
+.toggle-lists{display:none;border:0;color:var(--fg)}
+
+/* floating labels */
+#labels{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.lbl{position:absolute;left:0;top:0;transform:translate(-50%,-100%);background:rgba(13,23,20,.8);color:var(--fg);font-size:11px;font-weight:600;padding:3px 7px;border-radius:6px;white-space:nowrap;border:1px solid var(--line)}
+.lbl.area{font:700 12px var(--f-display);letter-spacing:.02em}
+.lbl.port{font-size:10.5px;padding:2px 6px}
+.lbl.port.o{border-color:rgba(61,187,116,.6)}
+.lbl.sel{background:var(--accent);color:#08130e;border-color:transparent}
+.toast{position:fixed;left:50%;top:calc(70px + env(safe-area-inset-top,0px));transform:translateX(-50%);padding:9px 14px;font-size:13px;z-index:9;transition:opacity .3s}
+#fallback{position:fixed;inset:0;display:grid;place-items:center;padding:16px;text-align:center}
+
+@media (max-width:900px){
+  .hud{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto}
+  .detail{grid-column:1;grid-row:4;max-height:38vh}
+  .detail[data-empty]{display:none}
+  .bottom{grid-row:5;grid-template-columns:minmax(0,1fr)}
+  .kpis{flex-wrap:nowrap;overflow-x:auto}
+  .kpi{min-width:140px}
+  .kpi strong{font-size:21px}
+  .tablebox{display:none}
+  .tablebox.open{display:block}
+  .toggle-lists{display:inline-flex}
+  .brand small{display:none}
+}
+@media (max-width:560px){
+  .topbar .ctl.weather label,.topbar .ctl.origin label{display:none}
+  .seg button{padding:5px 8px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="labels"></div>
+
+<div class="hud">
+  <header class="topbar panel">
+    <div class="brand">
+      <div class="mark" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8" fill="#08130e"/><path d="M12 5c1-3 4-3 5-2-1 2-3 3-5 2z" fill="#08130e"/></svg></div>
+      <div><b>GFS Chainline</b><small>Farm → port → market</small></div>
+    </div>
+    <form class="search" id="searchForm" role="search">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+      <input id="q" type="search" placeholder="Container, truck, booking or port" autocomplete="off" aria-label="Search containers, trucks, bookings or ports" list="qlist">
+      <datalist id="qlist"></datalist>
+    </form>
+    <nav class="seg" id="areas" aria-label="Areas">
+      <button data-area="overview" aria-pressed="true">Overview</button>
+      <button data-area="farm">Farm</button>
+      <button data-area="pack">Packhouse</button>
+      <button data-area="depot">Depot</button>
+      <button data-area="port">Port</button>
+      <button data-area="network">Network</button>
+      <button data-area="dest">Destination</button>
+    </nav>
+    <div class="ctl origin"><label for="origin">Origin</label><select id="origin"></select></div>
+    <div class="ctl weather"><label for="weather">Conditions</label>
+      <select id="weather">
+        <option value="clear">Clear</option>
+        <option value="rain">Rain</option>
+        <option value="fog">Coastal fog</option>
+        <option value="wind">Port windbound</option>
+        <option value="peak">Harvest peak</option>
+        <option value="delay">Vessel delayed</option>
+      </select>
+    </div>
+    <div class="ctl"><span class="clock" id="clock">06:30</span><span class="live">SIM</span></div>
+    <div class="seg" aria-label="Lighting"><button id="dayBtn" aria-pressed="true">Day</button><button id="nightBtn" aria-pressed="false">Night</button></div>
+    <div style="position:relative">
+      <button class="iconbtn" id="bell" aria-label="Alerts" aria-expanded="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg><span class="badge" id="bellCount" hidden>0</span></button>
+      <div class="alerts panel" id="alerts" hidden></div>
+    </div>
+  </header>
+
+  <section class="kpis" aria-label="Today">
+    <div class="kpi panel"><span>Containers gated in today</span><strong id="k1">0</strong><em id="k1s">on the way to the vessel</em></div>
+    <div class="kpi panel"><span>Pallets packed today</span><strong id="k2">0</strong><em id="k2s">cold store 0 plts</em></div>
+    <div class="kpi panel"><span>Avg truck turnaround</span><strong id="k3">–</strong><em id="k3s">depot → port drop</em></div>
+  </section>
+
+  <aside class="detail panel" id="detail" aria-live="polite"></aside>
+
+  <section class="bottom">
+    <div class="tracker panel">
+      <header><h3>Container journey</h3><span class="sub" id="trkSub">Select a truck or container</span><button class="toggle-lists chip" id="toggleLists">Lists</button></header>
+      <div class="steps" id="steps"></div>
+    </div>
+    <div class="tablebox panel" id="tablebox">
+      <div class="tabs" role="tablist">
+        <button role="tab" data-tab="trucks" aria-selected="true">Trucks</button>
+        <button role="tab" data-tab="containers" aria-selected="false">Containers</button>
+        <button role="tab" data-tab="lanes" aria-selected="false">Lanes</button>
+        <span class="note" id="tabNote">Simulated operations · lanes from FREIGHT 2025</span>
+      </div>
+      <div class="tscroll"><table id="tbl"></table></div>
+    </div>
+  </section>
+</div>
+<div class="toast panel" id="toast" style="opacity:0"></div>
+<div id="fallback" hidden><p>The 3D view needs WebGL and the three.js library. Check your connection and reload.</p></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+"use strict";
+if(!window.THREE || !THREE.OrbitControls){ document.getElementById('fallback').hidden=false; return; }
+
+/* =========================================================
+   DATA — ports, lanes (FREIGHT 2025 + manual), sea graph
+   ========================================================= */
+const PORTS={
+  CPT:{name:'Cape Town',code:'ZACPT',country:'South Africa',lat:-33.92,lon:18.42,role:'o',src:'sheet'},
+  PLZ:{name:'Port Elizabeth',code:'ZAPLZ',country:'South Africa',lat:-33.96,lon:25.62,role:'o',src:'sheet'},
+  DUR:{name:'Durban',code:'ZADUR',country:'South Africa',lat:-29.87,lon:31.03,role:'o',src:'sheet'},
+  PSD:{name:'Port Said',code:'EGPSD',country:'Egypt',lat:31.26,lon:32.30,role:'o',src:'manual'},
+  DAM:{name:'Damietta',code:'EGDAM',country:'Egypt',lat:31.47,lon:31.76,role:'o',src:'manual'},
+  PVE:{name:'Port-Vendres',code:'FRPVE',country:'France',lat:42.52,lon:3.11,role:'o',src:'manual'},
+  RTM:{name:'Rotterdam',code:'NLRTM',country:'Netherlands',lat:51.95,lon:4.14,role:'o',src:'manual'},
+  KBI:{name:'Kribi',code:'CMKBI',country:'Cameroon',lat:2.94,lon:9.91,role:'d'},
+  DLA:{name:'Douala',code:'CMDLA',country:'Cameroon',lat:4.05,lon:9.70,role:'d'},
+  APP:{name:'Apapa',code:'NGAPP',country:'Nigeria',lat:6.44,lon:3.37,role:'d'},
+  LBV:{name:'Libreville',code:'GALBV',country:'Gabon',lat:0.39,lon:9.45,role:'d'},
+  COO:{name:'Cotonou',code:'BJCOO',country:'Benin',lat:6.35,lon:2.43,role:'d'},
+  PDG:{name:'Pointe des Galets',code:'REPDG',country:'Réunion',lat:-20.93,lon:55.29,role:'d'},
+  DKR:{name:'Dakar',code:'SNDKR',country:'Senegal',lat:14.69,lon:-17.44,role:'d'},
+  CKY:{name:'Conakry',code:'GNCKY',country:'Guinea',lat:9.51,lon:-13.71,role:'d'},
+  LFW:{name:'Lomé',code:'TGLFW',country:'Togo',lat:6.13,lon:1.29,role:'d'},
+  PLU:{name:'Port Louis',code:'MUPLU',country:'Mauritius',lat:-20.16,lon:57.50,role:'d'},
+  LON:{name:'Longoni',code:'YTLON',country:'Mayotte',lat:-12.72,lon:45.15,role:'d'},
+  ABJ:{name:'Abidjan',code:'CIABJ',country:"Côte d'Ivoire",lat:5.29,lon:-4.01,role:'d'},
+  JEA:{name:'Jebel Ali',code:'AEJEA',country:'UAE',lat:25.01,lon:55.06,role:'d'},
+  MBA:{name:'Mombasa',code:'KEMBA',country:'Kenya',lat:-4.04,lon:39.67,role:'d'}
+};
+// Carriers quoted per lane in FREIGHT 2025 (latest quarter on file). Rates deliberately not included.
+const SHEET_LANES=[
+ ['CPT','DKR','MSC'],['CPT','ABJ','MSC'],['CPT','COO','MSC'],['CPT','DLA','MSC'],['CPT','KBI','MSC'],['CPT','LBV','MSC'],['CPT','PLU','MSC,CMA CGM'],['CPT','PDG','MSC,CMA CGM'],['CPT','JEA','MSC,CMA CGM'],['CPT','APP',''],['CPT','LFW','MSC'],['CPT','MBA','MSC,CMA CGM'],
+ ['DUR','APP','Hapag-Lloyd'],['DUR','DKR','MSC,Hapag-Lloyd'],['DUR','ABJ','MSC,Hapag-Lloyd'],['DUR','COO','MSC'],['DUR','DLA','MSC,Hapag-Lloyd'],['DUR','KBI','MSC,Hapag-Lloyd'],['DUR','LBV','MSC,Hapag-Lloyd'],['DUR','PLU','MSC,CMA CGM'],['DUR','PDG','MSC,CMA CGM'],['DUR','JEA','MSC,CMA CGM'],['DUR','LFW','MSC'],['DUR','MBA','MSC,CMA CGM,Hapag-Lloyd'],
+ ['PLZ','APP',''],['PLZ','DKR','MSC'],['PLZ','ABJ','MSC'],['PLZ','COO','MSC'],['PLZ','DLA','MSC'],['PLZ','KBI','MSC'],['PLZ','LBV','MSC'],['PLZ','PLU','MSC,CMA CGM'],['PLZ','PDG','MSC,CMA CGM'],['PLZ','JEA','MSC,CMA CGM'],['PLZ','LFW','MSC'],['PLZ','MBA','MSC,CMA CGM,Hapag-Lloyd']
+];
+const USER_DESTS=['KBI','APP','LBV','COO','PDG','DKR','CKY','LFW','PLU','LON','ABJ'];
+const LANES=[];
+SHEET_LANES.forEach(([o,d,c])=>LANES.push({o,d,carriers:c?c.split(','):[],src:'FREIGHT 2025'}));
+['CPT','PLZ','DUR'].forEach(o=>['CKY','LON'].forEach(d=>LANES.push({o,d,carriers:[],src:'Added manually'})));
+['PSD','DAM','PVE','RTM'].forEach(o=>USER_DESTS.forEach(d=>LANES.push({o,d,carriers:[],src:'Added manually'})));
+
+const SEA={GIB:[35.95,-5.8],AT1:[36.5,-9.6],BIS:[43.6,-10],USH:[48.6,-6],CHN:[50.1,-1],DOV:[51.15,1.9],CAN:[30,-11.8],MAU:[21,-18.5],DKO:[14.4,-18.1],GUI:[9.2,-14.6],LIB:[4.5,-10.5],ABO:[4.0,-4.0],GOG:[5.2,1.5],BIG:[3.5,5.0],KRO:[2.8,9.2],LBO:[0.3,8.9],ANG:[-8,12],NAM:[-20,11],NM2:[-29,14.5],CPO:[-34.6,17.6],AGU:[-35.6,21.5],PEO:[-34.5,26.2],DUO:[-30.1,32.1],MZ1:[-25,36],MZ2:[-18,41],COM:[-11.6,44.2],EAF:[-5,41],SOM:[2,49],GUA:[12.5,53],ADN:[12.3,46],BAB:[12.6,43.4],RD1:[20,38.4],RD2:[27,34.4],SUZ:[29.9,32.6],PSO:[31.7,32.2],MDE:[33.5,28],MDC:[35,18],SIC:[37.3,11.2],MDW:[38.5,5],PVO:[42.4,3.6],ALB:[36.2,-2.5],SMD:[-28,47],REO:[-21.6,55],NMD:[-11,51],ARB:[19,62],OMN:[23.5,61],HOR:[26.4,56.8]};
+const SEA_EDGES='GIB-AT1 AT1-BIS BIS-USH USH-CHN CHN-DOV GIB-CAN CAN-MAU MAU-DKO DKO-GUI GUI-LIB LIB-ABO ABO-GOG GOG-BIG BIG-KRO KRO-LBO LBO-ANG ANG-NAM NAM-NM2 NM2-CPO CPO-AGU AGU-PEO PEO-DUO DUO-MZ1 MZ1-MZ2 MZ2-COM COM-EAF EAF-SOM SOM-GUA GUA-ADN ADN-BAB BAB-RD1 RD1-RD2 RD2-SUZ SUZ-PSO PSO-MDE MDE-MDC MDC-SIC SIC-MDW MDW-PVO MDW-ALB ALB-GIB DUO-SMD PEO-SMD SMD-REO COM-NMD NMD-REO GUA-ARB ARB-OMN OMN-HOR'.split(' ');
+const PORT_LINK={CPT:'CPO',PLZ:'PEO',DUR:'DUO',PSD:'PSO',DAM:'PSO',PVE:'PVO',RTM:'DOV',DKR:'DKO',CKY:'GUI',ABJ:'ABO',LFW:'GOG',COO:'GOG',APP:'BIG',DLA:'KRO',KBI:'KRO',LBV:'LBO',PDG:'REO',PLU:'REO',LON:'COM',MBA:'EAF',JEA:'HOR'};
+
+const LAND={
+ africa:[[35.8,-5.8],[35.2,-2],[36.8,3],[37.1,10],[33.5,11],[30.5,19.5],[32.8,22],[31.5,29],[31.2,32.3],[29.9,32.6],[27,34],[22,36.8],[18,38.5],[15.5,39.6],[12.5,43.3],[11.5,43.5],[11.8,51.2],[10,50.8],[4,48],[-1,42],[-4,39.7],[-6.8,39.3],[-10.5,40.5],[-15,40.7],[-20,35],[-25,33],[-26,32.9],[-29.9,31],[-33,27.9],[-34,25.6],[-34.4,20],[-34.3,18.5],[-31.5,18.2],[-28.6,16.4],[-22.9,14.5],[-17.3,11.8],[-12,13.7],[-8.8,13.2],[-6,12.3],[-1.5,9.2],[0.4,9.4],[2.9,9.9],[4,9.5],[4.3,8.5],[4.3,6.2],[6.4,3.4],[6.2,1.2],[5.1,-1.5],[5,-4],[4.4,-7.5],[6.3,-10.8],[8.5,-13.2],[9.5,-13.7],[11,-15],[12.5,-16.7],[14.7,-17.4],[16,-16.5],[20.8,-17],[23.7,-15.9],[27.6,-13.2],[28.5,-11],[31,-9.8],[33.6,-7.6]],
+ mideast:[[31.2,32.3],[31.5,34.5],[33,35.2],[36.5,36],[36.2,33],[36.6,30.5],[36.8,28],[38.4,26.5],[40,26.2],[41,29],[41.5,41.6],[37,48],[30,48],[27,50],[24.5,51.5],[25.5,56.3],[22.5,59.8],[17,55],[14,49],[12.7,44],[13.5,42.8],[16.5,42.6],[20,40],[24,37.5],[28,34.6],[29.5,34.9],[27.8,34.2],[29.9,32.6]],
+ europe:[[36,-5.6],[37,-8.9],[42,-8.9],[43.7,-8],[43.4,-1.5],[46,-1.2],[47.8,-4.5],[48.6,-1.5],[49.6,0],[51,2],[52,4.1],[53.4,6],[54,8.8],[57,8.3],[57.7,10.6],[56,12.6],[54.3,18],[55,21],[60,22],[60,40],[46,40],[44,38],[42,35],[41.3,29.5],[40.8,26],[40.8,23],[38,24],[36.5,22.5],[39,20],[41.8,19.5],[45.7,13.7],[44,12.4],[41.9,16],[40.5,18.5],[39.8,18.3],[40.5,17],[38,16],[38.2,15.6],[40,15.4],[41.2,13],[42.5,11.2],[44.4,8.9],[43.3,5.4],[43.5,3.5],[42.5,3.1],[41.4,2.2],[39.5,-0.3],[38.3,-0.5],[36.7,-2.1],[36.7,-4.4]],
+ uk:[[50,-5.5],[51,1.4],[53,1.7],[55,-1.5],[58.5,-3],[58.5,-5],[56,-6],[54,-3],[53,-4.5],[51.6,-5]],
+ ireland:[[51.5,-10],[55.3,-7.5],[54,-6],[52,-6.3]],
+ madagascar:[[-12,49.3],[-15.5,50.5],[-25,47.1],[-25.5,45],[-21,43.5],[-16,44.5],[-13.5,48]],
+ sicily:[[38.3,12.4],[38.2,15.6],[36.7,15.1],[37.5,12.5]]
+};
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+const $=s=>document.querySelector(s);
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const mats={};
+function M(color,opts){const k=color+'|'+JSON.stringify(opts||{});if(!mats[k])mats[k]=new THREE.MeshStandardMaterial(Object.assign({color,roughness:.85,metalness:.02},opts||{}));return mats[k];}
+function box(parent,w,h,d,color,x,y,z,opts){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(color,opts));m.position.set(x,y+h/2,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;}
+function cyl(parent,rt,rb,h,color,x,y,z,seg){const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg||12),M(color));m.position.set(x,y+h/2,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;}
+function tag(obj,type,ref){obj.userData.sel={type,ref};obj.traverse(c=>{c.userData.selRoot=obj;});return obj;}
+// ISO 6346 container numbers with a real check digit
+const LV={};(()=>{let v=10;for(const c of 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'){if(v%11===0)v++;LV[c]=v;v++;}})();
+function isoNumber(owner){const serial=String(Math.floor(Math.random()*1e6)).padStart(6,'0');const s=owner+serial;let sum=0;for(let i=0;i<10;i++){const ch=s[i];sum+=(/[A-Z]/.test(ch)?LV[ch]:+ch)*Math.pow(2,i);}return owner+' '+serial+'-'+((sum%11)%10);}
+const OWNER={'MSC':'MSCU','CMA CGM':'CMAU','Hapag-Lloyd':'HLXU','TBC':'TBCU'};
+
+/* =========================================================
+   RENDERER / SCENE / CAMERA
+   ========================================================= */
+const stage=$('#stage');
+let renderer;
+try{renderer=new THREE.WebGLRenderer({antialias:true});}catch(e){document.getElementById('fallback').hidden=false;return;}
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight);
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.outputEncoding=THREE.sRGBEncoding;
+stage.appendChild(renderer.domElement);
+const scene=new THREE.Scene();
+const DAY_SKY=new THREE.Color(0xa9cfe0),NIGHT_SKY=new THREE.Color(0x0b1626);
+scene.background=DAY_SKY.clone();
+scene.fog=new THREE.FogExp2(0xa9cfe0,0.0016);
+const camera=new THREE.PerspectiveCamera(38,innerWidth/innerHeight,0.5,3000);
+camera.position.set(62,100,122);
+const controls=new THREE.OrbitControls(camera,renderer.domElement);
+controls.target.set(0,0,4);
+controls.mouseButtons={LEFT:THREE.MOUSE.PAN,MIDDLE:THREE.MOUSE.DOLLY,RIGHT:THREE.MOUSE.ROTATE};
+controls.touches={ONE:THREE.TOUCH.PAN,TWO:THREE.TOUCH.DOLLY_ROTATE};
+controls.screenSpacePanning=false;controls.enableDamping=true;controls.dampingFactor=.09;
+controls.maxPolarAngle=1.32;controls.minDistance=10;controls.maxDistance=420;
+renderer.domElement.addEventListener('contextmenu',e=>e.preventDefault());
+
+const hemi=new THREE.HemisphereLight(0xf3f7ff,0x8a7a5c,.75);scene.add(hemi);
+const sun=new THREE.DirectionalLight(0xfff1dc,1.05);
+sun.position.set(-60,110,70);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
+Object.assign(sun.shadow.camera,{left:-140,right:140,top:120,bottom:-120,near:10,far:360});
+sun.shadow.bias=-0.0006;sun.target.position.set(0,0,0);const SUN_OFF=new THREE.Vector3(-60,110,70);scene.add(sun);scene.add(sun.target);
+const nightLights=[];
+[[-6,9,-2],[52,12,6],[-20,8,30]].forEach(p=>{const l=new THREE.PointLight(0xffc98a,0,70,1.6);l.position.set(...p);scene.add(l);nightLights.push(l);});
+
+/* =========================================================
+   LOCAL WORLD — farm, packhouse, depot, roads, port, vessel
+   ========================================================= */
+const world=new THREE.Group();scene.add(world);
+// ocean & land
+const ocean=new THREE.Mesh(new THREE.PlaneGeometry(1600,1600),new THREE.MeshStandardMaterial({color:0x3f93b5,roughness:.35,metalness:.1}));
+ocean.rotation.x=-Math.PI/2;ocean.position.y=-0.6;ocean.receiveShadow=true;scene.add(ocean);
+const land=box(world,190,0.6,150,0xd8c9a3,-24,-0.6,4);land.castShadow=false;
+box(world,46,0.06,56,0x93b462,-52,0,0).castShadow=false; // orchard ground
+box(world,26,0.05,22,0xbfb08a,-21,0,31).castShadow=false;   // depot slab
+box(world,26,0.05,40,0xb9b4a6,52,0,12).castShadow=false;    // port yard slab
+box(world,4,1.2,150,0xa9a397,69,-0.6,4).castShadow=false;   // quay wall
+box(world,8,0.06,70,0x9c978c,66,0,4).castShadow=false;      // quay apron
+// mountains (Table-Mountain-ish backdrop)
+const mtnM=M(0x8f9a7a,{flatShading:true});
+[[-90,-55,30,22],[-60,-62,26,18],[-30,-66,32,16],[-110,-20,28,20]].forEach(([x,z,r,h])=>{const m=new THREE.Mesh(new THREE.ConeGeometry(r,h,7),mtnM);m.position.set(x,h/2-0.5,z);m.receiveShadow=true;world.add(m);});
+{const tm=new THREE.Mesh(new THREE.CylinderGeometry(20,26,16,8),mtnM);tm.position.set(-45,7.5,-68);world.add(tm);}
+
+// ---- orchard (instanced) — aisle at z≈0 holds the field bins
+const trees=[];for(let x=-70;x<=-49;x+=3.4)for(let z=-24;z<=24;z+=3.6){if(Math.abs(z)<2.5)continue;trees.push([x+rnd(-.3,.3),z+rnd(-.3,.3)]);}
+const trunkI=new THREE.InstancedMesh(new THREE.CylinderGeometry(.16,.22,1,6),M(0x6b4f35),trees.length);
+const canopyI=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1.25,0),M(0x3f7a3a,{flatShading:true}),trees.length);
+const FRUIT_PER=5;const fruitI=new THREE.InstancedMesh(new THREE.SphereGeometry(.17,6,5),M(0xf2992e),trees.length*FRUIT_PER);
+canopyI.castShadow=true;trunkI.castShadow=true;
+const dummy=new THREE.Object3D();const canopyBase=[];
+trees.forEach(([x,z],i)=>{dummy.position.set(x,.5,z);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();trunkI.setMatrixAt(i,dummy.matrix);
+ const s=rnd(.85,1.1);canopyBase.push({x,z,s,ph:Math.random()*6});dummy.position.set(x,1.7,z);dummy.scale.set(s,s*.9,s);dummy.rotation.y=Math.random()*3;dummy.updateMatrix();canopyI.setMatrixAt(i,dummy.matrix);
+ for(let k=0;k<FRUIT_PER;k++){const a=Math.random()*6.28,r=1.05*s;dummy.position.set(x+Math.cos(a)*r*.8,1.7+rnd(-.5,.5),z+Math.sin(a)*r*.8);dummy.scale.set(1,1,1);dummy.updateMatrix();fruitI.setMatrixAt(i*FRUIT_PER+k,dummy.matrix);}
+});
+world.add(trunkI,canopyI,fruitI);
+const farmHit=new THREE.Mesh(new THREE.BoxGeometry(26,3,52),new THREE.MeshBasicMaterial({visible:false}));farmHit.position.set(-59.5,1.5,0);world.add(farmHit);
+box(world,24,.05,4,0xa38d68,-59.5,0,0).castShadow=false; // picking aisle
+// field bins along the aisle; pickers fill them
+function makeBin(parent,x,y,z,fill){const g=new THREE.Group();box(g,1.2,.85,1.2,0x7a5a3c,0,0,0);const f=box(g,1.05,.1,1.05,0xf2992e,0,.1,0);f.scale.y=1;g.userData.fill=f;g.position.set(x,y,z);parent.add(g);setBinFill(g,fill);return g;}
+function setBinFill(g,f){const fl=g.userData.fill;fl.position.y=.1+f*.72;fl.visible=f>.02;}
+const fieldBins=[];for(let i=0;i<6;i++)fieldBins.push({g:makeBin(world,-68+i*3.8,0,0,Math.random()*.7),fill:0});
+fieldBins.forEach(b=>b.fill=Math.random()*.7);
+// farm shed
+const farmShed=new THREE.Group();world.add(farmShed);box(farmShed,7,3.2,5,0xc9a37a,-56,0,-31);box(farmShed,7.6,.4,5.6,0x7d5a3f,-56,3.2,-31);
+// pickers: walk to a tree, pick, carry the bag to the nearest field bin, tip it in
+function makePerson(color){const g=new THREE.Group();cyl(g,.22,.26,.9,color,0,0,0,8);const h=new THREE.Mesh(new THREE.SphereGeometry(.22,8,6),M(0x6b4a33));h.position.y=1.1;h.castShadow=true;g.add(h);
+ const hat=new THREE.Mesh(new THREE.CylinderGeometry(.34,.34,.05,10),M(0xe9d9a8));hat.position.y=1.3;g.add(hat);return g;}
+const pickers=[];
+for(let i=0;i<12;i++){const g=makePerson(pick([0x2f5f9e,0xd04a3a,0xe6c34a,0x3dbb74,0x7d5aa0]));
+ const bag=new THREE.Mesh(new THREE.SphereGeometry(.3,8,6),M(0xf2992e));bag.position.set(0,.55,.28);g.add(bag);
+ const near=trees.filter(t=>Math.abs(t[1])<9);const t=pick(near);g.position.set(t[0]+1.3,0,t[1]);world.add(g);
+ pickers.push({g,bag,tree:t,state:'pick',t:rnd(0,4),bin:null,load:Math.random(),from:null,to:null});}
+// bin cold room (pre-cools field bins before packing), against the packhouse west wall
+const coldRoom=new THREE.Group();world.add(coldRoom);
+box(coldRoom,8,4.4,8,0xf4f7f8,-23,0,-16);box(coldRoom,8.6,.4,8.6,0x5f8fa3,-23,4.4,-16);
+box(coldRoom,.15,3,3,0x3a5a68,-27.05,0,-16);   // west door
+cyl(coldRoom,.7,.7,1,0x9aa6aa,-24,4.8,-18);cyl(coldRoom,.7,.7,1,0x9aa6aa,-22,4.8,-14);
+const coldHit=new THREE.Mesh(new THREE.BoxGeometry(8,5,8),new THREE.MeshBasicMaterial({visible:false}));coldHit.position.set(-23,2.5,-16);world.add(coldHit);
+// staged full bins waiting for the bin trucks
+const stagedBins=[];for(let i=0;i<12;i++)stagedBins.push(makeBin(world,-39+(i%3)*1.35,Math.floor(i/6)*.9,-18.6+Math.floor((i%6)/3)*1.35,1));
+
+// ---- farm road loop for bin trucks: field staging → bin cold room
+const FP=[[-42,-9],[-33,-9],[-30.5,-16],[-33,-23],[-42,-23],[-44.5,-16]];
+const farmCurve=new THREE.CatmullRomCurve3(FP.map(([x,z])=>new THREE.Vector3(x,0,z)),true,'centripetal');
+const FLOOP=farmCurve.getLength();
+const FSTOPS=[{k:'field',p:[-44.5,-16]},{k:'coldroom',p:[-30.5,-16]}];
+const binTrucks=[];
+function makeBinTruck(i){const g=new THREE.Group();
+ box(g,1.8,1.6,1.8,0x2e7d4f,0,.5,2.6);box(g,1.6,.6,.1,0x1b2a33,0,1.3,3.52);
+ box(g,2,.3,6,0x6b5a46,0,.45,-.6);
+ [[-.9,2.6],[.9,2.6],[-.9,-2.2],[.9,-2.2]].forEach(([x,z])=>{const w=cyl(g,.38,.38,.3,0x161616,x,.38,z,10);w.rotation.z=Math.PI/2;w.position.y=.38;});
+ const load=[];for(let k=0;k<6;k++){const b=makeBin(g,k%2?.55:-.55,.75,-2.6+Math.floor(k/2)*1.3,1);b.scale.setScalar(.85);b.visible=false;load.push(b);}
+ world.add(g);return {g,load};}
+
+// ---- packhouse: bin tipper → wash → dryer → grading → packing tables → carton line → palletiser
+const pack=new THREE.Group();world.add(pack);
+box(pack,22,.12,14,0xcfc8b8,-8,0,-13);            // floor
+box(pack,22,5,.4,0xe8e2d4,-8,0,-19.8);             // back wall
+box(pack,.4,5,14,0xe8e2d4,-18.8,0,-13);            // west wall (cold room door)
+box(pack,22,5,.4,0xe8e2d4,-8,0,-6.2);              // road-side wall
+const roofP=new THREE.Mesh(new THREE.BoxGeometry(23,.3,15),new THREE.MeshStandardMaterial({color:0xbfe0ea,transparent:true,opacity:.22,roughness:.2}));roofP.position.set(-8,5.15,-13);pack.add(roofP);
+for(let i=0;i<6;i++)box(pack,.3,.4,15,0x5b6b66,-19+i*4.4,5,-13); // roof trusses
+// bin tipper
+box(pack,1.8,1.2,1.8,0x6f7c78,-17.2,0,-11);const tipBin=makeBin(pack,-17.2,1.2,-11,.8);
+// wash tank (water + bubbles)
+box(pack,4.6,.9,1.8,0x55635e,-14,0,-11);
+const water=new THREE.Mesh(new THREE.BoxGeometry(4.3,.25,1.5),new THREE.MeshStandardMaterial({color:0x4fb3d9,transparent:true,opacity:.75,roughness:.1}));water.position.set(-14,.95,-11);pack.add(water);
+const bubbles=new THREE.InstancedMesh(new THREE.SphereGeometry(.09,6,4),new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:.8}),24);pack.add(bubbles);
+// brush & dryer tunnel
+box(pack,3,1.9,1.9,0x8a9894,-10,0,-11);box(pack,3.1,.25,2,0xf2c14e,-10,1.9,-11);
+// grading + packing belt
+box(pack,12,.9,1.3,0x55635e,-2.5,0,-11);
+// packing stations: tables, packers, carton conveyor
+for(let i=0;i<4;i++)box(pack,1.6,.8,1.1,0xb99a6c,-4.5+i*2.4,0,-13.1);
+const packers=[];for(let i=0;i<5;i++){const g=makePerson(i<1?0xe6c34a:0x3dbb74);g.position.set(i<1?-6.8:-4.5+(i-1)*2.4,0,i<1?-9.6:-14.3);g.rotation.y=i<1?Math.PI:0;pack.add(g);packers.push(g);}
+box(pack,10,.75,1.1,0x3f4a47,-2,0,-15.4); // carton conveyor
+const CARTON_N=12;const cartonI=new THREE.InstancedMesh(new THREE.BoxGeometry(.75,.42,.55),M(0xc7975e),CARTON_N);cartonI.castShadow=true;pack.add(cartonI);
+const cartonT=[...Array(CARTON_N)].map((_,i)=>i/CARTON_N);
+// palletiser + pallet being built
+box(pack,2.4,.2,2.4,0x6f7c78,1.6,0,-17.2);const buildPallet=box(pack,1.2,1,1.2,0xc7975e,1.6,.2,-17.2);
+// bay doors on road side (z=-6)
+const bayDoors=[];[-4,0,4].forEach(x=>{const d=box(pack,2.6,3,.2,0x3a4a45,x,0,-5.95);bayDoors.push(d);box(pack,3.2,.3,1.2,0x2d3a36,x,3.1,-5.6);});
+// windows (glow at night)
+const winMat=new THREE.MeshStandardMaterial({color:0x9ec7d6,emissive:0xffc66b,emissiveIntensity:0});
+for(let i=0;i<5;i++){const w=new THREE.Mesh(new THREE.BoxGeometry(1.8,.9,.1),winMat);w.position.set(-17+i*2.4,3.6,-5.95);pack.add(w);}
+// fruit on the line: tipper → wash → dryer → grading → packing
+const FRUIT_N=56;const lineFruit=new THREE.InstancedMesh(new THREE.SphereGeometry(.22,7,6),M(0xf2992e),FRUIT_N);world.add(lineFruit);
+const lineFruitT=[...Array(FRUIT_N)].map((_,i)=>i/FRUIT_N);
+// pallet cold store
+const cold=new THREE.Group();world.add(cold);box(cold,8,4.6,14,0xf4f7f8,7,0,-13);box(cold,8.6,.4,14.6,0x6f8d97,7,4.6,-13);
+cyl(cold,.8,.8,1.2,0x9aa6aa,5,5,-16);cyl(cold,.8,.8,1.2,0x9aa6aa,9,5,-16);
+// pallet stacks outside cold store (visual stock)
+const palletI=new THREE.InstancedMesh(new THREE.BoxGeometry(1.1,1.3,1.1),M(0xc7975e),60);palletI.castShadow=true;world.add(palletI);
+const packHit=new THREE.Mesh(new THREE.BoxGeometry(32,6,16),new THREE.MeshBasicMaterial({visible:false}));packHit.position.set(-4,3,-13);world.add(packHit);
+
+// ---- empty depot (shipping line)
+const depot=new THREE.Group();world.add(depot);
+const empties=[];
+for(let r=0;r<3;r++)for(let c=0;c<5;c++)for(let t=0;t<3;t++){if(Math.random()<.18&&t>0)continue;const m=box(depot,2,1.9,5.6,0xeef1f2,-30+c*2.4,t*1.95,25+r*6.6);empties.push(m);
+ box(depot,2.02,.6,.4,0x3c4644,-30+c*2.4,t*1.95+.6,25+r*6.6+2.7);}
+box(depot,2.4,2.2,2.4,0x3dbb74,-18,0,21);// gate booth
+const depotBarrier=box(depot,5,.2,.2,0xef6a5a,-10.5,1.2,20);
+// wash bay (open frame + spray) and PTI inspection bay, then a ready slot by the road
+[[-16.6,34],[-12.4,34],[-16.6,40],[-12.4,40]].forEach(([x,z])=>box(depot,.35,4.2,.35,0x5f8fa3,x,0,z));
+box(depot,4.8,.3,6.6,0x5f8fa3,-14.5,4.2,37);box(depot,4.4,.06,6.4,0x4fb3d9,-14.5,0,37).castShadow=false;
+[[-16.6,28.2],[-12.4,28.2],[-16.6,33.6],[-12.4,33.6]].forEach(([x,z])=>box(depot,.3,3.8,.3,0x3dbb74,x,0,z));
+box(depot,4.8,.25,6,0xe8e2d4,-14.5,3.8,31);
+const ptiLamp=new THREE.Mesh(new THREE.SphereGeometry(.28,10,8),new THREE.MeshStandardMaterial({color:0x3dbb74,emissive:0x3dbb74,emissiveIntensity:0}));ptiLamp.position.set(-12.2,2.6,31);depot.add(ptiLamp);
+box(depot,4.4,.05,6.2,0xd7c27a,-14.5,0,25).castShadow=false; // ready slot marking
+const reach=new THREE.Group();box(reach,2.2,1.4,4,0xf2c14e,0,.5,0);box(reach,.4,4,.4,0x3a3a3a,0,1,2.3);reach.position.set(-19,0,34);depot.add(reach);
+const SPRAY_N=160;const sprayGeo=new THREE.BufferGeometry();sprayGeo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(SPRAY_N*3),3));
+const spray=new THREE.Points(sprayGeo,new THREE.PointsMaterial({color:0xbfe8f7,size:.22,transparent:true,opacity:.85}));spray.visible=false;world.add(spray);
+const DEPOT_POS={stack:new THREE.Vector3(-22.8,3.9,38.2),wash:new THREE.Vector3(-14.5,.05,37),pti:new THREE.Vector3(-14.5,.05,31),ready:new THREE.Vector3(-14.5,.05,25)};
+const depotSlots={wash:null,pti:null,ready:null};
+// reefer staging depot (plug-in) between weighbridge and port gate, used when the vessel is delayed
+const STAGE=[];for(let c=0;c<4;c++)for(let r=0;r<2;r++)for(let t=0;t<2;t++)STAGE.push({x:18+c*2.5,z:7.5+r*6.6,y:t*1.95,used:null});
+box(world,12,.05,15,0xbcb59f,21.75,0,10.8).castShadow=false;
+for(let c=0;c<4;c++)for(let r=0;r<2;r++)cyl(world,.12,.12,4.4,0x4a5552,18+c*2.5+1.15,0,7.5+r*6.6-3.1,6);
+box(world,3,1.6,.3,0x3dbb74,16.4,1.8,4.2);
+const stageHit=new THREE.Mesh(new THREE.BoxGeometry(12,5,15),new THREE.MeshBasicMaterial({visible:false}));stageHit.position.set(21.75,2.5,10.8);world.add(stageHit);
+const stagingQ=[];
+const depotHit=new THREE.Mesh(new THREE.BoxGeometry(20,6,22),new THREE.MeshBasicMaterial({visible:false}));depotHit.position.set(-21.5,3,31);world.add(depotHit);
+
+// ---- roads (loop) — truck circuit
+const RP=[[-8,34],[-8,12],[-5,2],[2,0],[14,0],[26,0],[38,0],[46,-2],[52,-2],[58,2],[58,24],[50,34],[36,42],[10,44],[-4,42]];
+const curve=new THREE.CatmullRomCurve3(RP.map(([x,z])=>new THREE.Vector3(x,0,z)),true,'centripetal');
+const LOOP=curve.getLength();
+function roadRibbon(crv,W,color,dashes){const pts=crv.getSpacedPoints(400);const g=new THREE.BufferGeometry();const pos=[];
+ for(let i=0;i<pts.length-1;i++){const a=pts[i],b=pts[i+1];const d=new THREE.Vector3().subVectors(b,a).normalize();const n=new THREE.Vector3(-d.z,0,d.x).multiplyScalar(W);
+  const a1=a.clone().add(n),a2=a.clone().sub(n),b1=b.clone().add(n),b2=b.clone().sub(n);pos.push(a1.x,.04,a1.z,a2.x,.04,a2.z,b1.x,.04,b1.z,a2.x,.04,a2.z,b2.x,.04,b2.z,b1.x,.04,b1.z);}
+ g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.computeVertexNormals();
+ const road=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color,roughness:.95,side:THREE.DoubleSide}));road.receiveShadow=true;world.add(road);
+ if(!dashes)return;
+ const dash=new THREE.InstancedMesh(new THREE.BoxGeometry(.25,.02,1.2),M(0xf4f1e8),100);let k=0;
+ for(let i=0;i<400&&k<100;i+=4){const a=pts[i],b=pts[i+1];dummy.position.set(a.x,.07,a.z);dummy.rotation.set(0,Math.atan2(b.x-a.x,b.z-a.z),0);dummy.scale.set(1,1,1);dummy.updateMatrix();dash.setMatrixAt(k++,dummy.matrix);}
+ dash.count=k;world.add(dash);}
+roadRibbon(curve,2.1,0x5d6266,true);
+roadRibbon(farmCurve,1.7,0xa38d68,false); // gravel farm road
+// highway spur to horizon (decor)
+box(world,4.2,.05,40,0x5d6266,-8,0,62).castShadow=false;
+
+// weighbridge + port gate
+const weigh=new THREE.Group();world.add(weigh);box(weigh,9,.25,4.6,0x8d9490,14,0,0);box(weigh,2,2.2,2,0x3dbb74,14,0,-4.2);
+const gate=new THREE.Group();world.add(gate);
+box(gate,1.6,2.4,1.6,0xe8e2d4,30,0,-3.6);box(gate,1.6,2.4,1.6,0xe8e2d4,30,0,3.6);box(gate,2.4,.4,10,0x2c3633,30,4,0);
+const gateBar=box(gate,.18,.18,4,0xef6a5a,30,1.3,-1.8);
+
+// reefer yard
+const YARD=[];for(let c=0;c<5;c++)for(let r=0;r<3;r++)for(let t=0;t<2;t++)YARD.push({x:42+c*2.6,z:10+r*7,y:t*1.95,used:null});
+for(let c=0;c<5;c++)for(let r=0;r<3;r++){cyl(world,.12,.12,4.5,0x4a5552,42+c*2.6+1.2,0,10+r*7-3.2,6);}
+const yardHit=new THREE.Mesh(new THREE.BoxGeometry(14,5,22),new THREE.MeshBasicMaterial({visible:false}));yardHit.position.set(47,2.5,17);world.add(yardHit);
+
+// general terminal stacks (other shippers)
+{const n=150;const tb=new THREE.InstancedMesh(new THREE.BoxGeometry(1.9,1.9,5.6),new THREE.MeshStandardMaterial({roughness:.8}),n);let k=0;const col=new THREE.Color();
+ for(let c=0;c<6&&k<n;c++)for(let r=0;r<2&&k<n;r++)for(let t=0;t<3&&k<n;t++){if(Math.random()<.2)continue;dummy.position.set(40+c*2.3,.95+t*1.95,-12-r*6.4);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();tb.setMatrixAt(k,dummy.matrix);tb.setColorAt(k,col.setHex(pick([0xc0392b,0x2e86c1,0x8e44ad,0xd68910,0x117a65,0x5d6d7e,0xeef1f2])));k++;}
+ tb.count=k;tb.castShadow=true;tb.receiveShadow=true;world.add(tb);}
+// STS cranes
+const cranes=[];
+[-8,6,20].forEach((z,i)=>{const g=new THREE.Group();const C=0x2e9e8f;
+ [[-3,-2.4],[-3,2.4],[3,-2.4],[3,2.4]].forEach(([x,zz])=>box(g,.6,16,.6,C,x,0,zz));
+ box(g,7,.8,5.6,C,0,8,0);box(g,30,.9,1.2,C,6,16,0);box(g,3,2.4,2.4,0x22403b,-6,16.9,0);
+ const tr=box(g,1.8,.8,1.6,0xf2c14e,10,15.2,0);const cab=box(g,1.4,1.2,1.4,0xe8e2d4,8,14.4,1.4);
+ const sp=box(g,2.2,.25,5.8,0xf2c14e,10,8,0);
+ g.position.set(66,0,z);world.add(g);const cr={g,tr,sp,name:'STS '+String(i+1).padStart(2,'0'),moves:0,state:'idle'};tag(g,'crane',cr);cranes.push(cr);});
+
+// container mesh factory
+const REEFER_BODY=0xf1f3f3;
+function makeContainer(color,gfs){const g=new THREE.Group();box(g,1.9,1.9,5.6,color||REEFER_BODY,0,0,0);box(g,1.92,1.4,.35,0x37403e,0,.25,2.66);// reefer machinery end
+ for(let i=-2;i<=2;i++)box(g,1.94,1.7,.08,0xd5dadb,0,.1,i*1.05);if(gfs)gfsTag(g);return g;}
+function gfsTag(g){if(g.userData.gfs)return;g.userData.gfs=true;box(g,1.2,.06,3.4,0x3dbb74,0,1.9,0,{emissive:0x3dbb74,emissiveIntensity:.35});}
+
+// ---- vessel at berth
+const vesselGroup=new THREE.Group();world.add(vesselGroup);
+const SHIP_SLOTS=[];
+function buildVessel(){
+ while(vesselGroup.children.length)vesselGroup.remove(vesselGroup.children[0]);
+ const hullC=pick([0x23343a,0x7a2b2b,0x1f3f66]);
+ box(vesselGroup,10.4,3.6,60,hullC,0,-1.6,3);box(vesselGroup,10.6,.6,60.2,0xb8452e,0,-1.6,3);
+ box(vesselGroup,9,7,6,0xf4f5f2,0,2,-24);box(vesselGroup,9.6,.6,6.6,0x2c3633,0,9,-24);cyl(vesselGroup,.8,.9,4,0x2c3633,0,9.6,-25.5);
+ const lights=new THREE.Mesh(new THREE.BoxGeometry(9.1,.5,6.1),winMat);lights.position.set(0,7.3,-24);vesselGroup.add(lights);
+ SHIP_SLOTS.length=0;
+ for(let b=0;b<9;b++)for(let r=0;r<4;r++)for(let t=0;t<2;t++){
+  const s={x:-3.3+r*2.2,y:2+t*1.95,z:-17+b*5.9,used:null};SHIP_SLOTS.push(s);
+  if(Math.random()<.42){const c=makeContainer(pick([0xc0392b,0x2e86c1,0x8e44ad,0xd68910,0x5d6d7e,0x117a65,0xa04000]));c.position.set(s.x,s.y,s.z);vesselGroup.add(c);s.used='other';}
+ }
+}
+const VESSEL_NAMES={'MSC':['MSC Kalinda','MSC Amaya','MSC Sindiswa'],'CMA CGM':['CMA CGM Tsodilo','CMA CGM Okavango'],'Hapag-Lloyd':['Kaapstad Express','Durban Express']};
+const vessel={name:'',carrier:'MSC',voyage:'',state:'berthed',x:76,t:0,gfs:0,cutoff:0};
+function newVoyage(){const cs=originCarriers();const waiting=typeof yardQueue!=='undefined'?yardQueue.map(c=>c.carrier).filter(c=>cs.includes(c)):[];const carrier=waiting.length&&Math.random()<.7?pick(waiting):pick(cs);vessel.carrier=carrier;vessel.name=pick(VESSEL_NAMES[carrier]||VESSEL_NAMES.MSC);vessel.voyage=String(Math.floor(rnd(100,999)))+pick(['N','S','A','W']);vessel.gfs=0;vessel.cutoff=sim+rnd(90,160);}
+tag(vesselGroup,'vessel',vessel);
+
+// ---- trucks
+const DRIVERS=['Sipho M.','Thandi K.','Johan v.d. Merwe','Ayanda N.','Pieter B.','Lerato D.','Riaan S.'];
+const CAB_COLORS=[0x3dbb74,0xe8e2d4,0x2f5f9e,0xd04a3a,0xf2c14e];
+const trucks=[];
+function makeTruck(i){const g=new THREE.Group();
+ box(g,2,1.9,2,CAB_COLORS[i%CAB_COLORS.length],0,.6,3.4);box(g,1.8,.7,.1,0x1b2a33,0,1.6,4.42,{emissive:0x000000});
+ const hl=new THREE.Mesh(new THREE.BoxGeometry(1.6,.2,.08),new THREE.MeshStandardMaterial({color:0xffffff,emissive:0xfff2c0,emissiveIntensity:.2}));hl.position.set(0,.9,4.43);g.add(hl);
+ box(g,2,.3,8.4,0x2a2f2e,0,.35,.2);
+ [[-.95,3.4],[.95,3.4],[-.95,-1.8],[.95,-1.8],[-.95,-3],[.95,-3]].forEach(([x,z])=>{const w=cyl(g,.42,.42,.35,0x161616,x,.42,z,10);w.rotation.z=Math.PI/2;w.position.y=.42;});
+ world.add(g);return {g,hl};}
+const STOPS=[{k:'depot',p:[-8,27]},{k:'pack',p:[1,0]},{k:'weigh',p:[14,0]},{k:'stage',p:[22,0]},{k:'gate',p:[30,0]},{k:'drop',p:[52,-2]}];
+function placeStops(stops,crv,len){const N=1200;stops.forEach(s=>{let best=0,bd=1e9;for(let i=0;i<N;i++){const p=crv.getPointAt(i/N);const d=(p.x-s.p[0])**2+(p.z-s.p[1])**2;if(d<bd){bd=d;best=i/N;}}s.s=best*len;});}
+placeStops(STOPS,curve,LOOP);
+const SPAWN_S=(()=>{let best=0,bd=1e9;for(let i=0;i<600;i++){const p=curve.getPointAt(i/600);const d=(p.x+4)**2+(p.z-42)**2;if(d<bd){bd=d;best=i/600;}}return best*LOOP;})();placeStops(FSTOPS,farmCurve,FLOOP);
+const PLATES=['CA','ND','GP','EC'];
+const TRUCKERS=['Boland Reefer Haul','Swartland Cold Freight','Cape Coastal Transport','Karoo Link Logistics'];
+const FARM_NAME='Groenrivier Estate';
+const OTHER_CO=['Vredenburg Haulage','Atlantic Fresh Logistics','Paarl Freight Lines','Hex River Transport'];
+const OTHER_SHIPPERS=['Other exporter · stone fruit','Other exporter · grapes','Other exporter · apples','Other exporter · citrus'];
+const OTHER_COLORS=[0xc0392b,0x2e86c1,0x8e44ad,0xd68910,0x117a65,0x5d6d7e];
+const OTHER_OWNERS=['MSKU','CMAU','MSCU','HLXU','ONEU','OOLU'];
+let terminalBoxes=0;
+
+/* =========================================================
+   SIM STATE
+   ========================================================= */
+let sim=6*60+30; // sim minutes
+let origin='CPT';
+let weather='clear';
+let night=false;
+const stats={gated:0,pallets:0,bins:0,turn:[],coldStore:46,binsCold:180,binsIn:0,tipped:0};
+const CARTONS_PER_PALLET=64,BINS_PER_PALLET=2.5;let lineRunning=true;
+const containers=[];
+const yardQueue=[];
+let bookingSeq=4211;
+const fmt=m=>{m=((m%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(Math.floor(m%60)).padStart(2,'0');};
+function lanesFrom(o){return LANES.filter(l=>l.o===o);}
+function originCarriers(){const s=new Set();lanesFrom(origin).forEach(l=>l.carriers.forEach(c=>s.add(c)));return s.size?[...s]:['TBC'];}
+function createContainer(truck){
+ const lanes=lanesFrom(origin);
+ let pool=lanes.filter(l=>l.carriers.includes(vessel.carrier));if(!pool.length)pool=lanes;
+ const lane=pick(pool);const carrier=lane.carriers.includes(vessel.carrier)?vessel.carrier:(lane.carriers[0]||'TBC');
+ const c={id:isoNumber(OWNER[carrier]||'TBCU'),carrier,booking:'GFS'+(bookingSeq++),pol:origin,pod:lane.d,src:lane.src,pallets:0,commodity:'Navel oranges',setpoint:'+4.5 °C',vent:'25 m³/h',vgm:null,step:0,times:[sim,null,null,null,null,null,null,null,null,null],farm:FARM_NAME,truck:truck.id,mesh:null,where:'truck'};
+ containers.unshift(c);if(containers.length>80)containers.pop();return c;}
+function addTruck(i,startS,preset){
+ const {g,hl}=makeTruck(i);
+ const t={id:'TRK-'+String(i+1).padStart(2,'0'),company:TRUCKERS[i%TRUCKERS.length],plate:PLATES[i%4]+' '+Math.floor(rnd(100,999))+'-'+Math.floor(rnd(100,999)),driver:DRIVERS[i%DRIVERS.length],g,hl,s:startS,v:0,dwell:0,state:'driving',cont:null,stopIdx:0,trip:null,loadAcc:0,status:'En route to depot'};
+ t.stopIdx=STOPS.findIndex(st=>st.s>startS);if(t.stopIdx<0)t.stopIdx=0;
+ tag(g,'truck',t);trucks.push(t);
+ if(preset>=0){attachNewContainer(t);const c=t.cont;c.times[0]=sim-rnd(8,20);
+  if(preset>=1){c.step=1;c.times[1]=sim-rnd(4,8);}
+  if(preset>=2){c.step=2;c.pallets=20;c.times[2]=sim-rnd(1,4);c.loaded=true;}
+  t.trip=c.times[0];}
+ return t;}
+function addOtherTruck(i,s0){const {g,hl}=makeTruck(i+2);
+ const t={id:'EXT-'+String(i+1).padStart(2,'0'),kind:'other',company:OTHER_CO[i%OTHER_CO.length],shipper:OTHER_SHIPPERS[i%OTHER_SHIPPERS.length],plate:PLATES[(i+1)%4]+' '+Math.floor(rnd(100,999))+'-'+Math.floor(rnd(100,999)),driver:'—',g,hl,s:s0,v:0,dwell:0,state:'driving',cont:null,stopIdx:0,trip:null,loadAcc:0,status:'Heading to port'};
+ t.stopIdx=STOPS.findIndex(st=>st.s>s0);if(t.stopIdx<0)t.stopIdx=0;tag(g,'truck',t);trucks.push(t);giveOtherBox(t);return t;}
+function giveOtherBox(t){const m=makeContainer(pick(OTHER_COLORS));m.position.set(0,.65,-.6);t.g.add(m);t.cont={id:isoNumber(pick(OTHER_OWNERS)),other:true,loaded:true,gatedIn:false,mesh:m,pallets:20};t.status='Heading to port';}
+function attachNewContainer(t){const c=createContainer(t);const m=makeContainer(null,true);m.position.set(0,.65,-.6);t.g.add(m);c.mesh=m;tag(m,'container',c);t.cont=c;}
+
+/* =========================================================
+   NETWORK MAP (board)
+   ========================================================= */
+const MAPZ=-330,K=1.15;
+const map=new THREE.Group();map.position.set(0,0,MAPZ);scene.add(map);
+const proj=(lat,lon)=>({x:(lon-21)*K,z:-(lat-8)*K});
+
+// graticule
+{const gm=new THREE.LineBasicMaterial({color:0x6fb3cf,transparent:true,opacity:.25});
+ for(let lat=-30;lat<=50;lat+=10){const a=proj(lat,-28),b=proj(lat,70);const g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(Math.max(a.x,-57),.72,a.z),new THREE.Vector3(Math.min(b.x,57),.72,b.z)]);if(Math.abs(a.z)<60)map.add(new THREE.Line(g,gm));}
+ for(let lon=-20;lon<=70;lon+=10){const a=proj(-44,lon),b=proj(60,lon);if(Math.abs(a.x)>57)continue;const g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(a.x,.72,Math.min(a.z,60)),new THREE.Vector3(b.x,.72,Math.max(b.z,-60))]);map.add(new THREE.Line(g,gm));}}
+const landM=new THREE.MeshStandardMaterial({color:0xb3a37a,roughness:.9,flatShading:true});
+Object.values(LAND).forEach(poly=>{const sh=new THREE.Shape();poly.forEach(([lat,lon],i)=>{const p=proj(lat,lon);i?sh.lineTo(p.x,-p.z):sh.moveTo(p.x,-p.z);});
+ const g=new THREE.ExtrudeGeometry(sh,{depth:1.3,bevelEnabled:false});const m=new THREE.Mesh(g,landM);m.rotation.x=-Math.PI/2;m.position.y=-.5;m.receiveShadow=true;map.add(m);});
+// tiny islands for Réunion, Mauritius, Mayotte
+[['PDG',.9],['PLU',.9],['LON',.6]].forEach(([k,r])=>{const p=proj(PORTS[k].lat,PORTS[k].lon);const m=cyl(map,r,r,1.3,0xb3a37a,p.x,-.5,p.z,10);m.castShadow=false;});
+// sea graph + Dijkstra
+const NODES={};Object.entries(SEA).forEach(([k,[la,lo]])=>NODES[k]=proj(la,lo));
+Object.entries(PORTS).forEach(([k,p])=>NODES['P_'+k]=proj(p.lat,p.lon));
+const ADJ={};const link=(a,b)=>{const d=Math.hypot(NODES[a].x-NODES[b].x,NODES[a].z-NODES[b].z);(ADJ[a]=ADJ[a]||[]).push([b,d]);(ADJ[b]=ADJ[b]||[]).push([a,d]);};
+SEA_EDGES.forEach(e=>{const [a,b]=e.split('-');link(a,b);});
+Object.entries(PORT_LINK).forEach(([p,n])=>link('P_'+p,n));
+const routeCache={};
+function route(a,b){const key=a+'>'+b;if(routeCache[key])return routeCache[key];
+ const src='P_'+a,dst='P_'+b;const dist={},prev={},done=new Set();Object.keys(NODES).forEach(n=>dist[n]=Infinity);dist[src]=0;
+ while(true){let u=null,best=Infinity;for(const n in dist)if(!done.has(n)&&dist[n]<best){best=dist[n];u=n;}if(!u||u===dst)break;done.add(u);
+  for(const [v,w] of (ADJ[u]||[])){if(v.startsWith('P_')&&v!==dst)continue;if(dist[u]+w<dist[v]){dist[v]=dist[u]+w;prev[v]=u;}}}
+ const path=[];let n=dst;while(n){path.unshift(NODES[n]);n=prev[n];}
+ let len=0;for(let i=1;i<path.length;i++)len+=Math.hypot(path[i].x-path[i-1].x,path[i].z-path[i-1].z);
+ return routeCache[key]={pts:path,len,days:Math.max(1,Math.round(len/K*60/(16*24)*10)/10)};}
+// lane lines
+const laneLines=[];
+const laneMat=new THREE.LineBasicMaterial({color:0xe9f5ef,transparent:true,opacity:.18});
+const laneMatManual=new THREE.LineDashedMaterial({color:0xffc27a,transparent:true,opacity:.28,dashSize:1.2,gapSize:.8});
+const laneMatHi=new THREE.LineBasicMaterial({color:0x3dbb74});
+LANES.forEach(l=>{const r=route(l.o,l.d);const g=new THREE.BufferGeometry().setFromPoints(r.pts.map(p=>new THREE.Vector3(p.x,.78,p.z)));const ln=new THREE.Line(g,l.src==='Added manually'?laneMatManual:laneMat);if(l.src==='Added manually')ln.computeLineDistances();ln.userData.lane=l;map.add(ln);laneLines.push(ln);l.line=ln;});
+// port pins
+const portPins={};
+Object.entries(PORTS).forEach(([k,p])=>{const g=new THREE.Group();const pp=proj(p.lat,p.lon);const col=p.role==='o'?0x3dbb74:0xf2992e;
+ cyl(g,.18,.18,2.4,0x22313a,0,0,0,6);const head=new THREE.Mesh(new THREE.SphereGeometry(.75,14,10),M(col,{emissive:col,emissiveIntensity:.25}));head.position.y=2.6;g.add(head);
+ const hit=new THREE.Mesh(new THREE.CylinderGeometry(1.6,1.6,4,8),new THREE.MeshBasicMaterial({visible:false}));hit.position.y=2;g.add(hit);
+ g.position.set(pp.x,.7,pp.z);map.add(g);tag(g,'port',Object.assign(p,{key:k}));portPins[k]=g;});
+map.traverse(o=>{o.receiveShadow=false;o.castShadow=false;});
+// network ships
+const ships=[];
+function makeMiniShip(color){const g=new THREE.Group();box(g,1.1,.5,3.6,color,0,0,0);box(g,.9,.5,1.8,pick([0xc0392b,0x2e86c1,0xf1f3f3,0xd68910]),0,.5,.4);box(g,.9,.8,.6,0xf4f5f2,0,.5,-1.4);g.scale.setScalar(1.15);return g;}
+function spawnShip(o,d,opts){const r=route(o,d);if(r.pts.length<2)return null;const carrier=(opts&&opts.carrier)||pick(LANES.find(l=>l.o===o&&l.d===d)?.carriers||[])||'TBC';
+ const g=makeMiniShip(carrier==='MSC'?0x1d2b3a:carrier==='CMA CGM'?0x1f3f66:carrier==='Hapag-Lloyd'?0xd35400:0x5d6d7e);g.position.y=.9;map.add(g);
+ const sh={g,o,d,r,dist:(opts&&opts.start)||0,carrier,name:(opts&&opts.name)||pick((VESSEL_NAMES[carrier]||['Feeder Atlantic','Feeder Indico'])),voyage:(opts&&opts.voyage)||String(Math.floor(rnd(100,999)))+'N',boxes:(opts&&opts.boxes)||[],gfsCount:(opts&&opts.gfsCount)||Math.floor(rnd(2,9)),done:false,speed:rnd(2.4,3.2)};
+ tag(g,'ship',sh);ships.push(sh);return sh;}
+// seed ambient traffic across lanes
+for(let i=0;i<9;i++){const l=pick(LANES);const r=route(l.o,l.d);spawnShip(l.o,l.d,{start:rnd(0,r.len*.85)});}
+
+
+/* =========================================================
+   DESTINATION SIDE — discharge, customs, client warehouse, empty return
+   ========================================================= */
+const DZ=270;
+const dest=new THREE.Group();dest.position.set(0,0,DZ);scene.add(dest);
+box(dest,112,.6,86,0xd8c9a3,-12,-.6,0).castShadow=false;
+box(dest,4,1.2,86,0xa9a397,44,-.6,0).castShadow=false;box(dest,8,.06,64,0x9c978c,40.5,0,0).castShadow=false;
+// palms (it's West Africa or the Indian Ocean)
+for(let i=0;i<14;i++){const x=rnd(-60,30),z=pick([-36,-32,34,38])+rnd(-2,2);cyl(dest,.18,.25,4,0x8a6a45,x,0,z,6);const c=new THREE.Mesh(new THREE.ConeGeometry(1.8,1.2,6),M(0x3f8a3a,{flatShading:true}));c.position.set(x,4.3,z);dest.add(c);}
+// discharging vessel + crane
+box(dest,10.4,3.6,46,0x1f3f66,53,-1.6,0);box(dest,9,6,5,0xf4f5f2,53,2,-20);
+for(let b=0;b<6;b++)for(let r=0;r<4;r++)if(Math.random()<.6){const c=makeContainer(pick([0xc0392b,0x2e86c1,0xd68910,0x5d6d7e,0xeef1f2]));c.position.set(49.7+r*2.2,2,-12+b*5.9);dest.add(c);}
+const dCrane=new THREE.Group();[[-3,-2.4],[-3,2.4],[3,-2.4],[3,2.4]].forEach(([x,z])=>box(dCrane,.6,16,.6,0x2e86c1,x,0,z));box(dCrane,7,.8,5.6,0x2e86c1,0,8,0);box(dCrane,28,.9,1.2,0x2e86c1,6,16,0);
+const dTrolley=box(dCrane,1.8,.8,1.6,0xf2c14e,12,15.2,0);dCrane.position.set(40,0,2);dest.add(dCrane);
+// discharge stack
+box(dest,16,.05,26,0xb9b4a6,24,0,-1).castShadow=false;
+const DSTACK=[];for(let c=0;c<3;c++)for(let r=0;r<2;r++)for(let t=0;t<2;t++)DSTACK.push({x:19+c*2.6,z:-6+r*9,y:t*1.95,used:null});
+for(let c=0;c<2;c++)for(let r=0;r<2;r++)for(let t=0;t<2;t++){if(Math.random()<.3)continue;const m=makeContainer(pick([0xc0392b,0x2e86c1,0x8e44ad,0xd68910,0x117a65]));m.position.set(28.6+c*2.4,t*1.95,-6+r*9);dest.add(m);}
+const dStackHit=new THREE.Mesh(new THREE.BoxGeometry(16,5,26),new THREE.MeshBasicMaterial({visible:false}));dStackHit.position.set(24,2.5,-1);dest.add(dStackHit);
+// customs: scanner arch over the road + inspection shed
+box(dest,.6,5,.6,0xef6a5a,12,0,-23);box(dest,.6,5,.6,0xef6a5a,12,0,-17);box(dest,1.2,.8,6.6,0xef6a5a,12,5,-20);
+const scanBeam=new THREE.Mesh(new THREE.BoxGeometry(.1,4.6,5.6),new THREE.MeshBasicMaterial({color:0xff6b5a,transparent:true,opacity:0}));scanBeam.position.set(12,2.4,-20);dest.add(scanBeam);
+box(dest,8,3.4,5,0xe8e2d4,12,0,-29);box(dest,8.6,.3,5.6,0x2c3633,12,3.4,-29);
+const officer=makePerson(0x2f5f9e);officer.position.set(9,0,-24.5);dest.add(officer);
+const customsHit=new THREE.Mesh(new THREE.BoxGeometry(10,6,14),new THREE.MeshBasicMaterial({visible:false}));customsHit.position.set(12,3,-25);dest.add(customsHit);
+// client warehouse (glass roof so the forklift and pallets show)
+box(dest,20,.12,14,0xcfc8b8,-18,0,-6);box(dest,20,5.5,.4,0xe2ddd0,-18,0,.8);box(dest,.4,5.5,14,0xe2ddd0,-27.8,0,-6);box(dest,.4,5.5,14,0xe2ddd0,-8.2,0,-6);
+box(dest,8,5.5,.4,0xe2ddd0,-24,0,-12.8);box(dest,8,5.5,.4,0xe2ddd0,-12,0,-12.8);
+const wRoof=new THREE.Mesh(new THREE.BoxGeometry(21,.3,15),new THREE.MeshStandardMaterial({color:0xbfe0ea,transparent:true,opacity:.22}));wRoof.position.set(-18,5.6,-6);dest.add(wRoof);
+box(dest,4,.3,1.4,0x2d3a36,-18,4,-13.4);
+const whPalletI=new THREE.InstancedMesh(new THREE.BoxGeometry(1.1,1.3,1.1),M(0xc7975e),48);dest.add(whPalletI);
+const forklift=new THREE.Group();box(forklift,1.2,1,1.8,0xf2c14e,0,.2,0);box(forklift,1,.9,.8,0x2c3633,0,1.2,-.3);box(forklift,.15,2.6,.15,0x3a3a3a,-.45,0,1);box(forklift,.15,2.6,.15,0x3a3a3a,.45,0,1);
+const fkPallet=box(forklift,1.1,1.1,1.1,0xc7975e,0,.3,1.6);forklift.position.set(-18,0,-11);dest.add(forklift);
+const whHit=new THREE.Mesh(new THREE.BoxGeometry(20,6,14),new THREE.MeshBasicMaterial({visible:false}));whHit.position.set(-18,3,-6);dest.add(whHit);
+// shipping line empty depot (destination)
+box(dest,20,.05,12,0xbfb08a,-19,0,33).castShadow=false;
+for(let c=0;c<6;c++)for(let t=0;t<2;t++)if(Math.random()<.75)box(dest,2,1.9,5.6,0xeef1f2,-27+c*2.4,t*1.95,34);
+const DEPOT_RET=[];for(let c=0;c<6;c++)DEPOT_RET.push({x:-27+c*2.4,z:29.6,y:0});let depotRetIdx=0;
+box(dest,2.4,2.2,2.4,0x3dbb74,-8,0,29);
+const dDepotHit=new THREE.Mesh(new THREE.BoxGeometry(20,5,12),new THREE.MeshBasicMaterial({visible:false}));dDepotHit.position.set(-19,2.5,33);dest.add(dDepotHit);
+// client truck loop
+const DP=[[36,-14],[28,-18],[12,-20],[-14,-18],[-32,-14],[-36,0],[-32,22],[-20,24.5],[0,24.5],[26,22],[36,12],[37,0]];
+const dCurve=new THREE.CatmullRomCurve3(DP.map(([x,z])=>new THREE.Vector3(x,0,z+DZ)),true,'centripetal');
+const DLOOP=dCurve.getLength();
+const DSTOPS=[{k:'pickup',p:[28,-18+DZ]},{k:'customs',p:[12,-20+DZ]},{k:'warehouse',p:[-14,-18+DZ]},{k:'return',p:[-20,24.5+DZ]}];
+const clientTrucks=[];const destQueue=[];
+const dLight=new THREE.PointLight(0xffc98a,0,60,1.6);dLight.position.set(-10,10,DZ);scene.add(dLight);nightLights.push(dLight);
+
+/* =========================================================
+   LABELS
+   ========================================================= */
+roadRibbon(dCurve,2.1,0x5d6266,true);placeStops(DSTOPS,dCurve,DLOOP);
+const labelsEl=$('#labels');const labels=[];
+function addLabel(text,cls,pos,obj){const el=document.createElement('div');el.className='lbl '+(cls||'');el.textContent=text;labelsEl.appendChild(el);const L={el,pos:pos?new THREE.Vector3(...pos):null,obj};labels.push(L);return L;}
+const areaLabels={farm:addLabel('Orchard · pickers','area',[-60,6,-26]),cold:addLabel('Bin cold room','area',[-23,7.5,-16]),pack:addLabel('Packhouse · wash & pack','area',[-8,8.5,-13]),store:addLabel('Pallet cold store','area',[7,7.5,-13]),depot:addLabel('Empty depot','area',[-21,8,30]),weigh:addLabel('Weighbridge','area',[14,5,-4]),stage:addLabel('Reefer staging depot','area',[22,6,11]),wash:addLabel('Wash bay · PTI','area',[-14.5,6,34]),gate:addLabel('Port gate','area',[30,7,0]),port:addLabel('Port','area',[60,22,6])};
+const LBL_OFF={COO:[34,-6],LFW:[-30,-6],APP:[40,-22],KBI:[44,8],DLA:[34,-26],LBV:[-6,30],PDG:[-48,26],PLU:[40,-4],PSD:[44,-6],DAM:[-40,-8],CKY:[-34,8],ABJ:[-10,26]};
+Object.entries(portPins).forEach(([k,g])=>{const p=PORTS[k];const L=addLabel(p.name,'port'+(p.role==='o'?' o':''),null,g);L.offY=4.2;L.isMap=true;L.off=LBL_OFF[k]||[0,0];});
+const destLabels={port:addLabel('Port of discharge','area',[40,20,DZ]),stack:addLabel('Discharge stack','area',[24,6,DZ-1]),customs:addLabel('Customs inspection','area',[12,7,DZ-26]),wh:addLabel('Client warehouse','area',[-18,8,DZ-6]),dep:addLabel('Shipping line depot · empties','area',[-19,6,DZ+34])};
+const selLabel=addLabel('','sel');selLabel.el.hidden=true;
+const tmpV=new THREE.Vector3();
+function updateLabels(){const w=innerWidth,h=innerHeight;const camToMap=camera.position.distanceTo(map.position);
+ labels.forEach(L=>{let p;if(L.obj){L.obj.getWorldPosition(tmpV);tmpV.y+=L.offY||0;p=tmpV;}else if(L.pos)p=tmpV.copy(L.pos);else return;
+  if(L===selLabel&&!selected){L.el.hidden=true;return;}
+  if(L.isMap&&camToMap>260){L.el.style.display='none';return;}
+  if(!L.isMap&&L!==selLabel&&camera.position.distanceTo(p)>300){L.el.style.display='none';return;}
+  const v=p.clone().project(camera);if(v.z>1||v.x<-1.1||v.x>1.1||v.y<-1.1||v.y>1.1){L.el.style.display='none';return;}
+  const o=L.off||[0,0];L.el.style.display='';L.el.style.transform=`translate(${(v.x*.5+.5)*w+o[0]}px,${(-v.y*.5+.5)*h+o[1]}px) translate(-50%,-100%)`;});}
+
+/* =========================================================
+   SELECTION / CAMERA
+   ========================================================= */
+const ring=new THREE.Mesh(new THREE.TorusGeometry(1,.08,8,40),new THREE.MeshBasicMaterial({color:0x3dbb74}));ring.rotation.x=-Math.PI/2;ring.visible=false;scene.add(ring);
+let selected=null;let follow=null;let fly=null;
+function worldPosOf(sel){const o=sel.type==='truck'?sel.ref.g:sel.type==='container'?(sel.ref.mesh||null):sel.type==='ship'?sel.ref.g:sel.type==='port'?portPins[sel.ref.key]:sel.type==='vessel'?vesselGroup:sel.type==='crane'?sel.ref.g:sel.type==='bintruck'||sel.type==='dtruck'?sel.ref.g:sel.obj||null;
+ if(!o)return null;return o.getWorldPosition(new THREE.Vector3());}
+const AREA_VIEWS={overview:{t:[0,0,4],d:[62,100,118]},farm:{t:[-48,0,-6],d:[30,40,46]},pack:{t:[-10,0,-12],d:[14,26,26]},depot:{t:[-18,0,30],d:[26,30,36]},port:{t:[56,0,8],d:[46,48,60]},network:{t:[0,0,MAPZ+8],d:[0,150,96]},dest:{t:[0,0,DZ],d:[54,72,84]}};
+function flyTo(target,offset){const t1=new THREE.Vector3(...target);const off=offset?new THREE.Vector3(...offset):camera.position.clone().sub(controls.target).setLength(40);
+ const p1=t1.clone().add(off);if(reduceMotion){controls.target.copy(t1);camera.position.copy(p1);return;}
+ fly={t:0,dur:1.2,p0:camera.position.clone(),p1,t0:controls.target.clone(),t1};}
+function setArea(a){document.querySelectorAll('#areas button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.area===a)));const v=AREA_VIEWS[a];follow=null;flyTo(v.t,v.d);}
+function select(sel,opts){selected=sel;follow=null;
+ if(!sel){ring.visible=false;renderDetail();renderTracker();highlightLane(null);renderTable();return;}
+ const p=worldPosOf(sel);
+ if(p&&!(opts&&opts.noFly)){const isMap=p.z<-200;const dist=sel.type==='truck'||sel.type==='container'?30:sel.type==='ship'?34:sel.type==='port'?46:sel.type==='vessel'?70:40;
+  const dir=camera.position.clone().sub(controls.target).normalize();if(dir.y<.45){dir.y=.55;dir.normalize();}
+  flyTo([p.x,isMap?0:0,p.z],dir.multiplyScalar(dist).toArray());}
+ if(['truck','bintruck','dtruck','ship','container','vessel'].includes(sel.type))follow={sel,last:p?p.clone():null};
+ if(sel.type==='port')highlightLane(sel.ref.key);else if(sel.type==='ship')highlightLane(null,sel.ref);else if(sel.type==='container')highlightLane(null,null,sel.ref);else highlightLane(null);
+ renderDetail();renderTracker();renderTable();}
+function highlightLane(portKey,ship,cont){laneLines.forEach(ln=>{const l=ln.userData.lane;let on=false;
+  if(portKey)on=l.o===portKey||l.d===portKey;else if(ship)on=l.o===ship.o&&l.d===ship.d;else if(cont)on=l.o===cont.pol&&l.d===cont.pod;
+  ln.material=on?laneMatHi:(l.src==='Added manually'?laneMatManual:laneMat);});}
+const ray=new THREE.Raycaster();const mouse=new THREE.Vector2();let downAt=null;
+renderer.domElement.addEventListener('pointerdown',e=>{downAt=[e.clientX,e.clientY];});
+renderer.domElement.addEventListener('pointerup',e=>{if(!downAt)return;const moved=Math.hypot(e.clientX-downAt[0],e.clientY-downAt[1]);downAt=null;if(moved>6||e.button!==0)return;
+ mouse.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(mouse,camera);
+ const hits=ray.intersectObjects(scene.children,true);
+ for(const h of hits){let o=h.object;if(o===ring)continue;while(o&&!o.userData.sel)o=o.parent;if(o){select(o.userData.sel);return;}}
+ const VOL=new Map([[dStackHit,'dstack'],[customsHit,'customs'],[whHit,'warehouse'],[dDepotHit,'ddepot'],[farmHit,'farm'],[coldHit,'coldroom'],[stageHit,'staging'],[packHit,'pack'],[depotHit,'depot'],[yardHit,'yard']]);
+ for(const h of hits){if(VOL.has(h.object)){select({type:VOL.get(h.object),obj:h.object});return;}}
+ select(null);});
+
+/* =========================================================
+   UI — detail, tracker, table, KPIs, alerts
+   ========================================================= */
+const STEP_NAMES=['Empty collected','At farm','Packed & sealed','Weighed','In port stack','On vessel','Discharged','Customs cleared','At client','Empty returned'];
+const chipFor=s=>s.includes('Windbound')||s.includes('Waiting')?'warn':'ok';
+function carrierChips(arr,src){if(!arr.length)return `<span class="chip ${src==='Added manually'?'src':'warn'}">${src==='Added manually'?'Carrier TBC':'No quote on file'}</span>`;return arr.map(c=>`<span class="chip">${esc(c)}</span>`).join(' ');}
+function kv(rows){return '<dl class="kv">'+rows.map(([k,v])=>`<dt>${esc(k)}</dt><dd>${v}</dd>`).join('')+'</dl>';}
+const detail=$('#detail');detail.addEventListener('pointerenter',()=>hoverDetail=true);detail.addEventListener('pointerleave',()=>hoverDetail=false);
+function renderDetail(){
+ const s=selected;let h='';
+ if(!s){h=`<div class="eyebrow">Origin · ${esc(PORTS[origin].name)}</div><h2>Today's chain</h2>
+  <p class="hint">Pickers fill field bins, bin trucks take them to the bin cold room, and the packhouse washes, grades and packs the fruit into cartons. Reefer trucks collect empties at the depot, load pallets at the packhouse and drop them at the port, where cranes load the vessel. Other exporters' trucks share the road, gate and stacks. GFS reefers carry a green roof tag. Click anything to follow it.</p>`+
+  kv([['Bins collected today',stats.bins.toLocaleString('en-ZA')],['Bins in cold room',Math.floor(stats.binsCold)],['Cartons packed today',(stats.pallets*CARTONS_PER_PALLET).toLocaleString('en-ZA')],['GFS reefer trucks',trucks.filter(t=>t.kind!=='other').length],['Other exporters on the road',trucks.filter(t=>t.kind==='other').length],['Cold store stock',stats.coldStore+' plts'],['Yard reefers plugged',YARD.filter(y=>y.used).length+' / '+YARD.length],['Vessel at berth',vessel.state==='berthed'?esc(vessel.name):vessel.state==='anchored'||vessel.state==='toAnchor'?esc(vessel.name)+' (delayed)':'—'],['Reefers at staging depot',stagingQ.length],['Lanes from '+PORTS[origin].name,lanesFrom(origin).length]])+
+  `<p class="hint">Lanes and carriers come from the FREIGHT 2025 sheet. Rates are not shown. Ports marked "Added manually" are not in that sheet yet.</p>`;}
+ else if(s.type==='truck'){const t=s.ref;const c=t.cont;
+  if(t.kind==='other'){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">${esc(t.shipper)}</div><h2>${esc(t.plate)}</h2><span class="chip">${esc(t.status)}</span>`+kv([['Company',esc(t.company)],['Container',t.cont?esc(t.cont.id):'—'],['Speed',Math.round(t.v*7)+' km/h']])+`<p class="hint">Not a GFS load. Other exporters share the same weighbridge, gate queue and stacks.</p>`;}
+  else h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">GFS reefer transporter · ${esc(t.id)}</div><h2>${esc(t.plate)}</h2><span class="chip ${chipFor(t.status)}">${esc(t.status)}</span>`+
+  kv([['Company',esc(t.company)],['Driver',esc(t.driver)],['Allocated farm',FARM_NAME],['Speed',Math.round(t.v*7)+' km/h'],['Container',c?`<a href="#" data-cont="${esc(c.id)}" style="color:inherit">${esc(c.id)}</a>`:'—'],['Load',c?c.pallets+' / 20 plts':'Bobtail'],['Booking',c?esc(c.booking):'—'],['Next stop',esc(STOP_NAMES[STOPS[t.stopIdx].k])],['Trip started',t.trip!=null?fmt(t.trip):'—']]);}
+ else if(s.type==='container'){const c=s.ref;const r=route(c.pol,c.pod);
+  h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">40ft reefer · ${esc(c.carrier)}</div><h2>${esc(c.id)}</h2><span class="chip ok">${esc(STEP_NAMES[c.step])}</span> <span class="chip ${c.src==='Added manually'?'src':''}">${esc(c.src)}</span>`+
+  kv([['Booking',esc(c.booking)],['Allocated farm',esc(c.farm||FARM_NAME)],['Lane',esc(PORTS[c.pol].name)+' → '+esc(PORTS[c.pod].name)],['Commodity',esc(c.commodity)],['Pallets',c.pallets+' / 20'],['Set point',esc(c.setpoint)],['Ventilation',esc(c.vent)],['VGM',c.vgm?c.vgm.toLocaleString('en-ZA')+' kg':'Not weighed'],['Est. sea days',r.days+' d'],['Location',esc(c.where)]]);}
+ else if(s.type==='farm'){const picking=pickers.filter(p=>p.state==='pick').length;h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Orchard · Block 7</div><h2>Citrus farm</h2><span class="chip ${weather==='rain'?'warn':'ok'}">${weather==='rain'?'Picking slowed, wet fruit':'Harvesting'}</span>`+
+  kv([['Variety','Navel oranges'],['Pickers in block',pickers.length],['Picking now',picking],['Carrying to bins',pickers.length-picking],['Field bins filling',fieldBins.length],['Bins collected today',stats.bins.toLocaleString('en-ZA')],['Bin trucks',binTrucks.length]])+
+  `<p class="hint">Pickers fill bags in the trees and tip them into field bins in the aisle. Bin trucks collect full bins from the staging area and take them to the bin cold room.</p>`;}
+ else if(s.type==='bintruck'){const t=s.ref;h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Bin truck · ${esc(t.id)}</div><h2>${esc(t.plate)}</h2><span class="chip ok">${esc(t.status)}</span>`+
+  kv([['Driver',esc(t.driver)],['Bins on board',t.bins+' / 24'],['Trips today',t.trips],['Route','Orchard → bin cold room']])+`<div class="bar"><i style="width:${t.bins/24*100}%"></i></div>`;}
+ else if(s.type==='coldroom'){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Pre-cooling</div><h2>Bin cold room</h2><span class="chip ${stats.binsCold<20?'warn':'ok'}">${stats.binsCold<20?'Running low':'Holding fruit'}</span>`+
+  kv([['Bins in store',Math.floor(stats.binsCold)+' / 600'],['Room temp','+4 °C'],['Delivered today',stats.binsIn],['Tipped into the line',Math.floor(stats.tipped)]])+`<div class="bar"><i style="width:${clamp(stats.binsCold/600*100,0,100)}%"></i></div>`;}
+ else if(s.type==='pack'){const rate=weather==='peak'?2200:1450;const stages=['Bin tipping','Washing','Brushing & drying','Grading','Packing into cartons','Palletising'];
+  h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Packhouse</div><h2>Wash & pack line</h2><span class="chip ${lineRunning?'ok':'warn'}">${lineRunning?'Line running':'Waiting for bins'}</span>`+
+  `<ul class="lanes">${stages.map(st=>`<li><span>${st}</span><span class="chip ${lineRunning?'ok':'warn'}">${lineRunning?'Running':'Idle'}</span></li>`).join('')}</ul>`+
+  kv([['Line speed',lineRunning?rate.toLocaleString('en-ZA')+' cartons/h':'0 cartons/h'],['Carton','15 kg export'],['Cartons per pallet',CARTONS_PER_PALLET],['Cartons packed today',(stats.pallets*CARTONS_PER_PALLET).toLocaleString('en-ZA')],['Pallets packed today',stats.pallets],['Pallet cold store',stats.coldStore+' plts']])+
+  `<div class="hint">Cold store fill</div><div class="bar"><i style="width:${clamp(stats.coldStore/200*100,0,100)}%"></i></div>`;}
+ else if(s.type==='depot'){const st=depotSlots;h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Shipping line empty depot · ${esc(PORTS[origin].name)}</div><h2>Empty depot</h2><span class="chip ${st.ready?'ok':'warn'}">${st.ready?'Empty ready for collection':'Preparing next empty'}</span>`+
+  `<ul class="lanes"><li><span>Wash bay</span><span class="chip ${st.wash&&!st.wash.done?'ok':''}">${st.wash?(st.wash.moving?'Moving in':st.wash.done?'Washed':'Washing'):'Free'}</span></li><li><span>PTI inspection</span><span class="chip ${st.pti&&!st.pti.done?'ok':''}">${st.pti?(st.pti.moving?'Moving in':st.pti.done?'Passed':'Running PTI'):'Free'}</span></li><li><span>Ready slot</span><span class="chip ${st.ready?'ok':''}">${st.ready?'Waiting for truck':'Empty'}</span></li></ul>`+
+  kv([['Washed today',stats.washed||0],['PTI passed today',stats.ptiPassed||0],['Released to trucks',stats.released||0],['Empties on stack',empties.length],['Lines served',originCarriers().join(', ')]]);}
+ else if(s.type==='dtruck'){const t=s.ref;const c=t.cont;h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Client-hired truck · ${esc(t.id)}</div><h2>${esc(t.plate)}</h2><span class="chip ok">${esc(t.status)}</span>`+
+  kv([['Company',esc(t.company)],['Driver',esc(t.driver)],['Container',c?`<a href="#" data-cont="${esc(c.id)}" style="color:inherit">${esc(c.id)}</a>`:'—'],['Customs',c?(c.cleared?'Cleared':'Pending'):'—'],['Pallets on board',c?(c.step>=8?0:t.unloading?20-Math.floor(t.unload):20):'—'],['Next stop',esc({pickup:'Port stack',customs:'Customs',warehouse:'Client warehouse',return:'Shipping line depot'}[DSTOPS[t.stopIdx].k])]]);}
+ else if(s.type==='dstack'){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Port of discharge</div><h2>Discharge stack</h2><span class="chip ok">${destQueue.length} GFS reefers waiting</span>`+(destQueue.length?`<ul class="lanes">${destQueue.slice(0,6).map(c=>`<li><a href="#" data-cont="${esc(c.id)}" style="color:inherit;font-family:var(--f-data);font-size:12px">${esc(c.id)}</a><span class="chip">${esc(PORTS[c.pod].name)}</span></li>`).join('')}</ul>`:'')+`<p class="hint">Reefers stay plugged in until the client's truck collects them after customs.</p>`;}
+ else if(s.type==='customs'){const n=clientTrucks.filter(t=>DSTOPS[t.stopIdx].k==='customs'&&t.dwell>0).length;h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Destination</div><h2>Customs inspection</h2><span class="chip ${n?'warn':'ok'}">${n?'Inspecting':'Clear'}</span>`+kv([['Method','Scanner arch, 1 in 4 opened'],['Cleared today',containers.filter(c=>c.step>=7&&c.times[7]!=null).length]]);}
+ else if(s.type==='warehouse'){const u=clientTrucks.find(t=>t.unloading);h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Client · destination</div><h2>Client warehouse</h2><span class="chip ${u?'ok':''}">${u?'Forklift unloading':'Dock free'}</span>`+kv([['Pallets received today',(stats.delivered||0)+(u?Math.floor(u.unload):0)],['Containers unloaded',Math.floor((stats.delivered||0)/20)],['Dock doors',1]]);}
+ else if(s.type==='ddepot'){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Shipping line · destination</div><h2>Empty return depot</h2><span class="chip ok">Accepting empties</span>`+kv([['Empties returned today',containers.filter(c=>c.step>=9).length]])+`<p class="hint">Once the client has unloaded, the empty goes back to the shipping line here, which closes the loop.</p>`;}
+ else if(s.type==='staging'){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Off-port plug-in depot</div><h2>Reefer staging depot</h2><span class="chip ${delayed()?'warn':'ok'}">${delayed()?'Receiving, vessel delayed':stagingQ.length?'Releasing to port':'Standing by'}</span>`+
+  kv([['Reefers plugged in',stagingQ.length+' / '+STAGE.length],['Vessel',esc(vessel.name)+' ('+(delayed()?'delayed':'on schedule')+')'],['Trucks dispatched to collect',trucks.filter(x=>x.collectStaged).length]])+
+  (stagingQ.length?`<ul class="lanes">${stagingQ.slice(0,6).map(c=>`<li><a href="#" data-cont="${esc(c.id)}" style="color:inherit;font-family:var(--f-data);font-size:12px">${esc(c.id)}</a><span class="chip">since ${fmt(c.stagedAt)}</span></li>`).join('')}</ul>`:'')+
+  `<p class="hint">When a vessel is delayed and the stack is closed, loaded reefers are plugged in here and collected another day.</p>`;}
+ else if(s.type==='yard'){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">${esc(PORTS[origin].name)} terminal</div><h2>Reefer stack</h2><span class="chip ${weather==='wind'?'warn':'ok'}">${weather==='wind'?'Holding for vessel':'Plugged in'}</span>`+
+  kv([['GFS reefers plugged',YARD.filter(y=>y.used).length+' / '+YARD.length],['Waiting for '+esc(vessel.carrier),yardQueue.filter(c=>c.carrier===vessel.carrier).length],['Waiting for other lines',yardQueue.filter(c=>c.carrier!==vessel.carrier).length],['Other shippers\' boxes in today',terminalBoxes],['Genset backup',weather==='wind'?'On standby':'Off']]);}
+ else if(s.type==='crane'){const c=s.ref;h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Ship-to-shore crane</div><h2>${esc(c.name)}</h2><span class="chip ${weather==='wind'?'crit':'ok'}">${weather==='wind'?'Stopped · wind':c.state==='busy'?'Loading':'Idle'}</span>`+kv([['Moves today',c.moves],['Vessel',esc(vessel.name)]]);}
+ else if(s.type==='vessel'){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">${esc(vessel.carrier)} · Voy ${esc(vessel.voyage)}</div><h2>${esc(vessel.name)}</h2><span class="chip ${vessel.state==='berthed'?'ok':'warn'}">${vessel.state==='berthed'?'Alongside, loading':vessel.state==='sailing'?'Sailed':vessel.state==='anchored'||vessel.state==='toAnchor'?'Delayed, at anchor':'Arriving'}</span>`+
+  kv([['Port',esc(PORTS[origin].name)],['GFS reefers loaded',vessel.gfs],['Free slots',SHIP_SLOTS.filter(x=>!x.used).length],['Reefer cut-off',fmt(vessel.cutoff)]]);}
+ else if(s.type==='port'){const p=s.ref;const ls=LANES.filter(l=>l.o===p.key||l.d===p.key);
+  h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">${p.role==='o'?'Port of loading':'Port of discharge'} · ${esc(p.code)}</div><h2>${esc(p.name)}</h2><span class="chip">${esc(p.country)}</span> ${ls.every(l=>l.src==='Added manually')?'<span class="chip src">Added manually</span>':''}`+
+  `<ul class="lanes">`+ls.map(l=>{const other=PORTS[l.o===p.key?l.d:l.o];return `<li><span>${l.o===p.key?'→':'←'} ${esc(other.name)} <small style="color:var(--muted)">${route(l.o,l.d).days} d</small></span><span>${carrierChips(l.carriers,l.src)}</span></li>`;}).join('')+`</ul>`+
+  (p.role==='o'?`<p class="hint"><a href="#" data-origin="${p.key}" style="color:var(--accent)">Run the local chain from ${esc(p.name)}</a></p>`:'');}
+ else if(s.type==='ship'){const sh=s.ref;const pct=Math.round(sh.dist/sh.r.len*100);const left=Math.max(0,Math.round((1-sh.dist/sh.r.len)*sh.r.days*10)/10);
+  h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">${esc(sh.carrier)} · Voy ${esc(sh.voyage)}</div><h2>${esc(sh.name)}</h2><span class="chip ok">${sh.done?'Arrived':'At sea'}</span>`+
+  kv([['Lane',esc(PORTS[sh.o].name)+' → '+esc(PORTS[sh.d].name)],['GFS reefers',sh.boxes.length||sh.gfsCount],['Progress',pct+'%'],['Est. days to go',left+' d']])+`<div class="bar"><i style="width:${pct}%"></i></div>`+
+  (sh.boxes.length?`<ul class="lanes">${sh.boxes.slice(0,6).map(c=>`<li><a href="#" data-cont="${esc(c.id)}" style="color:inherit;font-family:var(--f-data);font-size:12px">${esc(c.id)}</a><span class="chip">${c.pallets} plts</span></li>`).join('')}</ul>`:'');}
+ detail.innerHTML=h;detail.hidden=false;detail.toggleAttribute('data-empty',!s);
+ const cb=detail.querySelector('.closebtn');if(cb)cb.onclick=()=>select(null);
+ detail.querySelectorAll('[data-cont]').forEach(a=>a.onclick=e=>{e.preventDefault();const c=containers.find(x=>x.id===a.dataset.cont);if(c)selectContainer(c);});
+ detail.querySelectorAll('[data-origin]').forEach(a=>a.onclick=e=>{e.preventDefault();setOrigin(a.dataset.origin);setArea('port');});
+}
+const STOP_NAMES={depot:'Empty depot',pack:'Farm packhouse',weigh:'Weighbridge',stage:'Staging depot',gate:'Port gate',drop:'Reefer stack'};
+function selectContainer(c){if(c.mesh&&c.where!=='At sea'&&c.where!=='Delivered')select({type:'container',ref:c});else{selected={type:'container',ref:c};follow=null;highlightLane(null,null,c);const sh=ships.find(s=>s.boxes.includes(c));if(sh){const p=sh.g.getWorldPosition(new THREE.Vector3());flyTo([p.x,0,p.z],[0,60,46]);follow={sel:{type:'ship',ref:sh},last:p};}renderDetail();renderTracker();renderTable();}}
+function trackedContainer(){if(!selected)return null;if(selected.type==='container')return selected.ref;if(selected.type==='truck'||selected.type==='dtruck')return selected.ref.cont&&!selected.ref.cont.other?selected.ref.cont:null;if(selected.type==='ship')return selected.ref.boxes[0]||null;return null;}
+const stepsEl=$('#steps');
+function renderTracker(){const c=trackedContainer()||containers.find(x=>x.step<9)||null;
+ $('#trkSub').textContent=c?`${c.id} · ${PORTS[c.pol].name} → ${PORTS[c.pod].name}`:'Select a truck or container';
+ const n=c?c.step:-1;
+ stepsEl.innerHTML=`<div class="fill" style="width:${n<0?0:n/9*90}%"></div>`+STEP_NAMES.map((nm,i)=>`<div class="step ${i<n?'done':i===n?'now done':''}"><i></i><span>${nm}</span><time>${c&&c.times[i]!=null?fmt(c.times[i]):'—'}</time></div>`).join('');}
+let tab='trucks';let hoverTable=false,hoverDetail=false;
+const tbl=$('#tbl');$('#tablebox').addEventListener('pointerenter',()=>hoverTable=true);$('#tablebox').addEventListener('pointerleave',()=>hoverTable=false);
+function allTrucks(){return [...trucks,...binTrucks,...clientTrucks];}
+function renderTable(){let h='';
+ if(tab==='trucks'){h='<thead><tr><th>Truck</th><th>Type</th><th>Company</th><th>Plate</th><th>Driver</th><th>Status</th><th>Container</th><th>Load</th></tr></thead><tbody>'+
+  allTrucks().map((t,i)=>`<tr data-i="${i}" class="${selected&&selected.ref===t?'sel':''}"><td class="mono">${t.id}</td><td>${t.kind==='bin'?'Bin truck':t.kind==='other'?'Other exporter':t.kind==='client'?'Client hire (destination)':'GFS reefer'}</td><td>${esc(t.company)}</td><td class="mono">${esc(t.plate)}</td><td>${esc(t.driver)}</td><td><span class="chip ${chipFor(t.status)}">${esc(t.status)}</span></td><td class="mono">${t.cont?esc(t.cont.id):'—'}</td><td class="mono">${t.kind==='client'?(t.cont?(t.cont.step>=8?'Empty':(t.unloading?20-Math.floor(t.unload):20)+'/20 plts'):'—'):t.kind==='other'?(t.cont?'Loaded':'—'):t.kind==='bin'?t.bins+'/24 bins':t.cont?t.cont.pallets+'/20 plts':'—'}</td></tr>`).join('')+'</tbody>';}
+ else if(tab==='containers'){h='<thead><tr><th>Container</th><th>Booking</th><th>Carrier</th><th>Lane</th><th>Plts</th><th>Set pt</th><th>Status</th></tr></thead><tbody>'+
+  containers.slice(0,40).map((c,i)=>`<tr data-i="${i}" class="${selected&&selected.ref===c?'sel':''}"><td class="mono">${esc(c.id)}</td><td class="mono">${esc(c.booking)}</td><td>${esc(c.carrier)}</td><td>${esc(PORTS[c.pol].name)} → ${esc(PORTS[c.pod].name)}</td><td class="mono">${c.pallets}</td><td class="mono">${esc(c.setpoint)}</td><td><span class="chip ${c.step>=9?'ok':c.staged&&c.step<4?'warn':''}">${c.staged&&c.step<4?'Staged, plugged in':STEP_NAMES[c.step]}</span></td></tr>`).join('')+'</tbody>';}
+ else{h='<thead><tr><th>POL</th><th>POD</th><th>Carriers</th><th>Est. sea days</th><th>Source</th></tr></thead><tbody>'+
+  LANES.map((l,i)=>`<tr data-i="${i}" class="${selected&&selected.type==='port'&&(selected.ref.key===l.o||selected.ref.key===l.d)?'sel':''}"><td>${esc(PORTS[l.o].name)}</td><td>${esc(PORTS[l.d].name)}</td><td>${carrierChips(l.carriers,l.src)}</td><td class="mono">${route(l.o,l.d).days}</td><td><span class="chip ${l.src==='Added manually'?'src':''}">${esc(l.src)}</span></td></tr>`).join('')+'</tbody>';}
+ const sc=tbl.parentElement.scrollTop;tbl.innerHTML=h;tbl.parentElement.scrollTop=sc;}
+tbl.addEventListener('click',e=>{const tr=e.target.closest('tr[data-i]');if(!tr)return;const i=+tr.dataset.i;
+ if(tab==='trucks'){const t=allTrucks()[i];select({type:t.kind==='bin'?'bintruck':t.kind==='client'?'dtruck':'truck',ref:t});}else if(tab==='containers')selectContainer(containers[i]);
+ else{const l=LANES[i];select({type:'port',ref:Object.assign(PORTS[l.d],{key:l.d})});highlightOne(l);}});
+function highlightOne(l){laneLines.forEach(ln=>{const x=ln.userData.lane;ln.material=x===l?laneMatHi:(x.src==='Added manually'?laneMatManual:laneMat);});}
+document.querySelectorAll('[role=tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;document.querySelectorAll('[role=tab]').forEach(x=>x.setAttribute('aria-selected',String(x===b)));
+ $('#tabNote').textContent=tab==='lanes'?`${LANES.filter(l=>l.src!=='Added manually').length} lanes from FREIGHT 2025 · ${LANES.filter(l=>l.src==='Added manually').length} added manually`:'Simulated operations · lanes from FREIGHT 2025';renderTable();});
+const alerts=[];
+function alertMsg(text){alerts.unshift({t:sim,text});if(alerts.length>25)alerts.pop();const b=$('#bellCount');b.hidden=false;b.textContent=String(Math.min(99,(+b.textContent||0)+1));
+ $('#alerts').innerHTML=alerts.map(a=>`<p><time>${fmt(a.t)}</time>${esc(a.text)}</p>`).join('');toast(text);}
+let toastT=0;function toast(t){const el=$('#toast');el.textContent=t;el.style.opacity=1;toastT=3.2;}
+$('#bell').onclick=()=>{const a=$('#alerts');a.hidden=!a.hidden;$('#bell').setAttribute('aria-expanded',String(!a.hidden));$('#bellCount').hidden=true;$('#bellCount').textContent='0';};
+function renderKPIs(){$('#k1').textContent=stats.gated;$('#k1s').textContent=yardQueue.length+' waiting for the crane'+(stagingQ.length?' · '+stagingQ.length+' at staging depot':'');
+ $('#k2').textContent=stats.pallets.toLocaleString('en-ZA');$('#k2s').textContent=(stats.pallets*CARTONS_PER_PALLET).toLocaleString('en-ZA')+' cartons · cold store '+stats.coldStore;
+ const tt=stats.turn.slice(-12);$('#k3').textContent=tt.length?Math.round(tt.reduce((a,b)=>a+b,0)/tt.length)+' min':'–';}
+
+// controls wiring
+document.querySelectorAll('#areas button').forEach(b=>b.onclick=()=>setArea(b.dataset.area));
+const originSel=$('#origin');
+Object.entries(PORTS).filter(([,p])=>p.role==='o').forEach(([k,p])=>{const o=document.createElement('option');o.value=k;o.textContent=p.name+(p.src==='manual'?' (manual)':'');originSel.appendChild(o);});
+originSel.onchange=()=>setOrigin(originSel.value);
+function setOrigin(k,silent){origin=k;originSel.value=k;areaLabels.port.el.textContent='Port of '+PORTS[k].name;
+ areaLabels.depot.el.textContent='Empty depot · '+PORTS[k].name;
+ if(vessel.state==='berthed'&&vessel.gfs===0)newVoyage();renderDetail();renderTable();if(!silent)toast('Local chain now runs from '+PORTS[k].name);}
+$('#weather').onchange=e=>{weather=e.target.value;applyWeather();};
+$('#dayBtn').onclick=()=>{night=false;applyLight();};$('#nightBtn').onclick=()=>{night=true;applyLight();};
+$('#toggleLists').onclick=()=>$('#tablebox').classList.toggle('open');
+const qlist=$('#qlist');
+function refreshDatalist(){qlist.innerHTML=[...allTrucks().map(t=>t.plate),...containers.slice(0,20).map(c=>c.id),...Object.values(PORTS).map(p=>p.name)].map(v=>`<option value="${esc(v)}">`).join('');}
+$('#searchForm').onsubmit=e=>{e.preventDefault();const q=$('#q').value.trim().toLowerCase().replace(/\s+/g,'');if(!q)return;const norm=s=>s.toLowerCase().replace(/[\s-]+/g,'');
+ const t=allTrucks().find(t=>norm(t.plate).includes(q)||norm(t.id).includes(q)||t.driver.toLowerCase().includes(q));if(t){select({type:t.kind==='bin'?'bintruck':t.kind==='client'?'dtruck':'truck',ref:t});return;}
+ const c=containers.find(c=>norm(c.id).includes(q.replace(/-/g,''))||norm(c.booking).includes(q));if(c){selectContainer(c);return;}
+ const pk=Object.keys(PORTS).find(k=>norm(PORTS[k].name).includes(q)||PORTS[k].code.toLowerCase()===q);if(pk){select({type:'port',ref:Object.assign(PORTS[pk],{key:pk})});return;}
+ toast('Nothing matches "'+$('#q').value+'"');};
+
+/* =========================================================
+   WEATHER / LIGHT
+   ========================================================= */
+const RAIN_N=2500;const rainGeo=new THREE.BufferGeometry();const rainPos=new Float32Array(RAIN_N*3);for(let i=0;i<RAIN_N;i++){rainPos[i*3]=rnd(-90,90);rainPos[i*3+1]=rnd(0,60);rainPos[i*3+2]=rnd(-70,70);}
+rainGeo.setAttribute('position',new THREE.BufferAttribute(rainPos,3));
+const rain=new THREE.Points(rainGeo,new THREE.PointsMaterial({color:0xcfe3ee,size:.35,transparent:true,opacity:.7}));rain.visible=false;scene.add(rain);
+function speedFactor(){return weather==='rain'?.7:weather==='fog'?.8:1;}
+let wasDelayed=false;
+function applyWeather(){rain.visible=weather==='rain';
+ if(delayed()&&!wasDelayed){if(vessel.state==='berthed'){vessel.state='toAnchor';vessel.t=0;vessel.from=vesselGroup.position.clone();}
+  alertMsg(`${vessel.name} delayed: reefer stack closed. Loaded trucks divert to the staging depot to plug in`);}
+ if(!delayed()&&wasDelayed){if(vessel.state==='anchored'||vessel.state==='toAnchor'){vessel.state='arriving';vessel.t=0;vessel.from=vesselGroup.position.clone();}
+  alertMsg(`Stack open again: ${stagingQ.length} staged reefers to be collected for ${vessel.name}`);}
+ wasDelayed=delayed();
+ scene.fog.density=weather==='fog'?0.012:weather==='rain'?0.004:0.0016;
+ if(weather==='wind')alertMsg(`${PORTS[origin].name} windbound: STS cranes stopped, reefers stay plugged in on the stack`);
+ if(weather==='peak')alertMsg('Harvest peak: packhouse on extended shift, line at 2,200 cartons/h');
+ if(weather==='fog')alertMsg('Coastal fog: port entry restricted, trucks slowed');
+ if(weather==='rain')alertMsg('Rain: picking paused in wet blocks, trucks running at reduced speed');
+ applyLight();renderDetail();}
+function applyLight(){$('#dayBtn').setAttribute('aria-pressed',String(!night));$('#nightBtn').setAttribute('aria-pressed',String(night));
+ const dim=weather==='rain'||weather==='fog'?.7:1;
+ sun.intensity=(night?.12:1.05)*dim;hemi.intensity=(night?.22:.75)*dim;
+ const sky=night?NIGHT_SKY.clone():DAY_SKY.clone();if(!night&&dim<1)sky.lerp(new THREE.Color(0x9aa7ad),.6);scene.background=sky;scene.fog.color.copy(sky);
+ winMat.emissiveIntensity=night?1.4:0;nightLights.forEach(l=>l.intensity=night?1.6:0);
+ [...trucks,...clientTrucks].forEach(t=>t.hl.material.emissiveIntensity=night?2:.2);
+ document.body.style.background=night?'#0b1626':'#a9cfe0';}
+
+/* =========================================================
+   SIMULATION STEP
+   ========================================================= */
+const MIN_GAP=11;
+function truckStep(t,dt,ahead){
+ const st=STOPS[t.stopIdx];
+ if(t.dwell>0){t.v=0;
+  if(st.k==='pack'&&t.cont&&!t.cont.loaded){ // loading pallets from cold store
+   t.loadAcc+=dt*(weather==='peak'?5:4);
+   while(t.loadAcc>=1&&t.cont.pallets<20&&stats.coldStore>0){t.loadAcc-=1;t.cont.pallets++;stats.coldStore--;}
+   if(stats.coldStore===0)t.status='Waiting for pallets';else t.status='Loading at packhouse';
+   if(t.cont.pallets>=20){t.cont.loaded=true;t.cont.step=2;t.cont.times[2]=sim;t.status='Sealing doors';t.dwell=Math.min(t.dwell,1.2);t.cont.where='Packhouse bay';}
+   else{t.dwell=Math.max(t.dwell,.1);}
+  }
+  if(st.k==='depot'&&t.waitEmpty){if(depotSlots.ready&&!depotSlots.ready.moving){takeEmpty(t);t.dwell=2.5;}else{t.status='Waiting for an inspected empty';t.dwell=Math.max(t.dwell,.1);}}
+  t.dwell-=dt;if(t.dwell<=0)leaveStop(t);return;}
+ const gap=ahead?((ahead.s-t.s+LOOP)%LOOP):1e9;
+ const want=(9*speedFactor())*clamp((gap-MIN_GAP)/8,0,1);
+ t.v+=(want-t.v)*Math.min(1,dt*2.5);
+ const dStop=(st.s-t.s+LOOP)%LOOP;
+ const step=t.v*dt;
+ if(dStop<=step+.02){t.s=st.s;arrive(t,st);}
+ else t.s=(t.s+step)%LOOP;
+ if(t.v<.3&&gap<MIN_GAP+2&&t.dwell<=0)t.status=st.k==='drop'?'Queuing at the stack':st.k==='gate'||st.k==='stage'?'In line at the port':'Queuing';
+}
+function arrive(t,st){t.v=0;const c=t.cont;
+ if(t.kind==='other'){
+  if(st.k==='weigh'&&c&&!c.vgm){c.vgm=1;t.dwell=2;t.status='On weighbridge';}
+  else if(st.k==='gate'&&c&&!c.gatedIn){c.gatedIn=true;t.dwell=3.5;t.status='Port gate: checking documents';gateOpenT=3.6;}
+  else if(st.k==='drop'&&c){t.dwell=2.5;t.status='Dropping in terminal stack';}
+  else{leaveStop(t);}
+  return;}
+ const reserved=trucks.filter(x=>x.collectStaged).length;
+ if(st.k==='depot'&&!c&&!delayed()&&stagingQ.length>reserved){t.collectStaged=true;t.trip=sim;t.status='Dispatched to collect a staged reefer';leaveStop(t);t.status='Dispatched to collect a staged reefer';return;}
+ else if(st.k==='depot'&&!c){t.waitEmpty=true;t.trip=sim;t.dwell=.1;t.status='Waiting for an inspected empty';}
+ else if(st.k==='pack'&&c&&!c.loaded){c.step=1;c.times[1]=sim;t.dwell=5;t.loadAcc=0;t.status='Loading at '+FARM_NAME;c.where=FARM_NAME+' packhouse';}
+ else if(st.k==='weigh'&&c&&c.loaded&&!c.vgm){c.vgm=Math.round(4740+c.pallets*rnd(1020,1090));c.step=3;c.times[3]=sim;t.dwell=2;t.status='On weighbridge';c.where='Weighbridge';}
+ else if(st.k==='stage'&&c&&c.loaded&&!c.gatedIn&&delayed()&&STAGE.some(x=>!x.used)){t.dwell=3;t.status='Dropping at staging depot';}
+ else if(st.k==='stage'&&!c&&t.collectStaged&&stagingQ.length){const sc=stagingQ.shift();if(sc.slot){sc.slot.used=null;sc.slot=null;}world.remove(sc.mesh);t.g.add(sc.mesh);sc.mesh.position.set(0,.65,-.6);sc.mesh.rotation.set(0,0,0);t.cont=sc;sc.truck=t.id;sc.where='On truck '+t.plate;t.collectStaged=false;t.dwell=3;t.status='Collecting staged reefer';}
+ else if(st.k==='gate'&&c&&c.loaded&&!c.gatedIn){c.gatedIn=true;stats.gated++;t.dwell=3.5;t.status='Port gate: checking documents';c.where='Port gate';gateBar.rotation.x=0;gateOpenT=3.6;}
+ else if(st.k==='drop'&&c&&c.loaded){t.dwell=3;t.status='Dropping at reefer stack';}
+ else{leaveStop(t);return;}
+ if(selected&&(selected.ref===t||selected.ref===c)){renderDetail();renderTracker();}}
+function leaveStop(t){const st=STOPS[t.stopIdx];const c=t.cont;
+ if(t.kind==='other'){if(st.k==='drop'&&c){t.g.remove(c.mesh);t.cont=null;terminalBoxes++;}
+  t.stopIdx=(t.stopIdx+1)%STOPS.length;t.dwell=0;t.status=t.cont?'Heading to port':'Leaving port';return;}
+ if(st.k==='drop'&&c&&c.loaded){dropToYard(t);}
+ if(st.k==='stage'&&c&&c.loaded&&!c.gatedIn&&t.status==='Dropping at staging depot'){dropToStage(t);}
+ t.stopIdx=(t.stopIdx+1)%STOPS.length;t.dwell=0;
+ t.status=t.cont?(t.cont.loaded?'En route to '+STOP_NAMES[STOPS[t.stopIdx].k].toLowerCase():'En route to '+FARM_NAME):t.collectStaged?'Dispatched to collect a staged reefer':'Returning to depot';
+ if(selected&&(selected.ref===t)){renderDetail();renderTracker();}}
+function takeEmpty(t){const it=depotSlots.ready;depotSlots.ready=null;t.waitEmpty=false;const c=createContainer(t);const m=it.mesh;gfsTag(m);world.remove(m);t.g.add(m);m.position.set(0,.65,-.6);m.rotation.set(0,0,0);
+ c.mesh=m;tag(m,'container',c);t.cont=c;c.where='Empty depot';c.times[0]=sim;stats.released=(stats.released||0)+1;t.status='Collecting empty reefer';}
+function dropToStage(t){const c=t.cont;const slot=STAGE.find(x=>!x.used);if(!slot)return;t.g.remove(c.mesh);world.add(c.mesh);slot.used=c;c.slot=slot;c.mesh.position.set(slot.x,slot.y,slot.z);c.mesh.rotation.set(0,0,0);
+ c.staged=true;c.stagedAt=sim;c.where='Staging depot, plugged in';stagingQ.push(c);t.cont=null;if(t.trip!=null)stats.turn.push(Math.round(sim-t.trip));t.trip=null;
+ if(selected&&selected.ref===c){follow=null;renderDetail();}}
+const delayed=()=>weather==='delay';
+const CLIENT_CO=['Client hire · Trans-Lagune','Client hire · Golfe Transit','Client hire · Sahel Logistique'];
+function addClientTruck(i,s0){const {g,hl}=makeTruck(i+1);world.remove(g);scene.add(g);
+ const t={id:'CLT-'+String(i+1).padStart(2,'0'),kind:'client',company:CLIENT_CO[i%3],plate:'CI '+Math.floor(rnd(1000,9999))+' '+pick(['AB','GH','KM','TR']),driver:pick(['Koffi A.','Moussa D.','Awa S.','Jean-Marc O.']),g,hl,s:s0,v:0,dwell:0,cont:null,unload:0,stopIdx:0,status:'Heading to port'};
+ t.stopIdx=DSTOPS.findIndex(st=>st.s>s0);if(t.stopIdx<0)t.stopIdx=0;tag(g,'dtruck',t);clientTrucks.push(t);return t;}
+function destArrive(c){c.step=6;c.times[6]=sim;c.where='Discharged at '+PORTS[c.pod].name;const slot=DSTACK.find(x=>!x.used);
+ const m=makeContainer(null,true);if(slot){slot.used=c;c.slot=slot;m.position.set(slot.x,slot.y,slot.z);dest.add(m);}c.mesh=m;tag(m,'container',c);destQueue.push(c);}
+function feedDestination(){const lanes=lanesFrom(origin).filter(l=>l.carriers.length);const l=pick(lanes.length?lanes:LANES);
+ const c={id:isoNumber(OWNER[l.carriers[0]]||'TBCU'),carrier:l.carriers[0]||'TBC',booking:'GFS'+(3900+Math.floor(rnd(0,200))),pol:l.o,pod:l.d,src:l.src,pallets:20,commodity:'Navel oranges',setpoint:'+4.5 °C',vent:'25 m³/h',vgm:Math.round(rnd(25400,25900)),farm:FARM_NAME,
+  step:5,times:[sim-15000,sim-14980,sim-14950,sim-14930,sim-14900,sim-14500,null,null,null,null],where:'At sea',shipped:true,vessel:'Earlier sailing'};containers.push(c);destArrive(c);}
+function clientStep(t,dt,ahead){const st=DSTOPS[t.stopIdx];const c=t.cont;
+ if(t.dwell>0){t.v=0;
+  if(st.k==='pickup'&&!t.cont){if(destQueue.length){const q=destQueue.shift();if(q.slot){q.slot.used=null;q.slot=null;}if(q.mesh.parent)q.mesh.parent.remove(q.mesh);t.g.add(q.mesh);q.mesh.position.set(0,.65,-.6);q.mesh.rotation.set(0,0,0);t.cont=q;q.where='On client truck '+t.plate;t.status='Collecting from port stack';t.dwell=2.5;}
+   else{t.status='Waiting for discharge';t.dwell=Math.max(t.dwell,.1);}}
+  if(st.k==='warehouse'&&c&&t.unloading){t.unload+=dt*3;const n=Math.floor(t.unload);if(n>=20){t.unloading=false;c.step=8;c.times[8]=sim;c.where='Client warehouse, unloaded';stats.delivered=(stats.delivered||0)+20;t.dwell=1;t.status='Unloaded, heading to return the empty';}else{t.dwell=Math.max(t.dwell,.1);t.status='Forklift unloading '+n+'/20 pallets';}}
+  t.dwell-=dt;if(t.dwell<=0){
+   if(st.k==='customs'&&c&&!c.cleared){c.cleared=true;c.step=7;c.times[7]=sim;c.where='Customs cleared';}
+   if(st.k==='return'&&c){t.g.remove(c.mesh);const sl=DEPOT_RET[depotRetIdx++%DEPOT_RET.length];c.mesh.position.set(sl.x,sl.y,sl.z);dest.add(c.mesh);c.step=9;c.times[9]=sim;c.where='Empty returned to shipping line';t.cont=null;alertMsg(`${c.id} unloaded at the client and returned empty to the shipping line`);}
+   t.stopIdx=(t.stopIdx+1)%DSTOPS.length;t.status=t.cont?(t.cont.step>=8?'Returning the empty':t.cont.cleared?'To client warehouse':'To customs'):'Heading to port';}
+  if(selected&&(selected.ref===t||selected.ref===c)&&Math.random()<.05)renderTracker();
+  return;}
+ const gap=ahead?((ahead.s-t.s+DLOOP)%DLOOP):1e9;const want=8*clamp((gap-MIN_GAP)/8,0,1);t.v+=(want-t.v)*Math.min(1,dt*2.5);
+ const dStop=(st.s-t.s+DLOOP)%DLOOP;const step=t.v*dt;
+ if(dStop<=step+.02){t.s=st.s;t.v=0;
+  if(st.k==='pickup'&&!c){t.dwell=.1;t.status='Waiting for discharge';}
+  else if(st.k==='customs'&&c&&!c.cleared){const phys=Math.random()<.25;t.dwell=phys?8:4;t.status=phys?'Customs: physical inspection':'Customs: scanning';scanT=t.dwell;}
+  else if(st.k==='warehouse'&&c&&c.step<8){t.unloading=true;t.unload=0;t.dwell=.1;t.status='Forklift unloading 0/20 pallets';}
+  else if(st.k==='return'&&c&&c.step>=8){t.dwell=3;t.status='Returning empty to shipping line';}
+  else{t.stopIdx=(t.stopIdx+1)%DSTOPS.length;}}
+ else t.s=(t.s+step)%DLOOP;
+ if(t.v<.3&&gap<MIN_GAP+2&&t.dwell<=0)t.status='Queuing';}
+let scanT=0,feedT=0;
+function destStep(dt){
+ feedT+=dt;if(feedT>22){feedT=0;if(destQueue.length<3)feedDestination();}
+ if(scanT>0){scanT-=dt;scanBeam.material.opacity=.25+.25*Math.sin(clockT*10);scanBeam.position.z=DZ*0-20+Math.sin(clockT*2)*2;}else scanBeam.material.opacity=0;
+ const u=clientTrucks.find(t=>t.unloading);
+ if(u){const ph=(u.unload%1);const back=ph<.5;const k=back?ph*2:(ph-.5)*2;const truckZ=-15.8,doorZ=-9;forklift.position.z=back?doorZ+(truckZ-doorZ)*k:truckZ+(doorZ-truckZ)*k;forklift.rotation.y=back?0:Math.PI;fkPallet.visible=!back;}
+ else{forklift.position.z=-9;fkPallet.visible=false;}
+ const n=Math.min(48,Math.floor(((stats.delivered||0)+(u?Math.floor(u.unload):0))/2)%49);for(let i=0;i<48;i++){if(i<n){dummy.position.set(-26+(i%8)*1.3,.65+Math.floor(i/24)*1.35,-2-Math.floor((i%24)/8)*1.4);dummy.scale.set(1,1,1);}else dummy.scale.set(0,0,0);dummy.rotation.set(0,0,0);dummy.updateMatrix();whPalletI.setMatrixAt(i,dummy.matrix);}whPalletI.instanceMatrix.needsUpdate=true;
+ dTrolley.position.x=12+Math.sin(clockT*.6)*8;
+ if(destQueue[0])destLabels.port.el.textContent='Port of '+PORTS[destQueue[0].pod].name;}
+// depot prep line: stack → wash → PTI → ready
+function depotItemStep(slot,dt){const it=depotSlots[slot];if(!it)return;
+ if(it.moving){it.t+=dt/1.8;const k=ease(Math.min(1,it.t));it.mesh.position.lerpVectors(it.from,it.to,k);it.mesh.position.y+=Math.sin(k*Math.PI)*1.2;reach.position.set(it.mesh.position.x-3,0,it.mesh.position.z);
+  if(it.t>=1){it.moving=false;it.timer=slot==='ready'?0:slot==='wash'?4:3.5;}}
+ else if(it.timer>0){it.timer-=dt;if(it.timer<=0){it.done=true;if(slot==='wash')stats.washed=(stats.washed||0)+1;if(slot==='pti')stats.ptiPassed=(stats.ptiPassed||0)+1;}}}
+function moveDepotItem(it,slot){it.from=it.mesh.position.clone();it.to=DEPOT_POS[slot].clone();it.t=0;it.moving=true;it.done=false;depotSlots[slot]=it;}
+function depotStep(dt){
+ if(!depotSlots.ready&&depotSlots.pti&&depotSlots.pti.done){const it=depotSlots.pti;depotSlots.pti=null;moveDepotItem(it,'ready');}
+ if(!depotSlots.pti&&depotSlots.wash&&depotSlots.wash.done){const it=depotSlots.wash;depotSlots.wash=null;moveDepotItem(it,'pti');}
+ if(!depotSlots.wash){const m=makeContainer();m.position.copy(DEPOT_POS.stack);world.add(m);moveDepotItem({mesh:m},'wash');}
+ ['wash','pti','ready'].forEach(sl=>depotItemStep(sl,dt));
+ const w=depotSlots.wash;spray.visible=!!(w&&!w.moving&&!w.done);
+ if(spray.visible){const a=sprayGeo.attributes.position.array;for(let i=0;i<SPRAY_N;i++){const side=i%2?1:-1;a[i*3]=-14.5+side*rnd(1,2);a[i*3+1]=rnd(.3,3.6);a[i*3+2]=37+rnd(-2.8,2.8);}sprayGeo.attributes.position.needsUpdate=true;}
+ const p=depotSlots.pti;ptiLamp.material.emissiveIntensity=p&&!p.moving&&!p.done?(Math.sin(clockT*8)>0?1.6:.1):p&&p.done?1.2:0;}
+let gateOpenT=0;
+function addBinTruck(i,s0){const {g,load}=makeBinTruck(i);
+ const t={id:'BIN-'+String(i+1).padStart(2,'0'),kind:'bin',plate:'CA '+Math.floor(rnd(100,999))+'-'+Math.floor(rnd(100,999)),driver:['Bongani T.','Marelize F.','Kagiso P.'][i%3],company:'Farm fleet',g,load,s:s0,v:0,dwell:0,acc:0,bins:0,trips:0,status:'Returning to orchard'};
+ t.stopIdx=FSTOPS.findIndex(st=>st.s>s0);if(t.stopIdx<0)t.stopIdx=0;tag(g,'bintruck',t);binTrucks.push(t);return t;}
+function binLoadVisual(t){const n=Math.ceil(t.bins/4);t.load.forEach((b,i)=>b.visible=i<n);}
+function binTruckStep(t,dt,ahead){const st=FSTOPS[t.stopIdx];
+ if(t.dwell>0){t.v=0;t.dwell-=dt;
+  if(st.k==='field'){t.acc+=dt*1.6;while(t.acc>=1&&t.bins<24){t.acc-=1;t.bins+=4;stats.bins+=4;}t.status='Loading bins at orchard';if(t.bins<24)t.dwell=Math.max(t.dwell,.1);}
+  else{t.acc+=dt*2;while(t.acc>=1&&t.bins>0){t.acc-=1;t.bins-=4;stats.binsCold+=4;stats.binsIn+=4;}t.status='Unloading at bin cold room';if(t.bins>0)t.dwell=Math.max(t.dwell,.1);}
+  binLoadVisual(t);
+  if(t.dwell<=0){if(st.k==='coldroom')t.trips++;t.stopIdx=(t.stopIdx+1)%FSTOPS.length;t.status=t.bins?'Delivering to bin cold room':'Returning to orchard';}
+  return;}
+ const gap=ahead?((ahead.s-t.s+FLOOP)%FLOOP):1e9;
+ const want=6*speedFactor()*clamp((gap-9)/6,0,1);t.v+=(want-t.v)*Math.min(1,dt*2.5);
+ const dStop=(st.s-t.s+FLOOP)%FLOOP;const step=t.v*dt;
+ if(dStop<=step+.02){t.s=st.s;t.v=0;t.dwell=.6;t.acc=0;}else t.s=(t.s+step)%FLOOP;
+ if(t.v<.3&&gap<11&&t.dwell<=0)t.status='Waiting to '+(st.k==='field'?'load':'unload');}
+// pickers: pick → carry bag to the nearest field bin → tip → back to a tree
+function pickerStep(pk,dt){const g=pk.g;
+ if(pk.state==='pick'){pk.t-=dt;pk.load=Math.min(1,pk.load+dt*.16*(weather==='rain'?.5:1)*(weather==='peak'?1.5:1));g.position.y=Math.abs(Math.sin(clockT*6+pk.tree[0]))*.12;
+  if(pk.load>=1){const b=fieldBins.reduce((a,c)=>Math.abs(c.g.position.x-g.position.x)<Math.abs(a.g.position.x-g.position.x)?c:a);pk.bin=b;pk.from=g.position.clone();pk.to=new THREE.Vector3(b.g.position.x+rnd(-.6,.6),0,g.position.z>0?1.2:-1.2);pk.state='walk';pk.t=0;}}
+ else if(pk.state==='walk'||pk.state==='back'){const d=pk.to.clone().sub(g.position);d.y=0;const L=d.length();const sp=2.2*dt;
+  if(L<=sp){g.position.copy(pk.to);if(pk.state==='walk'){pk.state='tip';pk.t=1;}else{pk.state='pick';pk.t=rnd(2,4);}}
+  else{g.position.add(d.multiplyScalar(sp/L));g.rotation.y=Math.atan2(pk.to.x-g.position.x,pk.to.z-g.position.z);g.position.y=Math.abs(Math.sin(clockT*9))*.08;}}
+ else if(pk.state==='tip'){pk.t-=dt;if(pk.t<=0){pk.load=0;pk.bin.fill+=.12;if(pk.bin.fill>=1)pk.bin.fill=.04;setBinFill(pk.bin.g,pk.bin.fill);
+   const near=trees.filter(t=>Math.abs(t[0]-g.position.x)<8&&Math.abs(t[1])<11);pk.tree=pick(near.length?near:trees);pk.from=g.position.clone();pk.to=new THREE.Vector3(pk.tree[0]+1.3,0,pk.tree[1]);pk.state='back';}}
+ pk.bag.scale.setScalar(.45+pk.load*.65);}
+function dropToYard(t){const c=t.cont;const slot=YARD.find(y=>!y.used);
+ const wp=c.mesh.getWorldPosition(new THREE.Vector3());t.g.remove(c.mesh);world.add(c.mesh);
+ if(slot){slot.used=c;c.mesh.position.set(slot.x,slot.y,slot.z);c.mesh.rotation.set(0,0,0);c.slot=slot;}
+ else{c.mesh.position.set(wp.x,0,wp.z);}
+ c.where='Port reefer stack, plugged in';c.step=4;c.times[4]=sim;yardQueue.push(c);
+ if(t.trip!=null)stats.turn.push(Math.round(sim-t.trip));t.cont=null;t.trip=null;
+ if(selected&&selected.ref===c){follow=null;renderDetail();}}
+// crane / vessel cycle
+let craneJob=null;const chassis=box(world,2,.6,6,0x2a2f2e,0,0,0);chassis.visible=false;
+function craneStep(dt){
+ if(weather==='wind'){cranes.forEach(c=>c.state='stopped');return;}
+ if(!craneJob){if(vessel.state!=='berthed'||!yardQueue.length)return;const slot=SHIP_SLOTS.find(s=>!s.used);if(!slot)return;
+  const qi=yardQueue.findIndex(x=>x.carrier===vessel.carrier||x.carrier==='TBC');if(qi<0)return;
+  const c=yardQueue.splice(qi,1)[0];if(c.slot){c.slot.used=null;c.slot=null;}slot.used=c;
+  const from=c.mesh.position.clone();const slotW=new THREE.Vector3(slot.x,slot.y,slot.z).add(vesselGroup.position);
+  const cr=cranes.reduce((a,b)=>Math.abs(b.g.position.z-slotW.z)<Math.abs(a.g.position.z-slotW.z)?b:a);
+  craneJob={c,slot,from,apron:new THREE.Vector3(63,.6,slotW.z),to:slotW,t:0,cr};cr.state='busy';chassis.visible=true;c.where='Moving to quay';return;}
+ const j=craneJob;j.t+=dt*(weather==='fog'?.8:1);const m=j.c.mesh;
+ if(j.t<2.2){const k=ease(j.t/2.2);m.position.lerpVectors(j.from,j.apron,k);m.position.y=j.from.y+(j.apron.y-j.from.y)*k;chassis.position.set(m.position.x,0,m.position.z);
+  j.cr.g.position.z+=(j.to.z-j.cr.g.position.z)*Math.min(1,dt*1.5);}
+ else{chassis.visible=false;const k=clamp((j.t-2.2)/3.2,0,1);const x=j.apron.x+(j.to.x-j.apron.x)*ease(clamp((k-.25)/.5,0,1));
+  const lift=k<.25?k/.25:k<.75?1:1-(k-.75)/.25;const y=(k<.5?j.apron.y:j.to.y)+(15-(k<.5?j.apron.y:j.to.y))*lift;
+  m.position.set(x,y,j.to.z);j.cr.g.position.z+=(j.to.z-j.cr.g.position.z)*Math.min(1,dt*3);
+  j.cr.tr.position.x=x-j.cr.g.position.x;j.cr.sp.position.set(x-j.cr.g.position.x,y+1.95,0);
+  if(k>=1){world.remove(m);vesselGroup.add(m);m.position.set(j.slot.x,j.slot.y,j.slot.z);
+   j.c.step=5;j.c.times[5]=sim;j.c.where='On board '+vessel.name;j.c.vessel=vessel.name;vessel.gfs++;j.cr.moves++;j.cr.state='idle';
+   j.cr.sp.position.set(10,8.12,0);j.cr.tr.position.x=10;craneJob=null;
+   if(selected&&selected.ref===j.c){renderDetail();renderTracker();}
+   if(vessel.gfs>=8||!SHIP_SLOTS.some(s=>!s.used))departVessel();}}
+}
+function departVessel(){if(vessel.state!=='berthed')return;vessel.state='sailing';vessel.t=0;
+ const boxes=containers.filter(c=>c.vessel===vessel.name&&c.step===5&&!c.shipped);boxes.forEach(c=>{c.shipped=true;});
+ alertMsg(`${vessel.name} (${vessel.carrier}) sailed from ${PORTS[origin].name} with ${boxes.length} GFS reefers. Next call: another line`);
+ const byPod={};boxes.forEach(c=>(byPod[c.pod]=byPod[c.pod]||[]).push(c));
+ Object.entries(byPod).forEach(([pod,arr],i)=>setTimeout(()=>{const sh=spawnShip(origin,pod,{carrier:vessel.carrier,name:vessel.name,voyage:vessel.voyage,boxes:arr});arr.forEach(c=>{c.where='At sea';});},i*1400));}
+const ANCHOR=new THREE.Vector3(135,0,-48),BERTH=new THREE.Vector3(76,0,4);
+function vesselStep(dt){
+ if(vessel.state==='sailing'){vessel.t+=dt;vesselGroup.position.x=76+vessel.t*vessel.t*.9;vesselGroup.position.z=4-vessel.t*vessel.t*.25;vesselGroup.rotation.y=-Math.min(.5,vessel.t*.04);
+  if(vessel.t>14){buildVessel();newVoyage();vesselGroup.rotation.y=0;vessel.t=0;
+   if(delayed()){vessel.state='anchored';vesselGroup.position.copy(ANCHOR);}else{vessel.state='arriving';vessel.from=new THREE.Vector3(216,0,-56);}}}
+ else if(vessel.state==='toAnchor'){vessel.t+=dt;const k=ease(clamp(vessel.t/8,0,1));vesselGroup.position.lerpVectors(vessel.from,ANCHOR,k);vesselGroup.rotation.y=Math.sin(k*Math.PI)*.4;if(k>=1)vessel.state='anchored';}
+ else if(vessel.state==='anchored'){vesselGroup.position.y=Math.sin(clockT*.8)*.08;vesselGroup.rotation.y=.35;}
+ else if(vessel.state==='arriving'){vessel.t+=dt;const k=ease(clamp(vessel.t/9,0,1));vesselGroup.position.lerpVectors(vessel.from,BERTH,k);vesselGroup.rotation.y=(1-k)*.5;
+  if(k>=1){vessel.state='berthed';vesselGroup.rotation.y=0;alertMsg(`${vessel.name} (${vessel.carrier}) berthed at ${PORTS[origin].name}, reefer cut-off ${fmt(vessel.cutoff)}`);}}
+ else{vesselGroup.position.y=Math.sin(clockT*.8)*.06;if(!craneJob&&sim>vessel.cutoff+40&&vessel.state==='berthed'&&!delayed())departVessel();}
+}
+function shipStep(dt){for(let i=ships.length-1;i>=0;i--){const sh=ships[i];
+ if(sh.done){sh.fade-=dt;sh.g.scale.setScalar(Math.max(.01,sh.fade/2*1.15));if(sh.fade<=0){map.remove(sh.g);ships.splice(i,1);if(selected&&selected.ref===sh)select(null);}continue;}
+ sh.dist+=dt*sh.speed;if(sh.dist>=sh.r.len){sh.done=true;sh.fade=2;
+  if(sh.boxes.length){sh.boxes.forEach(c=>destArrive(c));alertMsg(`${sh.name} arrived ${PORTS[sh.d].name}: ${sh.boxes.length} GFS reefers discharged`);if(selected&&selected.type==='container')renderTracker();}
+  else{const l=pick(LANES);spawnShip(l.o,l.d);}continue;}
+ let d=sh.dist,pts=sh.r.pts,k=0;while(k<pts.length-2){const seg=Math.hypot(pts[k+1].x-pts[k].x,pts[k+1].z-pts[k].z);if(d<=seg)break;d-=seg;k++;}
+ const a=pts[k],b=pts[k+1];const seg=Math.hypot(b.x-a.x,b.z-a.z)||1;const u=clamp(d/seg,0,1);
+ sh.g.position.set(a.x+(b.x-a.x)*u,.9+Math.sin(clockT*2+i)*.05,a.z+(b.z-a.z)*u);
+ const targetRot=Math.atan2(b.x-a.x,b.z-a.z);let dr=targetRot-sh.g.rotation.y;while(dr>Math.PI)dr-=2*Math.PI;while(dr<-Math.PI)dr+=2*Math.PI;sh.g.rotation.y+=dr*Math.min(1,dt*3);}}
+
+/* =========================================================
+   BOOT
+   ========================================================= */
+newVoyage();buildVessel();vesselGroup.position.set(76,0,4);
+['ready','pti','wash'].forEach((sl,i)=>{const m=makeContainer();m.position.copy(DEPOT_POS[sl]);world.add(m);depotSlots[sl]={mesh:m,moving:false,timer:0,done:sl!=='wash'};if(sl==='wash'){depotSlots.wash.timer=2;depotSlots.wash.done=false;}});
+stats.washed=14;stats.ptiPassed=13;stats.released=11;
+const startOffsets=[STOPS[0].s-14,STOPS[1].s-18,STOPS[2].s-12,STOPS[3].s-6,STOPS[4].s+24];
+const presets=[-1,0,2,2,-1];
+startOffsets.forEach((s,i)=>addTruck(i,(s+LOOP)%LOOP,presets[i]));
+for(let i=0;i<4;i++){let s0=LOOP*(i+.5)/4;for(let k=0;k<60;k++){if(trucks.every(t=>Math.min(Math.abs(t.s-s0),LOOP-Math.abs(t.s-s0))>14))break;s0=(s0+5)%LOOP;}addOtherTruck(i,s0);}
+for(let i=0;i<3;i++)addClientTruck(i,((DSTOPS[0].s-6-i*22)%DLOOP+DLOOP)%DLOOP);for(let i=0;i<4;i++)feedDestination();
+addBinTruck(0,FSTOPS[0].s-4);addBinTruck(1,FSTOPS[1].s-6);binTrucks[1].bins=24;binLoadVisual(binTrucks[1]);binTrucks[1].status='Delivering to bin cold room';
+trucks.forEach(t=>{if(t.kind==='other')return;t.status=t.cont?(t.cont.loaded?'En route to '+STOP_NAMES[STOPS[t.stopIdx].k].toLowerCase():'En route to packhouse'):'Returning to depot';});
+// a couple already waiting in the stack
+for(let i=0;i<3;i++){const t={g:new THREE.Group(),cont:null,trip:null};world.add(t.g);const c=createContainer({id:'TRK-0'+(i+1)});c.times=[sim-140,sim-120,sim-100,sim-70,null,null,null];c.step=3;c.gatedIn=true;c.pallets=20;c.loaded=true;c.vgm=25520+i*130;const m=makeContainer(null,true);c.mesh=m;tag(m,'container',c);t.g.add(m);t.cont=c;stats.gated++;dropToYard(t);world.remove(t.g);}
+// historic deliveries so the network has tracked boxes
+LANES.filter(l=>l.o===origin&&l.carriers.length).slice(0,3).forEach((l,i)=>{const arr=[];for(let k=0;k<3;k++){const c={id:isoNumber(OWNER[l.carriers[0]]),carrier:l.carriers[0],booking:'GFS'+(4100+i*10+k),pol:l.o,pod:l.d,src:l.src,pallets:20,commodity:'Navel oranges',setpoint:'+4.5 °C',vent:'25 m³/h',vgm:25600+k*90,step:5,times:[sim-2900,sim-2860,sim-2830,sim-2790,sim-2760,sim-2400,null],farm:FARM_NAME,mesh:null,where:'At sea',vessel:'',shipped:true};containers.push(c);arr.push(c);}
+ const r=route(l.o,l.d);const sh=spawnShip(l.o,l.d,{carrier:l.carriers[0],boxes:arr,start:r.len*rnd(.2,.7)});arr.forEach(c=>c.vessel=sh.name);});
+stats.pallets=312;stats.bins=520;stats.turn=[52,47,58];
+applyLight();renderDetail();renderTracker();renderTable();renderKPIs();refreshDatalist();setOrigin('CPT',true);
+
+let clockT=0,uiT=0,prodAcc=0,last=performance.now();
+const tmpP=new THREE.Vector3(),tmpT=new THREE.Vector3();
+function tick(now){requestAnimationFrame(tick);let dt=Math.min(.05,(now-last)/1000);last=now;clockT+=dt;
+ sim+=dt; // 1 real second = 1 sim minute
+ // production
+ lineRunning=stats.binsCold>=BINS_PER_PALLET&&stats.coldStore<220;
+ if(lineRunning){prodAcc+=dt*(weather==='peak'?2.0:weather==='rain'?1.1:1.35);while(prodAcc>=1){prodAcc-=1;stats.coldStore++;stats.pallets++;stats.binsCold-=BINS_PER_PALLET;stats.tipped+=BINS_PER_PALLET;}}
+ const fs=[...binTrucks].sort((a,b)=>a.s-b.s);fs.forEach((t,i)=>{const ahead=fs[(i+1)%fs.length];binTruckStep(t,dt,ahead!==t?ahead:null);
+  const p=farmCurve.getPointAt(t.s/FLOOP,tmpP);const tg=farmCurve.getTangentAt(t.s/FLOOP,tmpT);t.g.position.set(p.x,0,p.z);t.g.rotation.y=Math.atan2(tg.x,tg.z);});
+ // trucks (ordered for give-way)
+ const sorted=[...trucks].sort((a,b)=>a.s-b.s);
+ sorted.forEach((t,i)=>{const ahead=sorted[(i+1)%sorted.length];truckStep(t,dt,ahead!==t?ahead:null);
+  const p=curve.getPointAt(t.s/LOOP,tmpP);const tg=curve.getTangentAt(t.s/LOOP,tmpT);t.g.position.set(p.x,0,p.z);t.g.rotation.y=Math.atan2(tg.x,tg.z);});
+ // other exporters: fresh loaded box joins from the highway at the top of the loop
+ trucks.forEach(t=>{if(t.kind==='other'&&!t.cont&&t.s>SPAWN_S&&t.s<SPAWN_S+8)giveOtherBox(t);});
+ // gate barrier
+ if(gateOpenT>0){gateOpenT-=dt;gateBar.rotation.x=-Math.PI/2.4;gateBar.position.y=2.6;}else{gateBar.rotation.x=0;gateBar.position.y=1.3+.09;}
+ pickers.forEach(pk=>pickerStep(pk,dt));
+ // canopy sway in wind
+ if(weather==='wind'||weather==='rain'){canopyBase.forEach((c,i)=>{dummy.position.set(c.x,1.7,c.z);dummy.rotation.set(Math.sin(clockT*3+c.ph)*.08,0,Math.cos(clockT*2.6+c.ph)*.1);dummy.scale.set(c.s,c.s*.9,c.s);dummy.updateMatrix();canopyI.setMatrixAt(i,dummy.matrix);});canopyI.instanceMatrix.needsUpdate=true;}
+ // packing line fruit
+ // packhouse line: wash → dryer → grading/packing belt; cartons → palletiser
+ const lineSp=lineRunning?(weather==='peak'?1.5:1):0;
+ for(let i=0;i<FRUIT_N;i++){lineFruitT[i]=(lineFruitT[i]+dt*.07*lineSp)%1;const x=-16.2+lineFruitT[i]*19.5;let y=1.12,z=-11+Math.sin(i*1.7)*.4;
+  if(x<-11.8){y=.98+Math.sin(clockT*4+i)*.05;z=-11+Math.sin(i*2.3+clockT*1.5)*.55;}else if(x<-8.6)y=1.0;
+  dummy.position.set(x,y,z);dummy.rotation.set(0,0,0);dummy.scale.setScalar(x>2.6?0:1);dummy.updateMatrix();lineFruit.setMatrixAt(i,dummy.matrix);}
+ lineFruit.instanceMatrix.needsUpdate=true;
+ for(let i=0;i<24;i++){dummy.position.set(-16+Math.random()*4,.95+Math.random()*.25,-11.6+Math.random()*1.2);dummy.scale.setScalar(lineRunning?Math.random():0);dummy.updateMatrix();bubbles.setMatrixAt(i,dummy.matrix);}bubbles.instanceMatrix.needsUpdate=true;
+ for(let i=0;i<CARTON_N;i++){cartonT[i]=(cartonT[i]+dt*.06*lineSp)%1;dummy.position.set(-6.6+cartonT[i]*7.4,.96,-15.4);dummy.rotation.set(0,0,0);dummy.scale.setScalar(1);dummy.updateMatrix();cartonI.setMatrixAt(i,dummy.matrix);}cartonI.instanceMatrix.needsUpdate=true;
+ buildPallet.scale.y=.15+prodAcc*1.3;buildPallet.position.y=.2+buildPallet.scale.y*.5;
+ setBinFill(tipBin,lineRunning?.5+.4*Math.sin(clockT*1.3):0);
+ packers.forEach((g,i)=>{g.rotation.z=lineRunning?Math.sin(clockT*5+i)*.06:0;});
+ // pallet stock visual
+ const shown=Math.min(60,Math.ceil(stats.coldStore/3.5));for(let i=0;i<60;i++){if(i<shown){dummy.position.set(12.5+(i%3)*1.25,.65+Math.floor(i/30)*1.35,-19+Math.floor((i%30)/3)*1.3);dummy.scale.set(1,1,1);}else{dummy.scale.set(0,0,0);}dummy.rotation.set(0,0,0);dummy.updateMatrix();palletI.setMatrixAt(i,dummy.matrix);}palletI.instanceMatrix.needsUpdate=true;
+ const cs=[...clientTrucks].sort((a,b)=>a.s-b.s);cs.forEach((t,i)=>{const ahead=cs[(i+1)%cs.length];clientStep(t,dt,ahead!==t?ahead:null);const p=dCurve.getPointAt(t.s/DLOOP,tmpP);const tg=dCurve.getTangentAt(t.s/DLOOP,tmpT);t.g.position.set(p.x,0,p.z);t.g.rotation.y=Math.atan2(tg.x,tg.z);});
+ destStep(dt);
+ depotStep(dt);craneStep(dt);vesselStep(dt);shipStep(dt);
+ if(rain.visible){const a=rainGeo.attributes.position.array;for(let i=0;i<RAIN_N;i++){a[i*3+1]-=dt*38;if(a[i*3+1]<0)a[i*3+1]=60;}rainGeo.attributes.position.needsUpdate=true;rain.position.set(controls.target.x,0,controls.target.z);}
+ // camera fly / follow
+ if(fly){fly.t+=dt/fly.dur;const k=ease(Math.min(1,fly.t));camera.position.lerpVectors(fly.p0,fly.p1,k);controls.target.lerpVectors(fly.t0,fly.t1,k);if(fly.t>=1){fly=null;if(follow){const p=worldPosOf(follow.sel);if(p)follow.last=p;}}}
+ else if(follow){const p=worldPosOf(follow.sel);if(p&&follow.last){const d=p.clone().sub(follow.last);camera.position.add(d);controls.target.add(d);follow.last=p;}}
+ // selection ring
+ if(selected){const p=worldPosOf(selected.type==='container'&&!selected.ref.mesh?{type:'none'}:selected);
+  const shipSel=selected.type==='container'&&(!selected.ref.mesh||selected.ref.where==='At sea')?ships.find(s=>s.boxes.includes(selected.ref)):null;
+  const pp=shipSel?shipSel.g.getWorldPosition(new THREE.Vector3()):p;
+  if(pp){ring.visible=true;const big=['farm','pack','coldroom','depot','staging','yard','vessel','dstack','customs','warehouse','ddepot'].includes(selected.type)?(selected.type==='vessel'?30:14):(selected.type==='port'||selected.type==='ship'||shipSel?2.6:4.8);ring.position.set(pp.x,(pp.z<-200?1.2:.2),pp.z);ring.scale.setScalar(big*(1+Math.sin(clockT*4)*.06));
+   selLabel.el.hidden=false;selLabel.obj=null;selLabel.pos=new THREE.Vector3(pp.x,pp.y+(pp.z<-200?6:selected.type==='vessel'?14:6),pp.z);selLabel.el.textContent=labelText(selected);}
+  else{ring.visible=false;selLabel.el.hidden=true;}}
+ else{ring.visible=false;selLabel.el.hidden=true;}
+ sun.target.position.copy(controls.target);sun.position.copy(controls.target).add(SUN_OFF);
+ controls.update();renderer.render(scene,camera);updateLabels();
+ if(toastT>0){toastT-=dt;if(toastT<=0)$('#toast').style.opacity=0;}
+ uiT+=dt;if(uiT>.5){uiT=0;$('#clock').textContent=fmt(sim);renderKPIs();
+  if(!hoverDetail&&(!selected||['truck','bintruck','dtruck','ship','pack','coldroom','depot','staging','vessel','yard','crane','farm','container','dstack','customs','warehouse','ddepot'].includes(selected.type)))renderDetail();
+  renderTracker();if(!hoverTable)renderTable();if(Math.random()<.1)refreshDatalist();}
+}
+function labelText(s){return s.type==='truck'?s.ref.plate:s.type==='container'?s.ref.id:s.type==='ship'?s.ref.name:s.type==='port'?s.ref.name:s.type==='vessel'?vessel.name:s.type==='crane'?s.ref.name:s.type==='farm'?'Block 7':s.type==='pack'?'Packhouse':s.type==='depot'?'Empty depot':s.type==='yard'?'Reefer stack':s.type==='bintruck'?s.ref.plate:s.type==='coldroom'?'Bin cold room':s.type==='staging'?'Staging depot':s.type==='dtruck'?s.ref.plate:s.type==='dstack'?'Discharge stack':s.type==='customs'?'Customs':s.type==='warehouse'?'Client warehouse':s.type==='ddepot'?'Empty return depot':'';}
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
+requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
