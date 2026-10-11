@@ -27,13 +27,13 @@ Pick an **Origin** and a **Destination** in the top bar. The landscape and landm
 | | | Mombasa | The Tusks, Fort Jesus, dhows, baobabs |
 
 ## One map, one road network
-The whole world is one continuous map. From west to east: the inland town, the farm, the city, the port; the airport on the south coast; and the destination port across the sea to the east. A main road links the town, the farm and the city, and the city streets lead to the weighbridge and the port gate. The farm is further from the port than the city, so every loaded truck drives through the city to reach the port.
+The whole world is one continuous map. From west to east: the inland town, the farm, the city, the port; the airport on the south coast; Bay City on its own island across the bay, reached over a big cable-stayed bridge; the forest town at the end of a road through dense forest north of the inland town; and the destination port across the sea to the east. The GFS freighter flies between the main airport and the Bay City airstrip. A main road links the town, the farm and the city, and the city streets lead to the weighbridge and the port gate. The farm is further from the port than the city, so every loaded truck drives through the city to reach the port.
 
 Vehicles do not run on fixed loops. Each truck plans a trip on the road network (shortest route, keep-left lanes, give-way behind the vehicle ahead):
 - **GFS reefer trucks** start at the transporter yard, collect an inspected empty at the depot by the port, drive out to the farm, load, come back through the city, cross the weighbridge, and either queue at the port gate and drop in the stack or, when the vessel is delayed, turn off to the plug-in depot in town. Then they return to the yard and wait for the next job.
 - **Other exporters' trucks** come in from the inland packhouse in the next town and share the weighbridge, gate and stacks.
 - **Local market trucks** take pallets from the cold store to the supermarket distribution centre in the city.
-- **Long-distance trucks** drive from the farm along the road that links the towns to the client depot inland.
+- **Long-distance trucks** drive from the farm along the road that links the towns: one to the client depot in the inland town, one over the bridge to the client depot in Bay City. The local truck alternates between the supermarket DC and the forest town's country store.
 - **The air-freight truck** shuttles between the cold store and the air cargo terminal, and cars wander the streets.
 
 Ships queue as well: while one vessel is alongside, the next waits at anchor. When a loaded vessel sails it crosses the sea on the map to the port of discharge.
