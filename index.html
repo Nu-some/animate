@@ -1146,8 +1146,8 @@ function kit(name,s,x,y,z,ry,parent){const src=KIT[name];if(!src)return null;con
 const BUILDINGS=['building_A_withoutBase','building_B_withoutBase','building_C_withoutBase','building_D_withoutBase','building_E_withoutBase','building_F_withoutBase','building_G_withoutBase','building_H_withoutBase'];
 const CARS=['car_hatchback','car_sedan','car_stationwagon','car_taxi','car_police'];
 function roadClear(o,margin){if(typeof ROAD==='undefined')return true;const b=new THREE.Box3().setFromObject(o);if(b.isEmpty())return true;const c=b.getCenter(new THREE.Vector3()),sz=b.getSize(new THREE.Vector3());const r=Math.hypot(sz.x,sz.z)/2;
- for(const e of ROAD.edges){const a=ROAD.nodes[e.a].p,q=ROAD.nodes[e.b].p;const dx=q.x-a.x,dz=q.z-a.z;const L2=dx*dx+dz*dz||1;let t=((c.x-a.x)*dx+(c.z-a.z)*dz)/L2;t=Math.max(0,Math.min(1,t));const d=Math.hypot(c.x-(a.x+dx*t),c.z-(a.z+dz*t));if(d<(e.two?2.4:1.5)+r*.8+(margin||.6))return false;}return true;}
-function kitBlock(g,x0,x1,z0,z1,step,face){for(let x=x0;x<=x1;x+=step)for(let z=z0;z<=z1;z+=step){if(Math.random()<.18)continue;const s=rnd(3.8,4.8);const o=kit(pick(BUILDINGS),s,x+rnd(-.6,.6),-.1*s,z+rnd(-.6,.6),face!=null?face:Math.floor(Math.random()*4)*Math.PI/2,g);if(o&&g===world&&!roadClear(o))g.remove(o);}}
+ for(const e of ROAD.edges){const a=ROAD.nodes[e.a].p,q=ROAD.nodes[e.b].p;const dx=q.x-a.x,dz=q.z-a.z;const L2=dx*dx+dz*dz||1;let t=((c.x-a.x)*dx+(c.z-a.z)*dz)/L2;t=Math.max(0,Math.min(1,t));const d=Math.hypot(c.x-(a.x+dx*t),c.z-(a.z+dz*t));if(d<(e.two?2.4:1.5)+r*.72+(margin||.3))return false;}return true;}
+function kitBlock(g,x0,x1,z0,z1,step,face){for(let x=x0;x<=x1;x+=step)for(let z=z0;z<=z1;z+=step){if(Math.random()<.1)continue;const s=rnd(3.8,4.8);const o=kit(pick(BUILDINGS),s,x+rnd(-.6,.6),-.1*s,z+rnd(-.6,.6),face!=null?face:Math.floor(Math.random()*4)*Math.PI/2,g);if(o&&g===world&&!roadClear(o))g.remove(o);}}
 function lampsAlong(crv,len,step,off,parent,dz){const pts=[];for(let d=step/2;d<len;d+=step){const u=d/len;const p=crv.getPointAt(u),t=crv.getTangentAt(u);const n=new THREE.Vector3(t.z,0,-t.x).normalize();const q=p.clone().addScaledVector(n,off);kit('streetlight',4.2,q.x,0,q.z-(dz||0),Math.atan2(-n.z,n.x),parent);}}
 const cityCars=[];
 function addKitScenery(){
@@ -1161,7 +1161,7 @@ function addKitScenery(){
  for(let i=0;i<9;i++)kit('bush',4.5,-27+i*2.6,0,-3.2,0);for(let i=0;i<8;i++)kit('bush',4.5,-60+i*3,0,60.5,0);
  for(let i=0;i<6;i++)kit(pick(['box_A','box_B']),5,28+(i%3)*1.4,0,-22+Math.floor(i/3)*1.3,0);
  // city blocks between the streets, and the inland town
- kitBlock(world,-54,-36,-24,-6,6);kitBlock(world,6,14,-24,-6,6);kitBlock(world,6,14,6,24,6);kitBlock(world,-54,-36,6,24,6);
+ kitBlock(world,-54,-36,-24,-6,6);kitBlock(world,6,14,-24,-6,6);kitBlock(world,6,14,6,24,6);kitBlock(world,-54,-36,6,24,6);kitBlock(world,-24,-6,6,24,6);
  kitBlock(world,-274,-250,-34,-25,6.5);kitBlock(world,-274,-256,13,24,6.5);kitBlock(world,-26,-6,66,74,6.5);kit('watertower',5,-272,0,-8,0);
  kitBlock(world,-62,-16,186,194,6.5);kitBlock(world,-20,-12,222,250,6.5);kitBlock(world,-246,-204,-110,-104,6.5);kitBlock(world,-250,-236,-96,-80,6.5);kitBlock(world,-212,-198,-96,-80,6.5);kit('watertower',5,-200,0,-108,0);
  for(let c=0;c<4;c++)kit(pick(CARS.slice(0,4)),4.4,-44+c*1.9,0,236,0);
