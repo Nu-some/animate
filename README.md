@@ -26,6 +26,18 @@ Pick an **Origin** and a **Destination** in the top bar. The landscape and landm
 | | | Jebel Ali | Burj Khalifa, Burj Al Arab, dunes |
 | | | Mombasa | The Tusks, Fort Jesus, dhows, baobabs |
 
+## One map, one road network
+The whole world is one continuous map. From west to east: the inland town, the farm, the city, the port; the airport on the south coast; and the destination port across the sea to the east. A main road links the town, the farm and the city, and the city streets lead to the weighbridge and the port gate. The farm is further from the port than the city, so every loaded truck drives through the city to reach the port.
+
+Vehicles do not run on fixed loops. Each truck plans a trip on the road network (shortest route, keep-left lanes, give-way behind the vehicle ahead):
+- **GFS reefer trucks** start at the transporter yard, collect an inspected empty at the depot by the port, drive out to the farm, load, come back through the city, cross the weighbridge, and either queue at the port gate and drop in the stack or, when the vessel is delayed, turn off to the plug-in depot in town. Then they return to the yard and wait for the next job.
+- **Other exporters' trucks** come in from the inland packhouse in the next town and share the weighbridge, gate and stacks.
+- **Local market trucks** take pallets from the cold store to the supermarket distribution centre in the city.
+- **Long-distance trucks** drive from the farm along the road that links the towns to the client depot inland.
+- **The air-freight truck** shuttles between the cold store and the air cargo terminal, and cars wander the streets.
+
+Ships queue as well: while one vessel is alongside, the next waits at anchor. When a loaded vessel sails it crosses the sea on the map to the port of discharge.
+
 ## Origin side
 1. Pickers fill field bins in the orchard. The farm has three blocks: citrus, apples and trellised table grapes, and containers carry what the origin grows.
 2. Bin trucks take the bins to the bin cold room.
@@ -34,12 +46,13 @@ Pick an **Origin** and a **Destination** in the top bar. The landscape and landm
 5. Trucks from different trucking companies collect an inspected empty and load at the allocated farm.
 6. Each truck crosses the weighbridge and lines up at the port gate. The reefer goes into the stack.
 7. Cranes load each reefer onto its own line's vessel. Other exporters' trucks share the road, gate and stacks.
-8. **Vessel delayed:** the stack closes and loaded reefers are plugged in at the staging depot. When the stack reopens, trucks collect them.
+8. **Vessel delayed:** the stack closes and loaded reefers are plugged in at the separate plug-in depot in town. When the stack reopens, trucks are dispatched to collect them.
 
 ## Around the chain
 - **Air freight terminal:** a GFS air-freight truck brings pallets from the pallet cold store. They are built into ULDs and a freighter takes off and lands again.
 - **GFS HQ:** operations, planning and control.
-- **Transporter office:** transport partners and dispatch.
+- **Transporter yard:** transport partners and dispatch. Every truck starts and ends its job here.
+- **Supermarket DC and inland town:** the local market and the client depot at the far end of the road.
 
 ## Network
 - Lanes and carriers come from the FREIGHT 2025 Smartsheet (Cape Town, Port Elizabeth, Durban).
