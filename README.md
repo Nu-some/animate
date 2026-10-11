@@ -12,6 +12,11 @@ A live 3D operations view of the GFS export chain, built as a single HTML file w
 7. Cranes load each reefer onto its own line's vessel. Other exporters' trucks share the road, gate and stacks.
 8. **Vessel delayed:** the stack closes and loaded reefers are plugged in at the staging depot. When the stack reopens, trucks collect them.
 
+## Around the chain
+- **Air freight terminal:** a GFS air-freight truck brings pallets from the pallet cold store. They are built into ULDs and a freighter takes off and lands again.
+- **GFS HQ:** operations, planning and control.
+- **Transporter office:** transport partners and dispatch.
+
 ## Network
 - Lanes and carriers come from the FREIGHT 2025 Smartsheet (Cape Town, Port Elizabeth, Durban).
 - Port Said, Damietta, Port-Vendres, Rotterdam, Conakry and Longoni were added by hand.

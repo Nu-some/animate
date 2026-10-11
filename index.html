@@ -62,6 +62,7 @@ button{cursor:pointer}
 
 /* KPIs */
 .stats{gap:12px;font-size:12px;color:var(--muted);white-space:nowrap;overflow-x:auto;max-width:100%}
+.stats span{display:inline-flex;align-items:center;gap:5px}.stats svg{color:var(--accent)}
 .stats b{color:var(--fg);font:600 13px var(--f-data);font-variant-numeric:tabular-nums}
 
 /* detail */
@@ -123,7 +124,10 @@ body.clean .detail,body.clean .bottom,body.clean #labels .lbl.area{display:none!
 /* floating labels */
 #labels{position:fixed;inset:0;pointer-events:none;overflow:hidden}
 .lbl{position:absolute;left:0;top:0;transform:translate(-50%,-100%);background:rgba(13,23,20,.72);color:var(--fg);font-size:10px;font-weight:600;padding:2px 6px;border-radius:6px;white-space:nowrap;border:1px solid var(--line)}
-.lbl.area{font:600 10.5px var(--f-display);letter-spacing:.02em;opacity:.9}
+.lbl.area{display:flex;align-items:center;gap:6px;padding:3px 8px 3px 3px;border-radius:8px;opacity:.94}
+.lbl.area i{width:20px;height:20px;border-radius:6px;background:var(--accent);color:#08130e;display:grid;place-items:center;flex:none}
+.lbl.area b{display:block;font:600 11px/1.15 var(--f-display)}
+.lbl.area small{display:block;font:500 9px/1.2 var(--f-body);color:var(--muted)}
 .lbl.port{font-size:10.5px;padding:2px 6px}
 .lbl.port.o{border-color:rgba(61,187,116,.6)}
 .lbl.sel{background:var(--accent);color:#08130e;border-color:transparent}
@@ -166,6 +170,7 @@ body.clean .detail,body.clean .bottom,body.clean #labels .lbl.area{display:none!
       <button data-area="depot">Depot</button>
       <button data-area="port">Port</button>
       <button data-area="network">Network</button>
+      <button data-area="air">Airport</button>
       <button data-area="dest">Destination</button>
     </nav>
     <div class="ctl origin"><label for="origin">Origin</label><select id="origin"></select></div>
@@ -180,14 +185,14 @@ body.clean .detail,body.clean .bottom,body.clean #labels .lbl.area{display:none!
       </select>
     </div>
     <div class="stats ctl" aria-label="Today">
-      <span title="Containers gated in today"><b id="k1">0</b> gated in</span>
-      <span title="Pallets packed today"><b id="k2">0</b> pallets</span>
-      <span title="Average truck turnaround, depot to port drop"><b id="k3">–</b> turnaround</span>
+      <span title="Containers gated in today"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/></svg><b id="k1">0</b> gated in</span>
+      <span title="Pallets packed today"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18h18M5 18v-6h6v6M13 18v-9h6v9"/></svg><b id="k2">0</b> pallets</span>
+      <span title="Average truck turnaround, depot to port drop"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><b id="k3">–</b> turnaround</span>
       <span hidden id="k1s"></span><span hidden id="k2s"></span><span hidden id="k3s"></span>
     </div>
     <div class="ctl"><span class="clock" id="clock">06:30</span><span class="live">SIM</span></div>
     <div class="seg" aria-label="Lighting"><button id="dayBtn" aria-pressed="true">Day</button><button id="nightBtn" aria-pressed="false">Night</button></div>
-    <div class="seg" aria-label="Panels"><button id="journeyBtn" aria-pressed="false" title="Container journey">Journey</button><button id="toggleLists" aria-pressed="false" title="Trucks, containers and lanes">Lists</button></div>
+    <div class="seg" aria-label="Panels"><button id="journeyBtn" aria-pressed="false" title="Container journey">View journey</button><button id="toggleLists" aria-pressed="false" title="Trucks, containers and lanes">Lists</button></div>
     <button class="iconbtn" id="aboutBtn" aria-label="About this chain" aria-pressed="false" title="About this chain"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button>
     <button class="iconbtn" id="cleanBtn" aria-label="Hide panels (H)" aria-pressed="false" title="Hide panels (H)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
     <div style="position:relative">
@@ -313,9 +318,9 @@ const DAY_SKY=new THREE.Color(0xa9cfe0),NIGHT_SKY=new THREE.Color(0x0b1626);
 scene.background=DAY_SKY.clone();
 scene.fog=new THREE.FogExp2(0xa9cfe0,0.0016);
 const camera=new THREE.PerspectiveCamera(38,innerWidth/innerHeight,0.5,3000);
-camera.position.set(62,100,122);
+camera.position.set(62,118,146);
 const controls=new THREE.OrbitControls(camera,renderer.domElement);
-controls.target.set(0,0,4);
+controls.target.set(-12,0,6);
 controls.mouseButtons={LEFT:THREE.MOUSE.PAN,MIDDLE:THREE.MOUSE.DOLLY,RIGHT:THREE.MOUSE.ROTATE};
 controls.touches={ONE:THREE.TOUCH.PAN,TWO:THREE.TOUCH.DOLLY_ROTATE};
 controls.screenSpacePanning=false;controls.enableDamping=true;controls.dampingFactor=.09;
@@ -337,7 +342,7 @@ const world=new THREE.Group();scene.add(world);
 // ocean & land
 const ocean=new THREE.Mesh(new THREE.PlaneGeometry(1600,1600),new THREE.MeshStandardMaterial({color:0x3f93b5,roughness:.35,metalness:.1}));
 ocean.rotation.x=-Math.PI/2;ocean.position.y=-0.6;ocean.receiveShadow=true;scene.add(ocean);
-const land=box(world,190,0.6,150,0xd8c9a3,-24,-0.6,4);land.castShadow=false;
+const land=box(world,190,0.6,185,0xd8c9a3,-24,-0.6,-13);land.castShadow=false;
 box(world,46,0.06,56,0x93b462,-52,0,0).castShadow=false; // orchard ground
 box(world,26,0.05,22,0xbfb08a,-21,0,31).castShadow=false;   // depot slab
 box(world,26,0.05,40,0xb9b4a6,52,0,12).castShadow=false;    // port yard slab
@@ -345,8 +350,8 @@ box(world,4,1.2,150,0xa9a397,69,-0.6,4).castShadow=false;   // quay wall
 box(world,8,0.06,70,0x9c978c,66,0,4).castShadow=false;      // quay apron
 // mountains (Table-Mountain-ish backdrop)
 const mtnM=M(0x8f9a7a,{flatShading:true});
-[[-90,-55,30,22],[-60,-62,26,18],[-30,-66,32,16],[-110,-20,28,20]].forEach(([x,z,r,h])=>{const m=new THREE.Mesh(new THREE.ConeGeometry(r,h,7),mtnM);m.position.set(x,h/2-0.5,z);m.receiveShadow=true;world.add(m);});
-{const tm=new THREE.Mesh(new THREE.CylinderGeometry(20,26,16,8),mtnM);tm.position.set(-45,7.5,-68);world.add(tm);}
+[[-100,-86,30,26],[-62,-92,24,20],[8,-92,30,22],[38,-88,20,16]].forEach(([x,z,r,h])=>{const m=new THREE.Mesh(new THREE.ConeGeometry(r,h,7),mtnM);m.position.set(x,h/2-0.5,z);m.receiveShadow=true;world.add(m);});
+{const tm=new THREE.Mesh(new THREE.CylinderGeometry(26,34,22,9),mtnM);tm.position.set(-28,10.5,-90);world.add(tm);const cap=new THREE.Mesh(new THREE.CylinderGeometry(25.5,26,1.2,9),M(0x9aa587,{flatShading:true}));cap.position.set(-28,21.8,-90);world.add(cap);}
 
 // ---- orchard (instanced) — aisle at z≈0 holds the field bins
 const trees=[];for(let x=-70;x<=-49;x+=3.4)for(let z=-24;z<=24;z+=3.6){if(Math.abs(z)<2.5)continue;trees.push([x+rnd(-.3,.3),z+rnd(-.3,.3)]);}
@@ -368,7 +373,7 @@ function setBinFill(g,f){const fl=g.userData.fill;fl.position.y=.1+f*.72;fl.visi
 const fieldBins=[];for(let i=0;i<6;i++)fieldBins.push({g:makeBin(world,-68+i*3.8,0,0,Math.random()*.7),fill:0});
 fieldBins.forEach(b=>b.fill=Math.random()*.7);
 // farm shed
-const farmShed=new THREE.Group();world.add(farmShed);box(farmShed,7,3.2,5,0xc9a37a,-56,0,-31);box(farmShed,7.6,.4,5.6,0x7d5a3f,-56,3.2,-31);
+const farmShed=new THREE.Group();world.add(farmShed);box(farmShed,7,3.2,5,0xc9a37a,-75,0,4);box(farmShed,7.6,.4,5.6,0x7d5a3f,-75,3.2,4);
 // pickers: walk to a tree, pick, carry the bag to the nearest field bin, tip it in
 function makePerson(color){const g=new THREE.Group();cyl(g,.22,.26,.9,color,0,0,0,8);const h=new THREE.Mesh(new THREE.SphereGeometry(.22,8,6),M(0x6b4a33));h.position.y=1.1;h.castShadow=true;g.add(h);
  const hat=new THREE.Mesh(new THREE.CylinderGeometry(.34,.34,.05,10),M(0xe9d9a8));hat.position.y=1.3;g.add(hat);return g;}
@@ -698,16 +703,92 @@ const DSTOPS=[{k:'pickup',p:[28,-18+DZ]},{k:'customs',p:[12,-20+DZ]},{k:'warehou
 const clientTrucks=[];const destQueue=[];
 const dLight=new THREE.PointLight(0xffc98a,0,60,1.6);dLight.position.set(-10,10,DZ);scene.add(dLight);nightLights.push(dLight);
 
+
+/* =========================================================
+   AIRPORT, GFS HQ, TRANSPORTER OFFICE, CITY, TREES
+   ========================================================= */
+// airfield
+box(world,32,.05,104,0xc9c4b4,-103,0,8).castShadow=false;
+box(world,8,.06,92,0x4a4f53,-105,.01,10).castShadow=false;
+for(let z=-30;z<=50;z+=6)box(world,.4,.02,3,0xf4f1e8,-105,.08,z).castShadow=false;
+box(world,5,.05,70,0x6a6f72,-96,0,12).castShadow=false;box(world,16,.05,20,0x8d9490,-91,0,-6).castShadow=false;
+const rLightMat=new THREE.MeshStandardMaterial({color:0xfff2c0,emissive:0xfff2c0,emissiveIntensity:.2});
+const rLights=new THREE.InstancedMesh(new THREE.SphereGeometry(.2,6,4),rLightMat,40);{let k=0;for(let z=-34;z<=56&&k<40;z+=4.6)[-109.3,-100.7].forEach(x=>{if(k<40){dummy.position.set(x,.15,z);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();rLights.setMatrixAt(k++,dummy.matrix);}});rLights.count=k;}world.add(rLights);
+box(world,9,5,22,0xe8eef0,-85,0,24);box(world,9.6,.4,22.6,0x5f8fa3,-85,5,24);
+for(let i=0;i<4;i++){const w=new THREE.Mesh(new THREE.BoxGeometry(.1,1,4),winMat);w.position.set(-80.44,3,16+i*5.4);world.add(w);}
+cyl(world,1,1.3,12,0xe8e2d4,-83,0,42,10);box(world,3.6,2.2,3.6,0x7fb3c9,-83,12,42);box(world,4,.4,4,0x2c3633,-83,14.2,42);
+box(world,12,6,14,0xd9dfe2,-84,0,-12);box(world,12.6,.4,14.6,0x3dbb74,-84,6,-12);box(world,4,3.2,.2,0x3a4a45,-86,0,-19.05);
+const uldI=new THREE.InstancedMesh(new THREE.BoxGeometry(1.5,1.6,1.5),M(0xb8c2c6,{metalness:.3,roughness:.5}),8);uldI.castShadow=true;world.add(uldI);
+const airHit=new THREE.Mesh(new THREE.BoxGeometry(34,8,100),new THREE.MeshBasicMaterial({visible:false}));airHit.position.set(-97,4,8);world.add(airHit);
+// freighter
+const PLANE_Y=2.3;
+function makePlane(){const g=new THREE.Group();const W=0xf4f6f6;
+ const body=new THREE.Mesh(new THREE.CylinderGeometry(1.3,1.1,16,14),M(W));body.rotation.x=Math.PI/2;body.castShadow=true;g.add(body);
+ const nose=new THREE.Mesh(new THREE.SphereGeometry(1.3,14,10),M(W));nose.scale.z=1.7;nose.position.z=8;nose.castShadow=true;g.add(nose);
+ const cock=new THREE.Mesh(new THREE.BoxGeometry(1.7,.45,1),M(0x1b2a33));cock.position.set(0,.75,8.6);g.add(cock);
+ const wing=new THREE.Mesh(new THREE.BoxGeometry(19,.28,3.2),M(0xe2e8ea));wing.position.set(0,-.3,.6);wing.castShadow=true;g.add(wing);
+ const tp=new THREE.Mesh(new THREE.BoxGeometry(6.4,.24,1.8),M(0xe2e8ea));tp.position.set(0,.5,-7.2);g.add(tp);
+ const fin=new THREE.Mesh(new THREE.BoxGeometry(.3,3.4,2.6),M(0x3dbb74));fin.position.set(0,2.2,-7);g.add(fin);
+ const stripe=new THREE.Mesh(new THREE.BoxGeometry(2.66,.25,12),M(0x3dbb74));stripe.position.set(0,-.2,0);g.add(stripe);
+ [-4.6,4.6].forEach(x=>{const e=new THREE.Mesh(new THREE.CylinderGeometry(.55,.55,2.4,10),M(0xc9d0d3));e.rotation.x=Math.PI/2;e.position.set(x,-1,1.4);g.add(e);});
+ const gear=new THREE.Group();[[0,6],[-1.4,0],[1.4,0]].forEach(([x,z])=>{const l=new THREE.Mesh(new THREE.BoxGeometry(.3,1.1,.3),M(0x2a2f2e));l.position.set(x,-1.75,z);gear.add(l);});g.add(gear);g.userData.gear=gear;
+ g.rotation.order='YXZ';return g;}
+const plane={g:makePlane(),state:'parked',path:null,seg:0,segD:0,ulds:2,flights:0,palletsToday:0,loadT:0,awayT:0,onEnd:null};
+plane.g.position.set(-94,PLANE_Y,4);plane.g.rotation.y=0;world.add(plane.g);tag(plane.g,'plane',plane);
+let airPallets=12;
+function planePath(pts,onEnd){plane.path=pts.map(p=>new THREE.Vector3(p[0],p[1],p[2]));plane.speeds=pts.map(p=>p[3]);plane.seg=0;plane.segD=0;plane.onEnd=onEnd;}
+// air freight truck loop: pallet cold store → air cargo terminal
+const AP=[[14,-24],[-10,-31],[-50,-31],[-78,-26],[-86,-21.5],[-82,-36],[-50,-38],[-10,-38],[18,-30]];
+const airCurve=new THREE.CatmullRomCurve3(AP.map(([x,z])=>new THREE.Vector3(x,0,z)),true,'centripetal');const ALOOP=airCurve.getLength();
+const ASTOPS=[{k:'cold',p:[14,-24]},{k:'air',p:[-86,-21.5]}];
+const airTrucks=[];
+function makeAirTruck(){const g=new THREE.Group();box(g,2,1.8,1.9,0x3dbb74,0,.5,3);box(g,1.7,.6,.1,0x1b2a33,0,1.3,3.96);box(g,2.1,2.3,5.2,0xf4f6f6,0,.5,-.6);box(g,2.12,.3,5.22,0x3dbb74,0,1.5,-.6);
+ [[-.95,3],[.95,3],[-.95,-2.2],[.95,-2.2]].forEach(([x,z])=>{const w=cyl(g,.4,.4,.3,0x161616,x,.4,z,10);w.rotation.z=Math.PI/2;w.position.y=.4;});world.add(g);return g;}
+// GFS HQ office park
+const logoCanvas=document.createElement('canvas');logoCanvas.width=256;logoCanvas.height=128;{const c=logoCanvas.getContext('2d');c.fillStyle='#0d1714';c.fillRect(0,0,256,128);c.fillStyle='#3dbb74';c.beginPath();c.arc(56,64,34,0,7);c.fill();c.fillStyle='#0d1714';c.beginPath();c.arc(56,68,16,0,7);c.fill();c.fillStyle='#ffffff';c.font='bold 64px Arial, sans-serif';c.textBaseline='middle';c.fillText('GFS',104,68);}
+const logoTex=new THREE.CanvasTexture(logoCanvas);logoTex.encoding=THREE.sRGBEncoding;
+box(world,40,.05,28,0xc3c8c2,22,0,63).castShadow=false;
+const glassM=M(0x7fb3c9,{metalness:.25,roughness:.35});
+function office(x,z,w,h,d,col){const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),glassM);b.position.set(x,h/2,z);b.castShadow=true;b.receiveShadow=true;world.add(b);
+ for(let y=3;y<h;y+=3)box(world,w+.1,.35,d+.1,col||0xf4f6f6,x,y,z);box(world,w+.4,.5,d+.4,0x2c3633,x,h,z);
+ const lit=new THREE.Mesh(new THREE.BoxGeometry(w-.4,h-1,.1),winMat);lit.position.set(x,h/2,z+d/2+.06);world.add(lit);}
+office(24,68,13,12,9);office(10,61,8,7,8);office(36,71,9,9,8);office(37,57,7,6,7);
+const sign=new THREE.Mesh(new THREE.PlaneGeometry(7,3.5),new THREE.MeshBasicMaterial({map:logoTex}));sign.position.set(24,9.5,72.62);world.add(sign);
+const sign2=new THREE.Mesh(new THREE.PlaneGeometry(4,2),new THREE.MeshBasicMaterial({map:logoTex}));sign2.rotation.y=Math.PI/2;sign2.position.set(30.62,9.5,68);world.add(sign2);
+cyl(world,2.2,2.4,.6,0xd5dadb,26,0,53.5,16);const fw=cyl(world,1.9,1.9,.2,0x4fb3d9,26,.6,53.5,16);cyl(world,.3,.3,1.6,0xd5dadb,26,.6,53.5,8);
+{const cars=new THREE.InstancedMesh(new THREE.BoxGeometry(1.1,.8,2.1),new THREE.MeshStandardMaterial({roughness:.5}),24);const col=new THREE.Color();let k=0;
+ for(let r=0;r<2;r++)for(let c=0;c<12;c++){if(Math.random()<.25)continue;dummy.position.set(4+c*1.6,.45,51+r*3.4);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();cars.setMatrixAt(k,dummy.matrix);cars.setColorAt(k,col.setHex(pick([0xeef1f2,0x2f5f9e,0xd04a3a,0x2c3633,0x9aa6aa])));k++;}
+ cars.count=k;cars.castShadow=true;world.add(cars);}
+const hqHit=new THREE.Mesh(new THREE.BoxGeometry(40,18,28),new THREE.MeshBasicMaterial({visible:false}));hqHit.position.set(22,9,63);world.add(hqHit);
+// transporter office & dispatch yard
+box(world,26,.05,24,0xb9b4a6,-31,0,62).castShadow=false;box(world,11,4.5,7,0xe8e2d4,-36,0,70);box(world,11.6,.4,7.6,0x2f5f9e,-36,4.5,70);
+for(let i=0;i<3;i++){const w=new THREE.Mesh(new THREE.BoxGeometry(2,1,.1),winMat);w.position.set(-40+i*3.6,2.6,73.56);world.add(w);}
+const parked=[];for(let i=0;i<5;i++){const {g}=makeTruck(i);g.position.set(-41+i*4.2,0,58);g.rotation.y=0;if(i%2===0){const m=makeContainer(i===2?pick(OTHER_COLORS):null,i!==2);m.position.set(0,.65,-.6);g.add(m);}parked.push(g);}
+const transHit=new THREE.Mesh(new THREE.BoxGeometry(26,6,24),new THREE.MeshBasicMaterial({visible:false}));transHit.position.set(-31,3,62);world.add(transHit);
+// city across the bay
+box(scene,90,.6,80,0xd8d2c0,125,-.6,80).castShadow=false;
+{const n=60;const tw=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshStandardMaterial({roughness:.4,metalness:.15}),n);const col=new THREE.Color();let k=0;
+ for(let i=0;i<n;i++){const x=90+Math.random()*70,z=48+Math.random()*64,h=rnd(6,32)*(1-Math.abs(x-125)/80);dummy.position.set(x,h/2,z);dummy.rotation.set(0,0,0);dummy.scale.set(rnd(3,6),h,rnd(3,6));dummy.updateMatrix();tw.setMatrixAt(k,dummy.matrix);tw.setColorAt(k,col.setHex(pick([0xe8eef0,0xcfe3ee,0x9fc6d6,0xd8d2c0])));k++;}
+ tw.castShadow=true;scene.add(tw);}
+// scattered trees
+{const rects=[[-75,-48,32,44],[-70,-45,50,78],[44,64,48,78],[20,36,-52,-43],[-40,10,-52,-43],[0,12,10,36],[30,37,24,33],[-118,-112,-30,60],[-30,-14,-60,-50]];
+ const pts=[];rects.forEach(([x0,x1,z0,z1])=>{const n=Math.round((x1-x0)*(z1-z0)/38);for(let i=0;i<n;i++)pts.push([rnd(x0,x1),rnd(z0,z1)]);});
+ const tT=new THREE.InstancedMesh(new THREE.CylinderGeometry(.18,.25,1.4,6),M(0x6b4f35),pts.length);const tC=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1.4,0),new THREE.MeshStandardMaterial({flatShading:true,roughness:.9}),pts.length);const col=new THREE.Color();
+ pts.forEach(([x,z],i)=>{dummy.position.set(x,.7,z);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();tT.setMatrixAt(i,dummy.matrix);const s=rnd(.8,1.3);dummy.position.set(x,2.1*s,z);dummy.scale.set(s,s,s);dummy.rotation.y=Math.random()*3;dummy.updateMatrix();tC.setMatrixAt(i,dummy.matrix);tC.setColorAt(i,col.setHex(pick([0x4f8f45,0x3f7a3a,0x5ea052,0x6aa85a])));});
+ tT.castShadow=tC.castShadow=true;world.add(tT,tC);}
+
 /* =========================================================
    LABELS
    ========================================================= */
-roadRibbon(dCurve,2.1,0x5d6266,true);placeStops(DSTOPS,dCurve,DLOOP);
+roadRibbon(dCurve,2.1,0x5d6266,true);placeStops(DSTOPS,dCurve,DLOOP);roadRibbon(airCurve,1.9,0x5d6266,false);placeStops(ASTOPS,airCurve,ALOOP);
 const labelsEl=$('#labels');const labels=[];
 function addLabel(text,cls,pos,obj){const el=document.createElement('div');el.className='lbl '+(cls||'');el.textContent=text;labelsEl.appendChild(el);const L={el,pos:pos?new THREE.Vector3(...pos):null,obj};labels.push(L);return L;}
-const areaLabels={farm:addLabel('Orchard · pickers','area',[-60,6,-26]),cold:addLabel('Bin cold room','area',[-23,7.5,-16]),pack:addLabel('Packhouse · wash & pack','area',[-8,8.5,-13]),store:addLabel('Pallet cold store','area',[7,7.5,-13]),depot:addLabel('Empty depot','area',[-21,8,30]),weigh:addLabel('Weighbridge','area',[14,5,-4]),stage:addLabel('Reefer staging depot','area',[22,6,11]),wash:addLabel('Wash bay · PTI','area',[-14.5,6,34]),gate:addLabel('Port gate','area',[30,7,0]),port:addLabel('Port','area',[60,22,6])};
+const ICON={leaf:'M5 19c0-8 6-14 14-14 0 8-6 14-14 14zM5 19l7-7',box:'M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10',building:'M4 21V5h10v16M14 9h6v12M7 8h2M7 12h2M7 16h2',truck:'M2 7h11v9H2zM13 10h5l3 3v3h-8M6 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM17 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z',plane:'M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z',bolt:'M13 2L4 14h7l-1 8 9-12h-7z',gate:'M4 21V8h4v13M8 10h12M16 10v11',anchor:'M12 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM12 7v14M5 12H3a9 9 0 0 0 18 0h-2M8 10h8',snow:'M12 2v20M4 6l16 12M20 6L4 18',scale:'M4 18h16M6 18v-4h12v4M12 14V6M9 6h6',shield:'M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z',warehouse:'M3 21V9l9-5 9 5v12M7 21v-7h10v7'};
+function areaLabel(title,sub,icon,pos){const L=addLabel('','area',pos);L.el.innerHTML=`<i><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="${ICON[icon]}"/></svg></i><span><b></b><small></small></span>`;L.t=L.el.querySelector('b');L.s=L.el.querySelector('small');L.t.textContent=title;L.s.textContent=sub;return L;}
+const areaLabels={farm:areaLabel('Farm / Orchard','Citrus picking','leaf',[-60,6,-26]),cold:areaLabel('Bin cold room','Pre-cooling bins','snow',[-23,7.5,-16]),pack:areaLabel('Packhouse','Wash, pack & palletise','box',[-8,8.5,-13]),store:areaLabel('Pallet cold store','Ready for loading','snow',[7,7.5,-13]),depot:areaLabel('Empty depot','Wash & PTI','box',[-21,8,30]),weigh:areaLabel('Weighbridge','VGM weighing','scale',[14,5,-4]),stage:areaLabel('Plug-in depot','Reefer power when vessels are late','bolt',[22,6,11]),gate:areaLabel('Port gate','Security & check-in','gate',[30,7,0]),port:areaLabel('Port of Cape Town','Export to global markets','anchor',[60,22,6]),air:areaLabel('Air freight terminal','Pallets by air','plane',[-90,10,-12]),hq:areaLabel('GFS HQ','Operations, planning & control','building',[24,15,66]),trans:areaLabel('Transporter office','Transport partners & dispatch','truck',[-34,8,68])};
 const LBL_OFF={COO:[34,-6],LFW:[-30,-6],APP:[40,-22],KBI:[44,8],DLA:[34,-26],LBV:[-6,30],PDG:[-48,26],PLU:[40,-4],PSD:[44,-6],DAM:[-40,-8],CKY:[-34,8],ABJ:[-10,26]};
 Object.entries(portPins).forEach(([k,g])=>{const p=PORTS[k];const L=addLabel(p.name,'port'+(p.role==='o'?' o':''),null,g);L.offY=4.2;L.isMap=true;L.off=LBL_OFF[k]||[0,0];});
-const destLabels={port:addLabel('Port of discharge','area',[40,20,DZ]),stack:addLabel('Discharge stack','area',[24,6,DZ-1]),customs:addLabel('Customs inspection','area',[12,7,DZ-26]),wh:addLabel('Client warehouse','area',[-18,8,DZ-6]),dep:addLabel('Shipping line depot · empties','area',[-19,6,DZ+34])};
+const destLabels={port:areaLabel('Port of discharge','Discharging','anchor',[40,20,DZ]),stack:areaLabel('Discharge stack','Plugged in','box',[24,6,DZ-1]),customs:areaLabel('Customs','Scanning & inspection','shield',[12,7,DZ-26]),wh:areaLabel('Client warehouse','Forklift unloading','warehouse',[-18,8,DZ-6]),dep:areaLabel('Shipping line depot','Empty returns','box',[-19,6,DZ+34])};
 const selLabel=addLabel('','sel');selLabel.el.hidden=true;
 const tmpV=new THREE.Vector3();
 function updateLabels(){const w=innerWidth,h=innerHeight;const camToMap=camera.position.distanceTo(map.position);
@@ -723,9 +804,9 @@ function updateLabels(){const w=innerWidth,h=innerHeight;const camToMap=camera.p
    ========================================================= */
 const ring=new THREE.Mesh(new THREE.TorusGeometry(1,.08,8,40),new THREE.MeshBasicMaterial({color:0x3dbb74}));ring.rotation.x=-Math.PI/2;ring.visible=false;scene.add(ring);
 let selected=null;let follow=null;let fly=null;
-function worldPosOf(sel){const o=sel.type==='truck'?sel.ref.g:sel.type==='container'?(sel.ref.mesh||null):sel.type==='ship'?sel.ref.g:sel.type==='port'?portPins[sel.ref.key]:sel.type==='vessel'?vesselGroup:sel.type==='crane'?sel.ref.g:sel.type==='bintruck'||sel.type==='dtruck'?sel.ref.g:sel.obj||null;
+function worldPosOf(sel){const o=sel.type==='truck'?sel.ref.g:sel.type==='container'?(sel.ref.mesh||null):sel.type==='ship'?sel.ref.g:sel.type==='port'?portPins[sel.ref.key]:sel.type==='vessel'?vesselGroup:sel.type==='crane'?sel.ref.g:sel.type==='bintruck'||sel.type==='dtruck'||sel.type==='airtruck'?sel.ref.g:sel.type==='plane'?plane.g:sel.obj||null;
  if(!o)return null;return o.getWorldPosition(new THREE.Vector3());}
-const AREA_VIEWS={overview:{t:[0,0,4],d:[62,100,118]},farm:{t:[-48,0,-6],d:[30,40,46]},pack:{t:[-10,0,-12],d:[14,26,26]},depot:{t:[-18,0,30],d:[26,30,36]},port:{t:[56,0,8],d:[46,48,60]},network:{t:[0,0,MAPZ+8],d:[0,150,96]},dest:{t:[0,0,DZ],d:[54,72,84]}};
+const AREA_VIEWS={overview:{t:[-12,0,6],d:[74,118,140]},air:{t:[-96,0,6],d:[52,58,62]},farm:{t:[-48,0,-6],d:[30,40,46]},pack:{t:[-10,0,-12],d:[14,26,26]},depot:{t:[-18,0,30],d:[26,30,36]},port:{t:[56,0,8],d:[46,48,60]},network:{t:[0,0,MAPZ+8],d:[0,150,96]},dest:{t:[0,0,DZ],d:[54,72,84]}};
 function flyTo(target,offset){const t1=new THREE.Vector3(...target);const off=offset?new THREE.Vector3(...offset):camera.position.clone().sub(controls.target).setLength(40);
  const p1=t1.clone().add(off);if(reduceMotion){controls.target.copy(t1);camera.position.copy(p1);return;}
  fly={t:0,dur:1.2,p0:camera.position.clone(),p1,t0:controls.target.clone(),t1};}
@@ -736,7 +817,7 @@ function select(sel,opts){selected=sel;follow=null;if(sel){aboutOpen=false;$('#a
  if(p&&!(opts&&opts.noFly)){const isMap=p.z<-200;const dist=sel.type==='truck'||sel.type==='container'?30:sel.type==='ship'?34:sel.type==='port'?46:sel.type==='vessel'?70:40;
   const dir=camera.position.clone().sub(controls.target).normalize();if(dir.y<.45){dir.y=.55;dir.normalize();}
   flyTo([p.x,isMap?0:0,p.z],dir.multiplyScalar(dist).toArray());}
- if(['truck','bintruck','dtruck','ship','container','vessel'].includes(sel.type))follow={sel,last:p?p.clone():null};
+ if(['truck','bintruck','dtruck','airtruck','plane','ship','container','vessel'].includes(sel.type))follow={sel,last:p?p.clone():null};
  if(sel.type==='port')highlightLane(sel.ref.key);else if(sel.type==='ship')highlightLane(null,sel.ref);else if(sel.type==='container')highlightLane(null,null,sel.ref);else highlightLane(null);
  renderDetail();renderTracker();renderTable();}
 function highlightLane(portKey,ship,cont){laneLines.forEach(ln=>{const l=ln.userData.lane;let on=false;
@@ -748,7 +829,7 @@ renderer.domElement.addEventListener('pointerup',e=>{if(!downAt)return;const mov
  mouse.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(mouse,camera);
  const hits=ray.intersectObjects(scene.children,true);
  for(const h of hits){let o=h.object;if(o===ring)continue;while(o&&!o.userData.sel)o=o.parent;if(o){select(o.userData.sel);return;}}
- const VOL=new Map([[dStackHit,'dstack'],[customsHit,'customs'],[whHit,'warehouse'],[dDepotHit,'ddepot'],[farmHit,'farm'],[coldHit,'coldroom'],[stageHit,'staging'],[packHit,'pack'],[depotHit,'depot'],[yardHit,'yard']]);
+ const VOL=new Map([[airHit,'airport'],[hqHit,'hq'],[transHit,'transport'],[dStackHit,'dstack'],[customsHit,'customs'],[whHit,'warehouse'],[dDepotHit,'ddepot'],[farmHit,'farm'],[coldHit,'coldroom'],[stageHit,'staging'],[packHit,'pack'],[depotHit,'depot'],[yardHit,'yard']]);
  for(const h of hits){if(VOL.has(h.object)){select({type:VOL.get(h.object),obj:h.object});return;}}
  select(null);});
 
@@ -788,6 +869,16 @@ function renderDetail(){
  else if(s.type==='depot'){const st=depotSlots;h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Shipping line empty depot · ${esc(PORTS[origin].name)}</div><h2>Empty depot</h2><span class="chip ${st.ready?'ok':'warn'}">${st.ready?'Empty ready for collection':'Preparing next empty'}</span>`+
   `<ul class="lanes"><li><span>Wash bay</span><span class="chip ${st.wash&&!st.wash.done?'ok':''}">${st.wash?(st.wash.moving?'Moving in':st.wash.done?'Washed':'Washing'):'Free'}</span></li><li><span>PTI inspection</span><span class="chip ${st.pti&&!st.pti.done?'ok':''}">${st.pti?(st.pti.moving?'Moving in':st.pti.done?'Passed':'Running PTI'):'Free'}</span></li><li><span>Ready slot</span><span class="chip ${st.ready?'ok':''}">${st.ready?'Waiting for truck':'Empty'}</span></li></ul>`+
   kv([['Washed today',stats.washed||0],['PTI passed today',stats.ptiPassed||0],['Released to trucks',stats.released||0],['Empties on stack',empties.length],['Lines served',originCarriers().join(', ')]]);}
+ else if(s.type==='airtruck'){const t=s.ref;h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">GFS air freight · ${esc(t.id)}</div><h2>${esc(t.plate)}</h2><span class="chip ok">${esc(t.status)}</span>`+kv([['Driver',esc(t.driver)],['Pallets on board',t.pallets+' / 10'],['Trips today',t.trips],['Route','Pallet cold store → air cargo terminal']]);}
+ else if(s.type==='plane'||s.type==='airport'){const P=plane;const st={parked:'On stand, loading',taxi:'Taxiing to runway',takeoff:'Taking off',away:'In flight',landing:'Landing'}[P.state];
+  h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Air freight terminal · ${esc(PORTS[origin].name)}</div><h2>${s.type==='plane'?'GFS freighter':'Air freight terminal'}</h2><span class="chip ${weather==='fog'||weather==='wind'?'warn':'ok'}">${weather==='fog'||weather==='wind'?'Departures held':esc(st)}</span>`+
+  kv([['Freighter',esc(st)],['ULDs loaded',P.ulds+' / 8'],['Pallets staged at terminal',airPallets],['Flights today',P.flights],['Pallets flown today',P.palletsToday],['Markets','Europe & Middle East']])+`<div class="bar"><i style="width:${P.ulds/8*100}%"></i></div><p class="hint">Premium and short-life fruit goes by air. Pallets are built into ULDs (4 pallets each) at the cargo terminal.</p>`;}
+ else if(s.type==='hq'){const active=containers.filter(c=>c.step<9).length;const atSea=ships.filter(x=>x.boxes.length).length;
+  h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">City office park</div><h2>GFS HQ</h2><span class="chip ok">Operations, planning & control</span>`+
+  kv([['Containers in the chain',active],['GFS vessels at sea',atSea],['Reefer trucks dispatched',trucks.filter(t=>t.kind!=='other').length],['Bin trucks',binTrucks.length],['Air pallets flown today',plane.palletsToday],['Lanes on file',LANES.length],['Vessel status',delayed()?'Delayed, staging active':'On schedule']])+
+  `<p class="hint">Bookings, transport allocation and documents are run from here.</p>`;}
+ else if(s.type==='transport'){const rows=TRUCKERS.map(co=>{const ts=trucks.filter(t=>t.company===co);return `<li><span>${esc(co)}</span><span class="chip">${ts.length} truck${ts.length===1?'':'s'}</span></li>`;}).join('');
+  h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Transport partners & dispatch</div><h2>Transporter office</h2><span class="chip ok">${trucks.filter(t=>t.kind!=='other'&&t.cont).length} loads on the road</span><ul class="lanes">${rows}</ul><p class="hint">Each partner's trucks collect inspected empties and are sent to the allocated farm.</p>`;}
  else if(s.type==='dtruck'){const t=s.ref;const c=t.cont;h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Client-hired truck · ${esc(t.id)}</div><h2>${esc(t.plate)}</h2><span class="chip ok">${esc(t.status)}</span>`+
   kv([['Company',esc(t.company)],['Driver',esc(t.driver)],['Container',c?`<a href="#" data-cont="${esc(c.id)}" style="color:inherit">${esc(c.id)}</a>`:'—'],['Customs',c?(c.cleared?'Cleared':'Pending'):'—'],['Pallets on board',c?(c.step>=8?0:t.unloading?20-Math.floor(t.unload):20):'—'],['Next stop',esc({pickup:'Port stack',customs:'Customs',warehouse:'Client warehouse',return:'Shipping line depot'}[DSTOPS[t.stopIdx].k])]]);}
  else if(s.type==='dstack'){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Port of discharge</div><h2>Discharge stack</h2><span class="chip ok">${destQueue.length} GFS reefers waiting</span>`+(destQueue.length?`<ul class="lanes">${destQueue.slice(0,6).map(c=>`<li><a href="#" data-cont="${esc(c.id)}" style="color:inherit;font-family:var(--f-data);font-size:12px">${esc(c.id)}</a><span class="chip">${esc(PORTS[c.pod].name)}</span></li>`).join('')}</ul>`:'')+`<p class="hint">Reefers stay plugged in until the client's truck collects them after customs.</p>`;}
@@ -826,17 +917,17 @@ function renderTracker(){const c=trackedContainer()||containers.find(x=>x.step<9
  stepsEl.innerHTML=`<div class="fill" style="width:${n<0?0:n/9*90}%"></div>`+STEP_NAMES.map((nm,i)=>`<div class="step ${i<n?'done':i===n?'now done':''}"><i></i><span>${nm}</span><time>${c&&c.times[i]!=null?fmt(c.times[i]):'—'}</time></div>`).join('');}
 let tab='trucks';let hoverTable=false,hoverDetail=false;
 const tbl=$('#tbl');$('#tablebox').addEventListener('pointerenter',()=>hoverTable=true);$('#tablebox').addEventListener('pointerleave',()=>hoverTable=false);
-function allTrucks(){return [...trucks,...binTrucks,...clientTrucks];}
+function allTrucks(){return [...trucks,...binTrucks,...airTrucks,...clientTrucks];}
 function renderTable(){let h='';
  if(tab==='trucks'){h='<thead><tr><th>Truck</th><th>Type</th><th>Company</th><th>Plate</th><th>Driver</th><th>Status</th><th>Container</th><th>Load</th></tr></thead><tbody>'+
-  allTrucks().map((t,i)=>`<tr data-i="${i}" class="${selected&&selected.ref===t?'sel':''}"><td class="mono">${t.id}</td><td>${t.kind==='bin'?'Bin truck':t.kind==='other'?'Other exporter':t.kind==='client'?'Client hire (destination)':'GFS reefer'}</td><td>${esc(t.company)}</td><td class="mono">${esc(t.plate)}</td><td>${esc(t.driver)}</td><td><span class="chip ${chipFor(t.status)}">${esc(t.status)}</span></td><td class="mono">${t.cont?esc(t.cont.id):'—'}</td><td class="mono">${t.kind==='client'?(t.cont?(t.cont.step>=8?'Empty':(t.unloading?20-Math.floor(t.unload):20)+'/20 plts'):'—'):t.kind==='other'?(t.cont?'Loaded':'—'):t.kind==='bin'?t.bins+'/24 bins':t.cont?t.cont.pallets+'/20 plts':'—'}</td></tr>`).join('')+'</tbody>';}
+  allTrucks().map((t,i)=>`<tr data-i="${i}" class="${selected&&selected.ref===t?'sel':''}"><td class="mono">${t.id}</td><td>${t.kind==='air'?'GFS air freight':t.kind==='bin'?'Bin truck':t.kind==='other'?'Other exporter':t.kind==='client'?'Client hire (destination)':'GFS reefer'}</td><td>${esc(t.company)}</td><td class="mono">${esc(t.plate)}</td><td>${esc(t.driver)}</td><td><span class="chip ${chipFor(t.status)}">${esc(t.status)}</span></td><td class="mono">${t.cont?esc(t.cont.id):'—'}</td><td class="mono">${t.kind==='air'?t.pallets+'/10 plts':t.kind==='client'?(t.cont?(t.cont.step>=8?'Empty':(t.unloading?20-Math.floor(t.unload):20)+'/20 plts'):'—'):t.kind==='other'?(t.cont?'Loaded':'—'):t.kind==='bin'?t.bins+'/24 bins':t.cont?t.cont.pallets+'/20 plts':'—'}</td></tr>`).join('')+'</tbody>';}
  else if(tab==='containers'){h='<thead><tr><th>Container</th><th>Booking</th><th>Carrier</th><th>Lane</th><th>Plts</th><th>Set pt</th><th>Status</th></tr></thead><tbody>'+
   containers.slice(0,40).map((c,i)=>`<tr data-i="${i}" class="${selected&&selected.ref===c?'sel':''}"><td class="mono">${esc(c.id)}</td><td class="mono">${esc(c.booking)}</td><td>${esc(c.carrier)}</td><td>${esc(PORTS[c.pol].name)} → ${esc(PORTS[c.pod].name)}</td><td class="mono">${c.pallets}</td><td class="mono">${esc(c.setpoint)}</td><td><span class="chip ${c.step>=9?'ok':c.staged&&c.step<4?'warn':''}">${c.staged&&c.step<4?'Staged, plugged in':STEP_NAMES[c.step]}</span></td></tr>`).join('')+'</tbody>';}
  else{h='<thead><tr><th>POL</th><th>POD</th><th>Carriers</th><th>Est. sea days</th><th>Source</th></tr></thead><tbody>'+
   LANES.map((l,i)=>`<tr data-i="${i}" class="${selected&&selected.type==='port'&&(selected.ref.key===l.o||selected.ref.key===l.d)?'sel':''}"><td>${esc(PORTS[l.o].name)}</td><td>${esc(PORTS[l.d].name)}</td><td>${carrierChips(l.carriers,l.src)}</td><td class="mono">${route(l.o,l.d).days}</td><td><span class="chip ${l.src==='Added manually'?'src':''}">${esc(l.src)}</span></td></tr>`).join('')+'</tbody>';}
  const sc=tbl.parentElement.scrollTop;tbl.innerHTML=h;tbl.parentElement.scrollTop=sc;}
 tbl.addEventListener('click',e=>{const tr=e.target.closest('tr[data-i]');if(!tr)return;const i=+tr.dataset.i;
- if(tab==='trucks'){const t=allTrucks()[i];select({type:t.kind==='bin'?'bintruck':t.kind==='client'?'dtruck':'truck',ref:t});}else if(tab==='containers')selectContainer(containers[i]);
+ if(tab==='trucks'){const t=allTrucks()[i];select({type:t.kind==='bin'?'bintruck':t.kind==='client'?'dtruck':t.kind==='air'?'airtruck':'truck',ref:t});}else if(tab==='containers')selectContainer(containers[i]);
  else{const l=LANES[i];select({type:'port',ref:Object.assign(PORTS[l.d],{key:l.d})});highlightOne(l);}});
 function highlightOne(l){laneLines.forEach(ln=>{const x=ln.userData.lane;ln.material=x===l?laneMatHi:(x.src==='Added manually'?laneMatManual:laneMat);});}
 document.querySelectorAll('[role=tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;document.querySelectorAll('[role=tab]').forEach(x=>x.setAttribute('aria-selected',String(x===b)));
@@ -855,8 +946,8 @@ document.querySelectorAll('#areas button').forEach(b=>b.onclick=()=>setArea(b.da
 const originSel=$('#origin');
 Object.entries(PORTS).filter(([,p])=>p.role==='o').forEach(([k,p])=>{const o=document.createElement('option');o.value=k;o.textContent=p.name+(p.src==='manual'?' (manual)':'');originSel.appendChild(o);});
 originSel.onchange=()=>setOrigin(originSel.value);
-function setOrigin(k,silent){origin=k;originSel.value=k;areaLabels.port.el.textContent='Port of '+PORTS[k].name;
- areaLabels.depot.el.textContent='Empty depot · '+PORTS[k].name;
+function setOrigin(k,silent){origin=k;originSel.value=k;areaLabels.port.t.textContent='Port of '+PORTS[k].name;
+ areaLabels.depot.s.textContent='Wash & PTI · '+PORTS[k].name;
  if(vessel.state==='berthed'&&vessel.gfs===0)newVoyage();renderDetail();renderTable();if(!silent)toast('Local chain now runs from '+PORTS[k].name);}
 $('#weather').onchange=e=>{weather=e.target.value;applyWeather();};
 $('#dayBtn').onclick=()=>{night=false;applyLight();};$('#nightBtn').onclick=()=>{night=true;applyLight();};
@@ -872,7 +963,7 @@ function setTb(){const r=$('.topbar').getBoundingClientRect();document.documentE
 const qlist=$('#qlist');
 function refreshDatalist(){qlist.innerHTML=[...allTrucks().map(t=>t.plate),...containers.slice(0,20).map(c=>c.id),...Object.values(PORTS).map(p=>p.name)].map(v=>`<option value="${esc(v)}">`).join('');}
 $('#searchForm').onsubmit=e=>{e.preventDefault();const q=$('#q').value.trim().toLowerCase().replace(/\s+/g,'');if(!q)return;const norm=s=>s.toLowerCase().replace(/[\s-]+/g,'');
- const t=allTrucks().find(t=>norm(t.plate).includes(q)||norm(t.id).includes(q)||t.driver.toLowerCase().includes(q));if(t){select({type:t.kind==='bin'?'bintruck':t.kind==='client'?'dtruck':'truck',ref:t});return;}
+ const t=allTrucks().find(t=>norm(t.plate).includes(q)||norm(t.id).includes(q)||t.driver.toLowerCase().includes(q));if(t){select({type:t.kind==='bin'?'bintruck':t.kind==='client'?'dtruck':t.kind==='air'?'airtruck':'truck',ref:t});return;}
  const c=containers.find(c=>norm(c.id).includes(q.replace(/-/g,''))||norm(c.booking).includes(q));if(c){selectContainer(c);return;}
  const pk=Object.keys(PORTS).find(k=>norm(PORTS[k].name).includes(q)||PORTS[k].code.toLowerCase()===q);if(pk){select({type:'port',ref:Object.assign(PORTS[pk],{key:pk})});return;}
  toast('Nothing matches "'+$('#q').value+'"');};
@@ -901,7 +992,7 @@ function applyLight(){$('#dayBtn').setAttribute('aria-pressed',String(!night));$
  const dim=weather==='rain'||weather==='fog'?.7:1;
  sun.intensity=(night?.12:1.05)*dim;hemi.intensity=(night?.22:.75)*dim;
  const sky=night?NIGHT_SKY.clone():DAY_SKY.clone();if(!night&&dim<1)sky.lerp(new THREE.Color(0x9aa7ad),.6);scene.background=sky;scene.fog.color.copy(sky);
- winMat.emissiveIntensity=night?1.4:0;nightLights.forEach(l=>l.intensity=night?1.6:0);
+ winMat.emissiveIntensity=night?1.4:0;rLightMat.emissiveIntensity=night?2.5:.2;nightLights.forEach(l=>l.intensity=night?1.6:0);
  [...trucks,...clientTrucks].forEach(t=>t.hl.material.emissiveIntensity=night?2:.2);
  document.body.style.background=night?'#0b1626':'#a9cfe0';}
 
@@ -993,6 +1084,26 @@ function clientStep(t,dt,ahead){const st=DSTOPS[t.stopIdx];const c=t.cont;
  else t.s=(t.s+step)%DLOOP;
  if(t.v<.3&&gap<MIN_GAP+2&&t.dwell<=0)t.status='Queuing';}
 let scanT=0,feedT=0;
+function addAirTruck(i,s0){const g=makeAirTruck();const t={id:'AIR-'+String(i+1).padStart(2,'0'),kind:'air',company:'GFS air freight',plate:'CA '+Math.floor(rnd(100,999))+'-'+Math.floor(rnd(100,999)),driver:pick(['Neo M.','Chantal V.']),g,s:s0,v:0,dwell:0,acc:0,pallets:0,trips:0,status:'To pallet cold store'};
+ t.stopIdx=ASTOPS.findIndex(st=>st.s>s0);if(t.stopIdx<0)t.stopIdx=0;tag(g,'airtruck',t);airTrucks.push(t);return t;}
+function airTruckStep(t,dt){const st=ASTOPS[t.stopIdx];
+ if(t.dwell>0){t.v=0;t.dwell-=dt;
+  if(st.k==='cold'){if(t.pallets<10&&stats.coldStore>0){t.acc+=dt*3;while(t.acc>=1&&t.pallets<10&&stats.coldStore>0){t.acc-=1;t.pallets++;stats.coldStore--;}}t.status=stats.coldStore===0&&t.pallets<10?'Waiting for pallets':'Loading air pallets';if(t.pallets<10)t.dwell=Math.max(t.dwell,.1);}
+  else{t.acc+=dt*3;while(t.acc>=1&&t.pallets>0){t.acc-=1;t.pallets--;airPallets++;}t.status='Unloading at air cargo terminal';if(t.pallets>0)t.dwell=Math.max(t.dwell,.1);}
+  if(t.dwell<=0){if(st.k==='air')t.trips++;t.stopIdx=(t.stopIdx+1)%ASTOPS.length;t.status=t.pallets?'To air cargo terminal':'To pallet cold store';}
+  return;}
+ t.v+=(8*speedFactor()-t.v)*Math.min(1,dt*2);const dStop=(st.s-t.s+ALOOP)%ALOOP;const step=t.v*dt;
+ if(dStop<=step+.02){t.s=st.s;t.v=0;t.dwell=.5;t.acc=0;}else t.s=(t.s+step)%ALOOP;}
+function planeStep(dt){const P=plane;
+ if(P.state==='parked'){P.loadT+=dt;if(P.loadT>2.2&&airPallets>=4&&P.ulds<8){P.loadT=0;airPallets-=4;P.ulds++;}
+  if(P.ulds>=8&&weather!=='fog'&&weather!=='wind'){P.state='taxi';planePath([[-94,PLANE_Y,4,0],[-96,PLANE_Y,12,4],[-96,PLANE_Y,50,7],[-105,PLANE_Y,55,4],[-105,PLANE_Y,50,3]],()=>{P.state='takeoff';
+   planePath([[-105,PLANE_Y,50,0],[-105,PLANE_Y,20,16],[-105,PLANE_Y,-12,26],[-105,14,-60,30],[-105,46,-140,34],[-105,80,-230,38]],()=>{P.state='away';P.awayT=0;P.g.visible=false;P.flights++;P.palletsToday+=P.ulds*4;alertMsg(`GFS air freight departed: ${P.ulds} ULDs, ${P.ulds*4} pallets`);P.ulds=0;});});}}
+ else if(P.state==='away'){P.awayT+=dt;if(P.awayT>28){P.state='landing';P.g.visible=true;planePath([[-105,60,190,0],[-105,26,120,30],[-105,PLANE_Y,56,26],[-105,PLANE_Y,10,16],[-105,PLANE_Y,-22,6],[-96,PLANE_Y,-24,4],[-96,PLANE_Y,-10,4],[-94,PLANE_Y,4,3]],()=>{P.state='parked';P.loadT=0;});}}
+ if(P.path){const a=P.path[P.seg],b=P.path[P.seg+1];const L=a.distanceTo(b)||1;P.segD+=P.speeds[P.seg+1]*dt;const k=Math.min(1,P.segD/L);
+  P.g.position.lerpVectors(a,b,k);const dx=b.x-a.x,dz=b.z-a.z,dy=b.y-a.y;const h=Math.hypot(dx,dz);if(h>.01)P.g.rotation.y=Math.atan2(dx,dz);P.g.rotation.x=-Math.atan2(dy,h||1);
+  P.g.userData.gear.visible=P.g.position.y<12;
+  if(k>=1){P.seg++;P.segD=0;if(P.seg>=P.path.length-1){P.path=null;const f=P.onEnd;P.onEnd=null;if(f)f();}}}
+ const staged=Math.min(8,Math.floor(airPallets/4));for(let i=0;i<8;i++){if(i<staged){dummy.position.set(-89+(i%4)*1.8,.8,-1+Math.floor(i/4)*1.8);dummy.scale.set(1,1,1);}else dummy.scale.set(0,0,0);dummy.rotation.set(0,0,0);dummy.updateMatrix();uldI.setMatrixAt(i,dummy.matrix);}uldI.instanceMatrix.needsUpdate=true;}
 function destStep(dt){
  feedT+=dt;if(feedT>22){feedT=0;if(destQueue.length<3)feedDestination();}
  if(scanT>0){scanT-=dt;scanBeam.material.opacity=.25+.25*Math.sin(clockT*10);scanBeam.position.z=DZ*0-20+Math.sin(clockT*2)*2;}else scanBeam.material.opacity=0;
@@ -1001,7 +1112,7 @@ function destStep(dt){
  else{forklift.position.z=-9;fkPallet.visible=false;}
  const n=Math.min(48,Math.floor(((stats.delivered||0)+(u?Math.floor(u.unload):0))/2)%49);for(let i=0;i<48;i++){if(i<n){dummy.position.set(-26+(i%8)*1.3,.65+Math.floor(i/24)*1.35,-2-Math.floor((i%24)/8)*1.4);dummy.scale.set(1,1,1);}else dummy.scale.set(0,0,0);dummy.rotation.set(0,0,0);dummy.updateMatrix();whPalletI.setMatrixAt(i,dummy.matrix);}whPalletI.instanceMatrix.needsUpdate=true;
  dTrolley.position.x=12+Math.sin(clockT*.6)*8;
- if(destQueue[0])destLabels.port.el.textContent='Port of '+PORTS[destQueue[0].pod].name;}
+ if(destQueue[0])destLabels.port.t.textContent='Port of '+PORTS[destQueue[0].pod].name;}
 // depot prep line: stack → wash → PTI → ready
 function depotItemStep(slot,dt){const it=depotSlots[slot];if(!it)return;
  if(it.moving){it.t+=dt/1.8;const k=ease(Math.min(1,it.t));it.mesh.position.lerpVectors(it.from,it.to,k);it.mesh.position.y+=Math.sin(k*Math.PI)*1.2;reach.position.set(it.mesh.position.x-3,0,it.mesh.position.z);
@@ -1109,6 +1220,7 @@ const startOffsets=[STOPS[0].s-14,STOPS[1].s-18,STOPS[2].s-12,STOPS[3].s-6,STOPS
 const presets=[-1,0,2,2,-1];
 startOffsets.forEach((s,i)=>addTruck(i,(s+LOOP)%LOOP,presets[i]));
 for(let i=0;i<4;i++){let s0=LOOP*(i+.5)/4;for(let k=0;k<60;k++){if(trucks.every(t=>Math.min(Math.abs(t.s-s0),LOOP-Math.abs(t.s-s0))>14))break;s0=(s0+5)%LOOP;}addOtherTruck(i,s0);}
+addAirTruck(0,ASTOPS[0].s-3);
 for(let i=0;i<3;i++)addClientTruck(i,((DSTOPS[0].s-6-i*22)%DLOOP+DLOOP)%DLOOP);for(let i=0;i<4;i++)feedDestination();
 addBinTruck(0,FSTOPS[0].s-4);addBinTruck(1,FSTOPS[1].s-6);binTrucks[1].bins=24;binLoadVisual(binTrucks[1]);binTrucks[1].status='Delivering to bin cold room';
 trucks.forEach(t=>{if(t.kind==='other')return;t.status=t.cont?(t.cont.loaded?'En route to '+STOP_NAMES[STOPS[t.stopIdx].k].toLowerCase():'En route to packhouse'):'Returning to depot';});
@@ -1156,7 +1268,7 @@ function tick(now){requestAnimationFrame(tick);let dt=Math.max(0,Math.min(.05,(n
  // pallet stock visual
  const shown=Math.min(60,Math.ceil(stats.coldStore/3.5));for(let i=0;i<60;i++){if(i<shown){dummy.position.set(12.5+(i%3)*1.25,.65+Math.floor(i/30)*1.35,-19+Math.floor((i%30)/3)*1.3);dummy.scale.set(1,1,1);}else{dummy.scale.set(0,0,0);}dummy.rotation.set(0,0,0);dummy.updateMatrix();palletI.setMatrixAt(i,dummy.matrix);}palletI.instanceMatrix.needsUpdate=true;
  const cs=[...clientTrucks].sort((a,b)=>a.s-b.s);cs.forEach((t,i)=>{const ahead=cs[(i+1)%cs.length];clientStep(t,dt,ahead!==t?ahead:null);const p=dCurve.getPointAt(cu(t.s,DLOOP),tmpP);const tg=dCurve.getTangentAt(cu(t.s,DLOOP),tmpT);t.g.position.set(p.x,0,p.z);t.g.rotation.y=Math.atan2(tg.x,tg.z);});
- destStep(dt);
+ destStep(dt);planeStep(dt);airTrucks.forEach(t=>{airTruckStep(t,dt);const p=airCurve.getPointAt(cu(t.s,ALOOP),tmpP);const tg=airCurve.getTangentAt(cu(t.s,ALOOP),tmpT);t.g.position.set(p.x,0,p.z);t.g.rotation.y=Math.atan2(tg.x,tg.z);});
  depotStep(dt);craneStep(dt);vesselStep(dt);shipStep(dt);
  if(rain.visible){const a=rainGeo.attributes.position.array;for(let i=0;i<RAIN_N;i++){a[i*3+1]-=dt*38;if(a[i*3+1]<0)a[i*3+1]=60;}rainGeo.attributes.position.needsUpdate=true;rain.position.set(controls.target.x,0,controls.target.z);}
  // camera fly / follow
@@ -1166,7 +1278,7 @@ function tick(now){requestAnimationFrame(tick);let dt=Math.max(0,Math.min(.05,(n
  if(selected){const p=worldPosOf(selected.type==='container'&&!selected.ref.mesh?{type:'none'}:selected);
   const shipSel=selected.type==='container'&&(!selected.ref.mesh||selected.ref.where==='At sea')?ships.find(s=>s.boxes.includes(selected.ref)):null;
   const pp=shipSel?shipSel.g.getWorldPosition(new THREE.Vector3()):p;
-  if(pp){ring.visible=true;const big=['farm','pack','coldroom','depot','staging','yard','vessel','dstack','customs','warehouse','ddepot'].includes(selected.type)?(selected.type==='vessel'?30:14):(selected.type==='port'||selected.type==='ship'||shipSel?2.6:4.8);ring.position.set(pp.x,(pp.z<-200?1.2:.2),pp.z);ring.scale.setScalar(big*(1+Math.sin(clockT*4)*.06));
+  if(pp){ring.visible=true;const big=['airport','hq','transport','farm','pack','coldroom','depot','staging','yard','vessel','dstack','customs','warehouse','ddepot'].includes(selected.type)?(selected.type==='vessel'?30:14):(selected.type==='port'||selected.type==='ship'||shipSel?2.6:4.8);ring.position.set(pp.x,(pp.z<-200?1.2:.2),pp.z);ring.scale.setScalar(big*(1+Math.sin(clockT*4)*.06));
    selLabel.el.hidden=false;selLabel.obj=null;selLabel.pos=new THREE.Vector3(pp.x,pp.y+(pp.z<-200?6:selected.type==='vessel'?14:6),pp.z);selLabel.el.textContent=labelText(selected);}
   else{ring.visible=false;selLabel.el.hidden=true;}}
  else{ring.visible=false;selLabel.el.hidden=true;}
@@ -1174,10 +1286,10 @@ function tick(now){requestAnimationFrame(tick);let dt=Math.max(0,Math.min(.05,(n
  controls.update();renderer.render(scene,camera);updateLabels();
  if(toastT>0){toastT-=dt;if(toastT<=0)$('#toast').style.opacity=0;}
  uiT+=dt;if(uiT>.5){uiT=0;$('#clock').textContent=fmt(sim);renderKPIs();
-  if(!hoverDetail&&(!selected||['truck','bintruck','dtruck','ship','pack','coldroom','depot','staging','vessel','yard','crane','farm','container','dstack','customs','warehouse','ddepot'].includes(selected.type)))renderDetail();
+  if(!hoverDetail&&(!selected||['truck','bintruck','dtruck','airtruck','plane','airport','hq','transport','ship','pack','coldroom','depot','staging','vessel','yard','crane','farm','container','dstack','customs','warehouse','ddepot'].includes(selected.type)))renderDetail();
   renderTracker();if(!hoverTable&&$('#tablebox').classList.contains('open'))renderTable();if(Math.random()<.1)refreshDatalist();}
 }
-function labelText(s){return s.type==='truck'?s.ref.plate:s.type==='container'?s.ref.id:s.type==='ship'?s.ref.name:s.type==='port'?s.ref.name:s.type==='vessel'?vessel.name:s.type==='crane'?s.ref.name:s.type==='farm'?'Block 7':s.type==='pack'?'Packhouse':s.type==='depot'?'Empty depot':s.type==='yard'?'Reefer stack':s.type==='bintruck'?s.ref.plate:s.type==='coldroom'?'Bin cold room':s.type==='staging'?'Staging depot':s.type==='dtruck'?s.ref.plate:s.type==='dstack'?'Discharge stack':s.type==='customs'?'Customs':s.type==='warehouse'?'Client warehouse':s.type==='ddepot'?'Empty return depot':'';}
+function labelText(s){return s.type==='truck'?s.ref.plate:s.type==='container'?s.ref.id:s.type==='ship'?s.ref.name:s.type==='port'?s.ref.name:s.type==='vessel'?vessel.name:s.type==='crane'?s.ref.name:s.type==='farm'?'Block 7':s.type==='pack'?'Packhouse':s.type==='depot'?'Empty depot':s.type==='yard'?'Reefer stack':s.type==='bintruck'?s.ref.plate:s.type==='coldroom'?'Bin cold room':s.type==='staging'?'Plug-in depot':s.type==='airtruck'?s.ref.plate:s.type==='plane'?'GFS freighter':s.type==='airport'?'Air freight terminal':s.type==='hq'?'GFS HQ':s.type==='transport'?'Transporter office':s.type==='dtruck'?s.ref.plate:s.type==='dstack'?'Discharge stack':s.type==='customs'?'Customs':s.type==='warehouse'?'Client warehouse':s.type==='ddepot'?'Empty return depot':'';}
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
 requestAnimationFrame(tick);
 })();
