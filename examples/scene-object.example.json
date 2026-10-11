@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 2,
+  "worldId": "cape-town-composite",
+  "objects": [
+    {
+      "id": "building-orange-court-001",
+      "type": "building",
+      "assetId": "urban/apartment-cape-town-04",
+      "zone": "residential",
+      "district": "city-north",
+      "transform": {"position": [120, 0, 45], "rotationY": 1.5708, "scale": [1, 1, 1]},
+      "footprintMeters": [18, 24],
+      "pedestrianEntranceNodeId": "walk-orange-court-entry"
+    },
+    {
+      "id": "orchard-table-grapes-01",
+      "type": "orchard",
+      "assetId": "agriculture/trellised-table-grape-block",
+      "zone": "agricultural",
+      "district": "farm-west",
+      "crop": "table-grapes",
+      "transform": {"position": [-360, 0, 230], "rotationY": 0, "scale": [1, 1, 1]},
+      "footprintMeters": [90, 120],
+      "roadAccessNodeId": "farm-track-07"
+    }
+  ],
+  "roads": [
+    {"id": "freight-link-01", "fromNode": "industrial-a", "toNode": "port-gate-a", "class": "freight", "lanes": 2, "laneWidthMeters": 3.5, "allowVehicleTypes": ["truck", "car"]}
+  ]
+}
