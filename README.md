@@ -2,6 +2,28 @@
 
 A live 3D operations view of the GFS export chain, built as a single HTML file with three.js. Open `index.html` in a browser.
 
+Press **How GFS works** for a guided, plain-language tour through every step of the job.
+
+## Every port has its own look
+Pick an **Origin** and a **Destination** in the top bar. The landscape and landmarks change with each port:
+
+| Loading ports | | Destination ports | |
+|---|---|---|---|
+| Cape Town | Table Mountain, Lion's Head, stadium, red-and-white lighthouse, fynbos | Kribi | Rainforest hills, Lobé falls into the sea, pirogues |
+| Port Elizabeth | Campanile, Donkin pyramid and lighthouse, stadium, aloes | Douala | Wouri bridge, mangroves, tin-roof town |
+| Durban | Moses Mabhida arch, Golden Mile towers, beach, green hills, palms | Apapa (Lagos) | Lagos skyline, Third Mainland Bridge, tank farm, danfo buses |
+| Port Said | Suez Canal with passing ships, Canal Authority domes, lighthouse, dunes | Libreville | Seafront palace, rainforest, palm beaches |
+| Damietta | Nile Delta fields, palm groves, mosque and minarets | Cotonou | Amazon statue, Ganvié stilt village, red earth |
+| Port-Vendres | Snow-capped Pyrenees, vineyard terraces, pastel houses, obelisk, fort | Pointe des Galets | Smoking volcano, cirque peaks, sugar cane |
+| Rotterdam | Erasmus Bridge, Euromast, cube houses, windmills, greenhouses, canals | Dakar | African Renaissance Monument, Mamelles lighthouse, Gorée, baobabs |
+| | | Conakry | Grand Mosque, Îles de Los |
+| | | Lomé | Independence Monument, palm beach |
+| | | Port Louis | Pieter Both, Le Pouce, colourful waterfront, cane |
+| | | Longoni | Turquoise lagoon, volcanic hills, mangroves, baobabs |
+| | | Abidjan | Plateau towers, La Pyramide, St Paul's Cathedral, lagoon bridge |
+| | | Jebel Ali | Burj Khalifa, Burj Al Arab, dunes |
+| | | Mombasa | The Tusks, Fort Jesus, dhows, baobabs |
+
 ## Origin side
 1. Pickers fill field bins in the orchard.
 2. Bin trucks take the bins to the bin cold room.

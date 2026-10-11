@@ -134,6 +134,21 @@ body.clean .detail,body.clean .bottom,body.clean #labels .lbl.area{display:none!
 .toast{position:fixed;left:50%;top:calc(var(--tb,64px) + 8px);transform:translateX(-50%);padding:9px 14px;font-size:13px;z-index:9;transition:opacity .3s}
 #fallback{position:fixed;inset:0;display:grid;place-items:center;padding:16px;text-align:center}
 
+
+.tour-cta{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:7;display:flex;align-items:center;gap:12px;padding:12px 20px 12px 14px;border-radius:999px;border:0;background:var(--accent);color:#08130e;box-shadow:0 10px 30px rgba(0,0,0,.3);text-align:left;cursor:pointer}
+.tour-cta b{display:block;font:700 16px/1.1 var(--f-display)}.tour-cta small{display:block;font-size:12px;opacity:.8}
+.tour-cta svg{flex:none;width:34px;height:34px;padding:8px;border-radius:50%;background:#08130e;color:var(--accent)}
+body.touring .tour-cta,body.touring .detail,body.touring .bottom{display:none!important}
+.tour{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));width:min(640px,calc(100% - 32px));z-index:8;padding:16px 18px;background:var(--glass-strong)}
+.tour-top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.tour-count{font:600 12px var(--f-data);color:var(--accent)}
+.tour-dots{display:flex;gap:4px;flex:1;flex-wrap:wrap}.tour-dots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.18)}.tour-dots i.on{background:var(--accent)}
+.tour h3{margin:0 0 6px;font:700 22px/1.2 var(--f-display);text-wrap:balance}
+.tour p{margin:0;font-size:15.5px;line-height:1.5}
+.tour .tour-gfs{margin-top:8px;font-size:13.5px;color:#9ee6bd}.tour .tour-gfs:empty{display:none}
+.tour-nav{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+.tour-nav button{border:1px solid var(--line);background:rgba(255,255,255,.06);border-radius:10px;padding:7px 14px;font-weight:600}
+.tour-nav .primary{background:var(--accent);color:#08130e;border-color:transparent}
 @media (max-width:900px){
   .hud{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto}
   .detail{grid-column:1;grid-row:4;max-height:38vh}
@@ -174,6 +189,7 @@ body.clean .detail,body.clean .bottom,body.clean #labels .lbl.area{display:none!
       <button data-area="dest">Destination</button>
     </nav>
     <div class="ctl origin"><label for="origin">Origin</label><select id="origin"></select></div>
+    <div class="ctl origin"><label for="destSel">Destination</label><select id="destSel"></select></div>
     <div class="ctl weather"><label for="weather">Conditions</label>
       <select id="weather">
         <option value="clear">Clear</option>
@@ -193,6 +209,7 @@ body.clean .detail,body.clean .bottom,body.clean #labels .lbl.area{display:none!
     <div class="ctl"><span class="clock" id="clock">06:30</span><span class="live">SIM</span></div>
     <div class="seg" aria-label="Lighting"><button id="dayBtn" aria-pressed="true">Day</button><button id="nightBtn" aria-pressed="false">Night</button></div>
     <div class="seg" aria-label="Panels"><button id="journeyBtn" aria-pressed="false" title="Container journey">View journey</button><button id="toggleLists" aria-pressed="false" title="Trucks, containers and lanes">Lists</button></div>
+    <button class="iconbtn" id="tourBtn2" aria-label="How GFS works (guided tour)" title="How GFS works (guided tour)"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></button>
     <button class="iconbtn" id="aboutBtn" aria-label="About this chain" aria-pressed="false" title="About this chain"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button>
     <button class="iconbtn" id="cleanBtn" aria-label="Hide panels (H)" aria-pressed="false" title="Hide panels (H)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
     <div style="position:relative">
@@ -221,6 +238,14 @@ body.clean .detail,body.clean .bottom,body.clean #labels .lbl.area{display:none!
   </section>
 </div>
 <div class="toast panel" id="toast" style="opacity:0"></div>
+<button class="tour-cta" id="tourCta"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg><span><b>How GFS works</b><small>A 3-minute guided tour, step by step</small></span></button>
+<section class="tour panel" id="tour" hidden aria-live="polite">
+  <div class="tour-top"><span class="tour-count" id="tourCount">1 / 20</span><div class="tour-dots" id="tourDots"></div><button class="closebtn" id="tourClose" aria-label="Exit tour">×</button></div>
+  <h3 id="tourTitle"></h3>
+  <p id="tourText"></p>
+  <p class="tour-gfs" id="tourGfs"></p>
+  <div class="tour-nav"><button id="tourPrev">← Back</button><button id="tourPlay">Pause</button><button id="tourNext" class="primary">Next →</button></div>
+</section>
 <div id="fallback" hidden><p>The 3D view needs WebGL and the three.js library. Check your connection and reload.</p></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -342,16 +367,13 @@ const world=new THREE.Group();scene.add(world);
 // ocean & land
 const ocean=new THREE.Mesh(new THREE.PlaneGeometry(1600,1600),new THREE.MeshStandardMaterial({color:0x3f93b5,roughness:.35,metalness:.1}));
 ocean.rotation.x=-Math.PI/2;ocean.position.y=-0.6;ocean.receiveShadow=true;scene.add(ocean);
-const land=box(world,190,0.6,185,0xd8c9a3,-24,-0.6,-13);land.castShadow=false;
-box(world,46,0.06,56,0x93b462,-52,0,0).castShadow=false; // orchard ground
+const land=box(world,190,0.6,185,0xd8c9a3,-24,-0.6,-13);land.castShadow=false;land.material=land.material.clone();
+const orchardGround=box(world,46,0.06,56,0x93b462,-52,0,0);orchardGround.castShadow=false;orchardGround.material=orchardGround.material.clone(); // orchard ground
 box(world,26,0.05,22,0xbfb08a,-21,0,31).castShadow=false;   // depot slab
 box(world,26,0.05,40,0xb9b4a6,52,0,12).castShadow=false;    // port yard slab
 box(world,4,1.2,150,0xa9a397,69,-0.6,4).castShadow=false;   // quay wall
 box(world,8,0.06,70,0x9c978c,66,0,4).castShadow=false;      // quay apron
 // mountains (Table-Mountain-ish backdrop)
-const mtnM=M(0x8f9a7a,{flatShading:true});
-[[-100,-86,30,26],[-62,-92,24,20],[8,-92,30,22],[38,-88,20,16]].forEach(([x,z,r,h])=>{const m=new THREE.Mesh(new THREE.ConeGeometry(r,h,7),mtnM);m.position.set(x,h/2-0.5,z);m.receiveShadow=true;world.add(m);});
-{const tm=new THREE.Mesh(new THREE.CylinderGeometry(26,34,22,9),mtnM);tm.position.set(-28,10.5,-90);world.add(tm);const cap=new THREE.Mesh(new THREE.CylinderGeometry(25.5,26,1.2,9),M(0x9aa587,{flatShading:true}));cap.position.set(-28,21.8,-90);world.add(cap);}
 
 // ---- orchard (instanced) — aisle at z≈0 holds the field bins
 const trees=[];for(let x=-70;x<=-49;x+=3.4)for(let z=-24;z<=24;z+=3.6){if(Math.abs(z)<2.5)continue;trees.push([x+rnd(-.3,.3),z+rnd(-.3,.3)]);}
@@ -660,10 +682,8 @@ for(let i=0;i<9;i++){const l=pick(LANES);const r=route(l.o,l.d);spawnShip(l.o,l.
    ========================================================= */
 const DZ=270;
 const dest=new THREE.Group();dest.position.set(0,0,DZ);scene.add(dest);
-box(dest,112,.6,86,0xd8c9a3,-12,-.6,0).castShadow=false;
+const destLand=box(dest,124,.6,140,0xd8c9a3,-18,-.6,-25);destLand.castShadow=false;destLand.material=destLand.material.clone();
 box(dest,4,1.2,86,0xa9a397,44,-.6,0).castShadow=false;box(dest,8,.06,64,0x9c978c,40.5,0,0).castShadow=false;
-// palms (it's West Africa or the Indian Ocean)
-for(let i=0;i<14;i++){const x=rnd(-60,30),z=pick([-36,-32,34,38])+rnd(-2,2);cyl(dest,.18,.25,4,0x8a6a45,x,0,z,6);const c=new THREE.Mesh(new THREE.ConeGeometry(1.8,1.2,6),M(0x3f8a3a,{flatShading:true}));c.position.set(x,4.3,z);dest.add(c);}
 // discharging vessel + crane
 box(dest,10.4,3.6,46,0x1f3f66,53,-1.6,0);box(dest,9,6,5,0xf4f5f2,53,2,-20);
 for(let b=0;b<6;b++)for(let r=0;r<4;r++)if(Math.random()<.6){const c=makeContainer(pick([0xc0392b,0x2e86c1,0xd68910,0x5d6d7e,0xeef1f2]));c.position.set(49.7+r*2.2,2,-12+b*5.9);dest.add(c);}
@@ -765,17 +785,170 @@ box(world,26,.05,24,0xb9b4a6,-31,0,62).castShadow=false;box(world,11,4.5,7,0xe8e
 for(let i=0;i<3;i++){const w=new THREE.Mesh(new THREE.BoxGeometry(2,1,.1),winMat);w.position.set(-40+i*3.6,2.6,73.56);world.add(w);}
 const parked=[];for(let i=0;i<5;i++){const {g}=makeTruck(i);g.position.set(-41+i*4.2,0,58);g.rotation.y=0;if(i%2===0){const m=makeContainer(i===2?pick(OTHER_COLORS):null,i!==2);m.position.set(0,.65,-.6);g.add(m);}parked.push(g);}
 const transHit=new THREE.Mesh(new THREE.BoxGeometry(26,6,24),new THREE.MeshBasicMaterial({visible:false}));transHit.position.set(-31,3,62);world.add(transHit);
-// city across the bay
-box(scene,90,.6,80,0xd8d2c0,125,-.6,80).castShadow=false;
-{const n=60;const tw=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshStandardMaterial({roughness:.4,metalness:.15}),n);const col=new THREE.Color();let k=0;
- for(let i=0;i<n;i++){const x=90+Math.random()*70,z=48+Math.random()*64,h=rnd(6,32)*(1-Math.abs(x-125)/80);dummy.position.set(x,h/2,z);dummy.rotation.set(0,0,0);dummy.scale.set(rnd(3,6),h,rnd(3,6));dummy.updateMatrix();tw.setMatrixAt(k,dummy.matrix);tw.setColorAt(k,col.setHex(pick([0xe8eef0,0xcfe3ee,0x9fc6d6,0xd8d2c0])));k++;}
- tw.castShadow=true;scene.add(tw);}
-// scattered trees
-{const rects=[[-75,-48,32,44],[-70,-45,50,78],[44,64,48,78],[20,36,-52,-43],[-40,10,-52,-43],[0,12,10,36],[30,37,24,33],[-118,-112,-30,60],[-30,-14,-60,-50]];
- const pts=[];rects.forEach(([x0,x1,z0,z1])=>{const n=Math.round((x1-x0)*(z1-z0)/38);for(let i=0;i<n;i++)pts.push([rnd(x0,x1),rnd(z0,z1)]);});
- const tT=new THREE.InstancedMesh(new THREE.CylinderGeometry(.18,.25,1.4,6),M(0x6b4f35),pts.length);const tC=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1.4,0),new THREE.MeshStandardMaterial({flatShading:true,roughness:.9}),pts.length);const col=new THREE.Color();
- pts.forEach(([x,z],i)=>{dummy.position.set(x,.7,z);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();tT.setMatrixAt(i,dummy.matrix);const s=rnd(.8,1.3);dummy.position.set(x,2.1*s,z);dummy.scale.set(s,s,s);dummy.rotation.y=Math.random()*3;dummy.updateMatrix();tC.setMatrixAt(i,dummy.matrix);tC.setColorAt(i,col.setHex(pick([0x4f8f45,0x3f7a3a,0x5ea052,0x6aa85a])));});
- tT.castShadow=tC.castShadow=true;world.add(tT,tC);}
+
+
+
+
+/* =========================================================
+   CITY THEMES — every port gets its own landscape and landmarks
+   Origin theme: world coords. Back band z -62..-104, city patch x 80..170 z 40..120.
+   Destination theme: dest-local coords. Back band z -55..-92, west strip x -78..-42.
+   ========================================================= */
+const themeO=new THREE.Group();scene.add(themeO);
+const themeD=new THREE.Group();dest.add(themeD);
+let themeAnimsO=[],themeAnimsD=[],curAnims=null;
+const fmc={};function fm(c){return fmc[c]||(fmc[c]=new THREE.MeshStandardMaterial({color:c,roughness:.85,flatShading:true}));}
+const glowM=new THREE.MeshStandardMaterial({color:0xffd27a,emissive:0xffb347,emissiveIntensity:1.2});
+function put(g,mesh,x,y,z){mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);return mesh;}
+function cone(g,r,h,c,x,z,seg,y){return put(g,new THREE.Mesh(new THREE.ConeGeometry(r,h,seg||7),fm(c)),x,(y||0)+h/2,z);}
+function cylF(g,rt,rb,h,c,x,z,seg,y){return put(g,new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg||8),fm(c)),x,(y||0)+h/2,z);}
+function hill(g,r,sy,c,x,z){const m=put(g,new THREE.Mesh(new THREE.SphereGeometry(r,12,7,0,Math.PI*2,0,Math.PI/2),fm(c)),x,-.3,z);m.scale.y=sy;return m;}
+function bx(g,w,h,d,c,x,y,z){return put(g,new THREE.Mesh(new THREE.BoxGeometry(w,h,d),fm(c)),x,y+h/2,z);}
+function patch(g,w,d,c,x,z){const m=put(g,new THREE.Mesh(new THREE.BoxGeometry(w,.6,d),fm(c)),x,-.3,z);m.castShadow=false;return m;}
+function waterPatch(g,w,d,c,x,z){const m=put(g,new THREE.Mesh(new THREE.BoxGeometry(w,.08,d),new THREE.MeshStandardMaterial({color:c,roughness:.25,metalness:.1})),x,.04,z);m.castShadow=false;return m;}
+function sphere(g,r,c,x,y,z,sy){const m=put(g,new THREE.Mesh(new THREE.SphereGeometry(r,12,8),fm(c)),x,y,z);if(sy)m.scale.y=sy;return m;}
+function dome(g,r,c,x,y,z){return put(g,new THREE.Mesh(new THREE.SphereGeometry(r,14,8,0,Math.PI*2,0,Math.PI/2),fm(c)),x,y,z);}
+function skyline(g,o){const n=o.n;const tw=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshStandardMaterial({roughness:.45,metalness:.12}),n);const col=new THREE.Color();
+ for(let i=0;i<n;i++){const x=rnd(o.x0,o.x1),z=rnd(o.z0,o.z1);let h=rnd(o.hMin,o.hMax);if(o.peak){const d=Math.hypot(x-o.peak[0],z-o.peak[1]);h*=Math.max(.25,1-d/o.peak[2]);}
+  const w=rnd(o.wMin||2.5,o.wMax||5);dummy.position.set(x,h/2,z);dummy.rotation.set(0,o.rot?Math.random()*.6:0,0);dummy.scale.set(w,h,w*rnd(.7,1.3));dummy.updateMatrix();tw.setMatrixAt(i,dummy.matrix);tw.setColorAt(i,col.setHex(pick(o.cols)));}
+ tw.castShadow=true;tw.receiveShadow=true;g.add(tw);return tw;}
+function roofTown(g,o){const n=o.n;const b=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshStandardMaterial({roughness:.8}),n);const r=new THREE.InstancedMesh(new THREE.ConeGeometry(.75,.6,4),new THREE.MeshStandardMaterial({roughness:.8,flatShading:true}),n);const col=new THREE.Color();
+ for(let i=0;i<n;i++){const x=rnd(o.x0,o.x1),z=rnd(o.z0,o.z1),w=rnd(1.6,2.8),h=rnd(o.hMin||1.4,o.hMax||3);dummy.position.set(x,h/2,z);dummy.rotation.set(0,(Math.random()<.5?0:Math.PI/2),0);dummy.scale.set(w,h,w*1.2);dummy.updateMatrix();b.setMatrixAt(i,dummy.matrix);b.setColorAt(i,col.setHex(pick(o.walls)));
+  dummy.position.set(x,h+.28*w,z);dummy.rotation.set(0,Math.PI/4,0);dummy.scale.set(w*1.05,w,w*1.25);dummy.updateMatrix();r.setMatrixAt(i,dummy.matrix);r.setColorAt(i,col.setHex(pick(o.roofs)));}
+ b.castShadow=r.castShadow=true;g.add(b,r);}
+function stripes(g,x,z,w,d,n,cols,along){for(let i=0;i<n;i++){const t=(i+.5)/n;if(along==='x')bx(g,w,.25,d/n*.6,pick(cols),x,0,z-d/2+t*d).castShadow=false;else bx(g,w/n*.6,.25,d,pick(cols),x-w/2+t*w,0,z).castShadow=false;}}
+const KINDS={
+ round:[{geo:()=>new THREE.CylinderGeometry(.18,.25,1.4,6),y:.7,col:[0x6b4f35]},{geo:()=>new THREE.IcosahedronGeometry(1.4,0),y:2.1,col:[0x4f8f45,0x3f7a3a,0x5ea052,0x6aa85a],sc:true}],
+ rain:[{geo:()=>new THREE.CylinderGeometry(.25,.35,2.4,6),y:1.2,col:[0x5b4430]},{geo:()=>new THREE.IcosahedronGeometry(2,0),y:3.4,col:[0x2f6b35,0x285c2e,0x3a7a3a,0x1f4f28],sc:true}],
+ palm:[{geo:()=>new THREE.CylinderGeometry(.14,.22,4.6,6),y:2.3,col:[0x8a6a45]},{geo:()=>new THREE.IcosahedronGeometry(1.4,0),y:4.8,col:[0x3f8a3a,0x4f9a45,0x357a33],flat:.38,sc:true}],
+ pine:[{geo:()=>new THREE.CylinderGeometry(.15,.2,1.2,6),y:.6,col:[0x5b4430]},{geo:()=>new THREE.ConeGeometry(1.2,4,7),y:3,col:[0x2f5f3a,0x3a6b40],sc:true}],
+ cypress:[{geo:()=>new THREE.ConeGeometry(.6,5,6),y:2.5,col:[0x2d5236,0x35603c],sc:true}],
+ umbrella:[{geo:()=>new THREE.CylinderGeometry(.18,.24,3.2,6),y:1.6,col:[0x6b4f35]},{geo:()=>new THREE.SphereGeometry(1.8,9,6),y:3.4,col:[0x3f6f3a,0x4a7a40],flat:.35,sc:true}],
+ baobab:[{geo:()=>new THREE.CylinderGeometry(.7,1.1,3.4,8),y:1.7,col:[0x9a8670,0x8d7a64]},{geo:()=>new THREE.IcosahedronGeometry(1.8,0),y:3.8,col:[0x6f8a4a,0x7a944f],flat:.45,sc:true}],
+ poplar:[{geo:()=>new THREE.SphereGeometry(.8,8,6),y:3,col:[0x5a8a45,0x4f7f3f],flat:3.2,sc:true}],
+ olive:[{geo:()=>new THREE.CylinderGeometry(.16,.22,1,6),y:.5,col:[0x6b5a45]},{geo:()=>new THREE.IcosahedronGeometry(1.1,0),y:1.6,col:[0x8a9a6a,0x7d8c62],sc:true}],
+ aloe:[{geo:()=>new THREE.ConeGeometry(.5,1.1,5),y:.55,col:[0x5f8a5a,0x6f9a64]},{geo:()=>new THREE.ConeGeometry(.12,.6,5),y:1.4,col:[0xd04a3a,0xe8743a]}],
+ shrub:[{geo:()=>new THREE.IcosahedronGeometry(.7,0),y:.4,col:[0x8a6a9a,0xb07aa0,0x7f8f5a,0xa9b06a],flat:.6,sc:true}],
+ mangrove:[{geo:()=>new THREE.IcosahedronGeometry(1.2,0),y:.9,col:[0x2f5a35,0x3a6a3a],flat:.55,sc:true}],
+ cane:[{geo:()=>new THREE.ConeGeometry(.35,1.8,5),y:.9,col:[0x7fb04a,0x8fbf55,0x6fa042]}]
+};
+function scatter(g,kind,rects,dens){const pts=[];rects.forEach(([x0,x1,z0,z1])=>{const n=Math.max(1,Math.round((x1-x0)*(z1-z0)/38*dens));for(let i=0;i<n;i++)pts.push([rnd(x0,x1),rnd(z0,z1),rnd(.8,1.3)]);});
+ KINDS[kind].forEach(part=>{const im=new THREE.InstancedMesh(part.geo(),new THREE.MeshStandardMaterial({roughness:.9,flatShading:true}),pts.length);const col=new THREE.Color();
+  pts.forEach(([x,z,s],i)=>{const k=part.sc?s:1;dummy.position.set(x,part.y,z);dummy.rotation.set(0,Math.random()*3,0);dummy.scale.set(k,k*(part.flat||1),k);dummy.updateMatrix();im.setMatrixAt(i,dummy.matrix);im.setColorAt(i,col.setHex(pick(part.col)));});
+  im.castShadow=true;g.add(im);});}
+// ---- landmark builders
+function lighthouse(g,x,z,h,c1,c2,y0){const n=5;for(let i=0;i<n;i++){cylF(g,.9-i*.08,1-i*.08,h/n,i%2?c2:c1,x,z,10,(y0||0)+i*h/n);}cylF(g,.9,.9,.6,0x2c3633,x,z,10,(y0||0)+h);put(g,new THREE.Mesh(new THREE.CylinderGeometry(.55,.55,.8,10),glowM),x,(y0||0)+h+1,z);cone(g,.8,.8,0x2c3633,x,z,10,(y0||0)+h+1.4);}
+function stadium(g,x,z,r,c,roof){const ring=put(g,new THREE.Mesh(new THREE.TorusGeometry(r,1.6,8,28),fm(c)),x,1.4,z);ring.rotation.x=Math.PI/2;ring.scale.z=1.4;cylF(g,r-1.2,r-1.2,.3,0x5ea052,x,z,24);if(roof){const rf=put(g,new THREE.Mesh(new THREE.TorusGeometry(r+.3,.6,6,28),fm(roof)),x,3.4,z);rf.rotation.x=Math.PI/2;}return ring;}
+function archOver(g,x,z,r,c,rotY){const a=put(g,new THREE.Mesh(new THREE.TorusGeometry(r,.45,8,32,Math.PI),fm(c)),x,0,z);a.rotation.y=rotY||0;return a;}
+function minaret(g,x,z,h,c){cylF(g,.35,.45,h,c||0xf1ece0,x,z,8);cylF(g,.6,.6,.25,c||0xf1ece0,x,z,8,h*.75);cone(g,.4,1.2,0x3dbb74,x,z,8,h);}
+function statue(g,x,z,h,c,arm){bx(g,3,1.2,3,0x9a9a8a,x,0,z);cylF(g,.5,.8,h*.7,c,x,z,8,1.2);sphere(g,.5,c,x,1.2+h*.7+.4,z);if(arm){const a=bx(g,.3,h*.45,.3,c,x+.5,1.2+h*.55,z);a.rotation.z=-.5;}}
+function windmill(g,x,z,anims){cylF(g,1.1,1.8,7,0x7a5a45,x,z,8);cone(g,1.3,1.4,0x3a4a45,x,z,8,7);const hub=new THREE.Group();hub.position.set(x,7,z+1.6);g.add(hub);
+ for(let i=0;i<4;i++){const b=new THREE.Mesh(new THREE.BoxGeometry(.5,5.4,.12),fm(0xf4f1e8));b.position.y=2.7;const arm=new THREE.Group();arm.rotation.z=i*Math.PI/2;arm.add(b);hub.add(arm);}anims.push(dt=>{hub.rotation.z+=dt*(weather==='wind'?2.4:.9);});}
+function greenhouses(g,x,z,cols,rows){const m=new THREE.MeshStandardMaterial({color:0xdff0f4,transparent:true,opacity:.6,roughness:.1});for(let c=0;c<cols;c++)for(let r=0;r<rows;r++){const b=new THREE.Mesh(new THREE.BoxGeometry(4,1.8,8),m);b.position.set(x+c*4.4,.9,z+r*8.8);g.add(b);}}
+function bridge(g,x0,x1,z,y,c,pierC){const L=x1-x0;bx(g,L,.6,2.4,c,(x0+x1)/2,y,z);for(let px=x0+3;px<x1;px+=6)cylF(g,.35,.35,y,pierC||0x9aa6aa,px,z,6);}
+function waterfall(g,x,z,anims){bx(g,8,7,5,0x6f6a55,x,0,z);const wm=new THREE.MeshStandardMaterial({color:0xdff4ff,transparent:true,opacity:.75,roughness:.1});const sheets=[];
+ for(let i=0;i<3;i++){const s=new THREE.Mesh(new THREE.PlaneGeometry(1.6,6.6),wm);s.position.set(x-2.5+i*2.5,3.4,z+2.6);g.add(s);sheets.push(s);}
+ const foam=[];for(let i=0;i<10;i++){const f=sphere(g,.45,0xffffff,x-3+Math.random()*6,.3,z+3.4+Math.random(),.6);foam.push(f);}
+ anims.push(dt=>{sheets.forEach((s,i)=>{s.material.opacity=.6+.25*Math.sin(clockT*6+i);});foam.forEach((f,i)=>{f.scale.setScalar(.7+.35*Math.abs(Math.sin(clockT*3+i)));});});}
+function volcano(g,x,z,r,h,anims){cone(g,r,h,0x5a4a40,x,z,9);cylF(g,r*.22,r*.28,.6,0x2a1e1a,x,z,9,h*.86);put(g,new THREE.Mesh(new THREE.CylinderGeometry(r*.2,r*.2,.3,9),new THREE.MeshStandardMaterial({color:0xff6a2a,emissive:0xff4a1a,emissiveIntensity:1.6})),x,h*.9,z);
+ const puffs=[];for(let i=0;i<8;i++){const p=sphere(g,1.6,0xcfcac4,x,h+i*2,z);p.material=new THREE.MeshStandardMaterial({color:0xcfcac4,transparent:true,opacity:.6});puffs.push({m:p,t:i/8});}
+ anims.push(dt=>{puffs.forEach(p=>{p.t=(p.t+dt*.08)%1;p.m.position.set(x+p.t*6,h+p.t*18,z-p.t*3);p.m.scale.setScalar(.6+p.t*2.2);p.m.material.opacity=.6*(1-p.t);});});}
+function stilts(g,x,z,n){for(let i=0;i<n;i++){const hx=x+rnd(-8,8),hz=z+rnd(-6,6);[[-.7,-.7],[.7,-.7],[-.7,.7],[.7,.7]].forEach(([a,b])=>cylF(g,.08,.08,1.4,0x5b4430,hx+a,hz+b,4));bx(g,2,1.2,2,0x9a7a55,hx,1.4,hz);put(g,new THREE.Mesh(new THREE.ConeGeometry(1.7,1,4),fm(0xc9b07a)),hx,3.1,hz).rotation.y=Math.PI/4;}}
+function fort(g,x,z,s,c){bx(g,s,2.4,1.2,c,x,0,z-s/2);bx(g,s,2.4,1.2,c,x,0,z+s/2);bx(g,1.2,2.4,s,c,x-s/2,0,z);bx(g,1.2,2.4,s,c,x+s/2,0,z);[[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>{const t=bx(g,2.6,3,2.6,c,x+a*s/2,0,z+b*s/2);t.rotation.y=Math.PI/4;});}
+function boats(g,x,z,n,cols,anims,sail){const bs=[];for(let i=0;i<n;i++){const b=new THREE.Group();bx(b,.9,.5,3,pick(cols),0,0,0);if(sail){const s=new THREE.Mesh(new THREE.ConeGeometry(1.1,2.6,3),fm(0xf4f1e8));s.position.y=1.8;s.scale.z=.15;b.add(s);}b.position.set(x+rnd(-10,10),-.35,z+rnd(-10,10));b.rotation.y=Math.random()*6;g.add(b);bs.push({b,ph:Math.random()*6,sp:rnd(.2,.5)});}
+ anims.push(dt=>{bs.forEach(o=>{o.b.position.y=-.35+Math.sin(clockT*1.5+o.ph)*.08;o.b.translateZ(dt*o.sp);if(Math.hypot(o.b.position.x-x,o.b.position.z-z)>13)o.b.rotation.y+=Math.PI;});});}
+function island(g,x,z,r,h,c){hill(g,r,h/r,c,x,z);}
+
+// ---- ORIGIN THEMES
+const CITY=(g,c)=>patch(g,42,54,c,92,-86); // visible city zone: x 30..112, z -62..-112 (land patch past the quay)
+const OT={
+ CPT:{ground:0xd8c9a3,orchard:0x93b462,desc:"Table Mountain, Lion's Head and the Cape Doctor wind. Citrus and deciduous fruit from the Western Cape.",
+  build(g,A){cylF(g,26,34,22,0x8f9a7a,-40,-90,9);cylF(g,25.5,26,1.2,0x9aa587,-40,-90,9,22);cone(g,22,32,0x8f9a7a,-86,-92,7);cone(g,13,26,0x86926f,10,-90,6);hill(g,16,.5,0x97a37f,-2,-74);
+   scatter(g,'shrub',[[-110,20,-72,-60]],.8);CITY(g,0xd8d2c0);skyline(g,{n:50,x0:40,x1:108,z0:-72,z1:-110,hMin:5,hMax:26,cols:[0xeef1f2,0xcfe3ee,0x9fc6d6,0xe2dccd],peak:[70,-96,50]});
+   stadium(g,96,-66,7,0xf4f6f6);bx(g,1.6,7,1.6,0xc0392b,82,0,-64);cone(g,1.2,1.6,0x2c3633,82,-64,4,7);lighthouse(g,108,-62,9,0xd04a3a,0xf4f6f6);
+   scatter(g,'round',RECTS_O,1);scatter(g,'umbrella',[[44,64,48,78],[-70,-45,50,78]],.25);}},
+ PLZ:{ground:0xdccfa8,orchard:0x8fb262,desc:"Gqeberha (Port Elizabeth): the Campanile, the Donkin Reserve lighthouse and pyramid, aloes and the Sundays River Valley citrus.",
+  build(g,A){[[-95,-88,26],[-55,-94,30],[-12,-90,24]].forEach(([x,z,r])=>hill(g,r,.42,pick([0x9aa57f,0xa8ad86]),x,z));
+   CITY(g,0xdcd5c2);skyline(g,{n:44,x0:36,x1:108,z0:-76,z1:-110,hMin:3,hMax:12,cols:[0xf4f1e8,0xeae2d0,0xd9d0bc]});
+   bx(g,2,16,2,0xb5553a,80,0,-64);cone(g,1.6,2.2,0x7a3a2a,80,-64,4,16);bx(g,2.6,1.4,2.6,0xb5553a,80,13,-64);
+   cone(g,4,4,0xe8e2d4,96,-66,4);lighthouse(g,101,-66,7,0xf4f6f6,0xf4f6f6);stadium(g,52,-70,8,0xf4f6f6,0xb5553a);
+   scatter(g,'aloe',[[-110,30,-72,-58],[-70,-45,50,78]],1.2);scatter(g,'round',RECTS_O,.7);}},
+ DUR:{ground:0xc8c895,orchard:0x82b05a,desc:"Durban: Moses Mabhida Stadium's arch, the Golden Mile beachfront towers and the green hills of KwaZulu-Natal.",
+  build(g,A){[[-100,-86,30],[-60,-92,34],[-18,-90,28]].forEach(([x,z,r])=>hill(g,r,.55,pick([0x5f8f4a,0x6a9a50,0x4f7f40]),x,z));
+   CITY(g,0xd9d2bc);bx(g,6,.3,54,0xeadcb0,110,-.25,-86).castShadow=false;skyline(g,{n:60,x0:84,x1:106,z0:-64,z1:-110,hMin:12,hMax:34,cols:[0xf4f1e8,0xeae2d0,0xdff0f4,0xe8d8c0],wMin:3,wMax:5});
+   skyline(g,{n:24,x0:58,x1:82,z0:-90,z1:-110,hMin:4,hMax:12,cols:[0xe8e2d4,0xcfe3ee]});stadium(g,48,-74,9,0xf4f6f6);archOver(g,48,-74,13,0xf4f6f6,0);
+   scatter(g,'palm',RECTS_O,1.1);scatter(g,'rain',[[-110,20,-72,-60]],.6);}},
+ PSD:{ground:0xe3d3a5,orchard:0x9ab562,desc:"Port Said: the northern gate of the Suez Canal, the green domes of the Canal Authority building, its old lighthouse and date palms.",
+  build(g,A){[[-95,-90,34],[-40,-94,40],[10,-92,26]].forEach(([x,z,r])=>hill(g,r,.18,0xe6cf98,x,z));
+   CITY(g,0xe6dcc0);waterPatch(g,7,54,0x3f93b5,76,-86);skyline(g,{n:44,x0:82,x1:110,z0:-74,z1:-110,hMin:3,hMax:11,cols:[0xefe6d2,0xe2d6bc,0xf4f1e8]});
+   bx(g,18,6,6,0xf4f1e8,58,0,-68);[-6,0,6].forEach(dx=>dome(g,2.2,0x3a9a6a,58+dx,6,-68));cylF(g,1.6,2,16,0xe2d6bc,100,-64,8);cylF(g,2,2,1,0x2c3633,100,-64,8,16);put(g,new THREE.Mesh(new THREE.CylinderGeometry(1,1,1,8),glowM),100,17.5,-64);
+   const ship=new THREE.Group();bx(ship,2.4,1.6,12,0x1f3f66,0,0,0);bx(ship,2,1.6,8,0xd68910,0,1.6,0);ship.position.set(76,0,-110);g.add(ship);A.push(dt=>{ship.position.z+=dt*2;if(ship.position.z>-62)ship.position.z=-110;});
+   scatter(g,'palm',RECTS_O,.8);}},
+ DAM:{ground:0xd9cba0,orchard:0x86b45a,desc:"Damietta: the Nile Delta's green fields and palm groves, minarets and the river meeting the Mediterranean.",
+  build(g,A){stripes(g,-45,-82,140,34,14,[0x6f9f4a,0x86b45a,0x5f8f40,0xa9b06a],'x');scatter(g,'palm',[[-115,20,-104,-66]],.6);
+   CITY(g,0xe2d8bc);roofTown(g,{n:70,x0:40,x1:110,z0:-70,z1:-110,walls:[0xefe6d2,0xe2d6bc,0xd9c9a3],roofs:[0xd9c9a3,0xcfc2a0],hMin:2,hMax:6});
+   bx(g,8,5,8,0xf1ece0,86,0,-70);dome(g,3.4,0x3a9a6a,86,5,-70);minaret(g,81,-65,14);minaret(g,91,-65,14);
+   scatter(g,'palm',RECTS_O,1);}},
+ PVE:{ground:0xcdbf9a,orchard:0x8fae5a,desc:"Port-Vendres: the Pyrenees running into the sea, terraced Banyuls vineyards, pastel Catalan houses and the harbour obelisk.",
+  build(g,A){[[-104,-92,22,40],[-66,-96,26,46],[-24,-94,24,38],[14,-96,20,40]].forEach(([x,z,r,h])=>{cone(g,r,h,0x7f8a6a,x,z,6);cone(g,r*.32,h*.32,0xf4f6f6,x,z,6,h*.68);});
+   for(let i=0;i<6;i++)bx(g,130,.8,2.2,i%2?0x6f8f45:0x8a7a55,-45,i*.8,-64-i*2.4).castShadow=false;
+   CITY(g,0xd8ccb0);roofTown(g,{n:90,x0:38,x1:108,z0:-66,z1:-108,walls:[0xe8b87a,0xf0a08a,0xf2d27a,0xe8e2d4,0xd9a066],roofs:[0xb5553a,0xc0603a,0xa84a30]});
+   bx(g,2.4,10,2.4,0xd9c9a3,84,0,-80);cone(g,1.8,3,0x8a6a45,84,-80,4,10);cylF(g,.7,1.2,12,0xf4f1e8,104,-64,4);fort(g,98,-100,8,0xc9a77a);
+   scatter(g,'cypress',[[44,64,48,78],[-70,-45,50,78],[0,12,10,36]],.6);scatter(g,'olive',RECTS_O,1);}},
+ RTM:{ground:0x9fbf86,orchard:0x7fae55,desc:"Rotterdam: Europe's biggest port. The Erasmus Bridge, the Euromast, the cube houses, windmills, greenhouses and polder canals.",
+  build(g,A){stripes(g,-50,-82,140,40,9,[0x8fbf6a,0x9fcf7a,0x7faf5a],'x');for(let i=0;i<4;i++)waterPatch(g,140,1.2,0x4f9fc5,-50,-66-i*9.5);
+   windmill(g,-96,-78,A);windmill(g,-66,-88,A);windmill(g,-36,-80,A);greenhouses(g,-16,-104,5,2);
+   CITY(g,0xbfc4c0);waterPatch(g,82,9,0x3f8fb5,71,-78);skyline(g,{n:36,x0:36,x1:108,z0:-88,z1:-110,hMin:10,hMax:42,cols:[0x9fc6d6,0x7fa6b6,0xcfe3ee,0x5f7f8f],wMin:3,wMax:6});
+   bx(g,3,.6,24,0xf4f6f6,80,1.6,-78);const py=bx(g,1.2,20,1.2,0xf4f6f6,80,0,-73);py.rotation.x=.18;for(let i=0;i<7;i++){const c=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(80,19.5,-71.4),new THREE.Vector3(80,2.2,-67+i*-3.4)]),new THREE.LineBasicMaterial({color:0xf4f6f6}));g.add(c);}
+   cylF(g,.8,.8,30,0xe8e2d4,100,-98,10);cylF(g,3,3,1.2,0xe8e2d4,100,-98,12,22);cylF(g,.2,.2,8,0xc0392b,100,-98,6,30);
+   for(let i=0;i<5;i++){cylF(g,.4,.4,2.4,0x9aa6aa,44+i*3.4,-66,6);const c=bx(g,2.6,2.6,2.6,0xf2c14e,44+i*3.4,2.2,-66);c.rotation.set(Math.PI/4,0,Math.PI/4);}
+   scatter(g,'poplar',[[44,64,48,78],[-70,-45,50,78],[-118,20,-60,-56]],.7);}}
+};
+// ---- DESTINATION THEMES (dest-local coords)
+const RECTS_D=[[-78,-42,-42,40],[-4,32,30,42],[-34,40,-50,-36]];
+const BACK_D=[[-78,42,-92,-55]];
+const DT={
+ KBI:{ground:0xc9a77a,desc:"Kribi, Cameroon: a deep-sea port on a rainforest coast where the Lobé falls drop straight into the ocean.",
+  build(g,A){[[-60,-80,24],[-20,-84,28],[18,-82,22]].forEach(([x,z,r])=>hill(g,r,.55,0x2f6b35,x,z));scatter(g,'rain',BACK_D,.9);waterfall(g,36,-56,A);scatter(g,'palm',RECTS_D,.7);boats(g,70,-30,5,[0x3dbb74,0xf2c14e,0xc0392b],A);}},
+ DLA:{ground:0xb98e62,desc:"Douala, Cameroon: the Wouri river and its long bridge, mangrove creeks and busy tin-roofed neighbourhoods.",
+  build(g,A){waterPatch(g,124,12,0x5a8f8a,-18,-62);bridge(g,-78,42,-62,2,0xb8b4a8);scatter(g,'mangrove',[[-78,42,-70,-56]],1.2);roofTown(g,{n:90,x0:-76,x1:40,z0:-92,z1:-72,walls:[0xe8dcc0,0xd9c9a3,0xc9a77a],roofs:[0x9a5a3a,0x8a8f90,0xb06a3a]});scatter(g,'palm',RECTS_D,.6);}},
+ APP:{ground:0xc4a77e,desc:"Apapa, Lagos: Nigeria's main port, the Lagos skyline, the Third Mainland Bridge, tank farms and yellow danfo buses.",
+  build(g,A){skyline(g,{n:60,x0:-76,x1:30,z0:-92,z1:-66,hMin:8,hMax:34,cols:[0xcfe3ee,0x9fc6d6,0xeef1f2,0xe2dccd]});waterPatch(g,124,6,0x4f8faf,-18,-60);bridge(g,-78,42,-60,1.6,0xb8b4a8);
+   for(let i=0;i<8;i++)cylF(g,2.4,2.4,3,0xf4f6f6,-70+(i%4)*6,-44+Math.floor(i/4)*6,14);for(let i=0;i<6;i++)bx(g,1.4,1.4,3,0xf2c14e,-10+i*2.2,0,32);scatter(g,'palm',RECTS_D,.4);}},
+ LBV:{ground:0xcdb489,desc:"Libreville, Gabon: palm-lined beaches, the presidential palace on the seafront and rainforest hills behind the city.",
+  build(g,A){[[-50,-86,26],[10,-88,30]].forEach(([x,z,r])=>hill(g,r,.5,0x2f6b35,x,z));scatter(g,'rain',[[-78,42,-92,-74]],.8);bx(g,30,6,8,0xf4f6f6,-30,0,-62);dome(g,3,0xd9b44a,-30,6,-62);
+   skyline(g,{n:24,x0:-4,x1:40,z0:-72,z1:-58,hMin:5,hMax:16,cols:[0xf4f1e8,0xe2dccd]});scatter(g,'palm',RECTS_D,1);}},
+ COO:{ground:0xc98f5a,desc:"Cotonou, Benin: red earth, the Amazon statue on the waterfront and the stilt village of Ganvié on Lake Nokoué.",
+  build(g,A){statue(g,-40,-60,14,0x8a6a45,true);waterPatch(g,60,24,0x5a8f8a,10,-74);stilts(g,10,-74,9);boats(g,10,-74,4,[0x8a6a45],A);roofTown(g,{n:40,x0:-76,x1:-50,z0:-92,z1:-66,walls:[0xe8dcc0,0xd9c9a3],roofs:[0x8a8f90,0x9a5a3a]});scatter(g,'palm',RECTS_D,1);}},
+ PDG:{ground:0x8f9a6a,desc:"Pointe des Galets, Réunion: the Piton de la Fournaise volcano, green cirque cliffs and sugar-cane fields.",
+  build(g,A){volcano(g,-20,-80,26,26,A);[[-64,-84,14,32],[24,-86,12,30],[38,-74,9,22]].forEach(([x,z,r,h])=>cone(g,r,h,0x4f7a45,x,z,6));stripes(g,-40,-56,70,10,10,[0x7fb04a,0x8fbf55],'z');scatter(g,'cane',[[-75,-5,-62,-52]],2.5);scatter(g,'palm',RECTS_D,.5);}},
+ DKR:{ground:0xdcc48c,desc:"Dakar, Senegal: the African Renaissance Monument on its hill, the Mamelles lighthouse, Gorée island and baobabs.",
+  build(g,A){hill(g,16,.55,0xb9a070,-40,-70);statue(g,-40,-70,20,0x6a4a2a,true);g.children[g.children.length-1].position.y+=8.8;g.children[g.children.length-2].position.y+=8.8;g.children[g.children.length-3].position.y+=8.8;g.children[g.children.length-4].position.y+=8.8;
+   hill(g,10,.6,0xb9a070,10,-80);lighthouse(g,10,-80,6,0xf4f6f6,0xf4f6f6,5.6);island(g,80,30,10,3,0xcdb489);roofTown(g,{n:20,x0:74,x1:86,z0:24,z1:36,walls:[0xe8743a,0xf2c14e,0xc0392b,0xf0a08a],roofs:[0xb5553a]});scatter(g,'baobab',RECTS_D.concat([[-78,42,-92,-82]]),.5);}},
+ CKY:{ground:0xc0885a,desc:"Conakry, Guinea: a city on a narrow peninsula, the Grand Mosque's dome and minarets, and the Îles de Los offshore.",
+  build(g,A){bx(g,12,5,12,0xf1ece0,-30,0,-66);dome(g,5,0xf1ece0,-30,5,-66);[[-37,-73],[-23,-73],[-37,-59],[-23,-59]].forEach(([x,z])=>minaret(g,x,z,16));island(g,80,-10,12,5,0x4f7a45);island(g,90,26,9,4,0x4f7a45);roofTown(g,{n:60,x0:-10,x1:40,z0:-92,z1:-60,walls:[0xe8dcc0,0xd9c9a3],roofs:[0x8a8f90,0x9a5a3a]});scatter(g,'palm',RECTS_D,1.1);}},
+ LFW:{ground:0xd6b98a,desc:"Lomé, Togo: the white Independence Monument, a long palm-lined beach and the low city along the shore.",
+  build(g,A){bx(g,4,18,2,0xf4f6f6,-30,0,-66);statue(g,-30,-63,4,0xe2dccd,false);bx(g,124,.3,6,0xeadcb0,-18,-.2,-50).castShadow=false;roofTown(g,{n:70,x0:-76,x1:40,z0:-92,z1:-72,walls:[0xefe6d2,0xe2d6bc,0xd9c9a3],roofs:[0x8a8f90,0xb06a3a]});scatter(g,'palm',RECTS_D.concat([[-78,42,-54,-46]]),1);}},
+ PLU:{ground:0x9fb07a,desc:"Port Louis, Mauritius: Pieter Both peak with its balancing rock, Le Pouce, the colourful Caudan waterfront and sugar cane.",
+  build(g,A){cone(g,14,34,0x4f7a45,-40,-84,6);sphere(g,1.8,0x6f6a55,-40,35.4,-84);cone(g,12,26,0x4f7a45,-10,-88,6);cylF(g,2.4,3,6,0x6f6a55,-10,-88,6,24);cone(g,16,22,0x5a8a4a,24,-84,6);
+   roofTown(g,{n:40,x0:-4,x1:40,z0:-70,z1:-56,walls:[0xc0392b,0xf2c14e,0x2e86c1,0x3dbb74,0xf0a08a],roofs:[0x8a8f90],hMin:2.5,hMax:5});scatter(g,'cane',[[-78,-46,-70,-56]],2.4);scatter(g,'palm',RECTS_D,.7);}},
+ LON:{ground:0xa8a070,desc:"Longoni, Mayotte: a turquoise lagoon, green volcanic hills, mangroves and baobabs.",
+  build(g,A){[[-60,-84,22],[-20,-88,28],[20,-84,22]].forEach(([x,z,r])=>hill(g,r,.75,0x4f8a45,x,z));waterPatch(g,124,10,0x5fd0c8,-18,-58);scatter(g,'mangrove',[[-78,42,-64,-52]],1);scatter(g,'baobab',RECTS_D,.4);roofTown(g,{n:20,x0:-76,x1:-50,z0:-50,z1:-38,walls:[0xefe6d2,0xf2c14e],roofs:[0x8a8f90]});boats(g,70,0,4,[0xf4f6f6,0x2e86c1],A);}},
+ ABJ:{ground:0xc7a37a,desc:"Abidjan, Côte d'Ivoire: the Plateau's towers including La Pyramide, St Paul's Cathedral on the Ébrié lagoon, and its bridges.",
+  build(g,A){waterPatch(g,124,10,0x4f8faf,-18,-58);bridge(g,-78,42,-58,1.6,0xb8b4a8);skyline(g,{n:36,x0:-50,x1:20,z0:-92,z1:-68,hMin:12,hMax:40,cols:[0x9fc6d6,0xcfe3ee,0x7fa6b6,0xeef1f2]});
+   for(let i=0;i<5;i++)bx(g,12-i*2.4,2.4,12-i*2.4,0xe2dccd,-64,i*2.4,-80);const sp=bx(g,1.4,22,1.4,0xf4f6f6,30,0,-76);sp.rotation.z=-.35;bx(g,5,.8,.8,0xf4f6f6,33.5,19,-76);scatter(g,'palm',RECTS_D,.8);}},
+ JEA:{ground:0xe6d3a3,desc:"Jebel Ali, Dubai: the Burj Khalifa above a glass skyline, the Burj Al Arab sail, desert dunes and date palms.",
+  build(g,A){[[-60,-86,30],[0,-90,36],[34,-84,22]].forEach(([x,z,r])=>hill(g,r,.18,0xe8cf98,x,z));skyline(g,{n:46,x0:-60,x1:30,z0:-80,z1:-62,hMin:10,hMax:30,cols:[0x9fc6d6,0xcfe3ee,0x7fa6b6,0xe8eef0]});
+   [[4,10],[3,10],[2.2,10],[1.4,8],[.8,8]].reduce((y,[r,h])=>{cylF(g,r,r,h,0xdfe8ec,-20,-72,6,y);return y+h;},0);cylF(g,.15,.25,12,0xdfe8ec,-20,-72,6,46);
+   const sail=put(g,new THREE.Mesh(new THREE.ConeGeometry(3,22,3),fm(0xf4f6f6)),30,11,-60);sail.scale.z=.45;scatter(g,'palm',RECTS_D,.6);}},
+ MBA:{ground:0xcfae7c,desc:"Mombasa, Kenya: the Tusks arching over Moi Avenue, Fort Jesus on the old harbour, dhows, baobabs and coconut palms.",
+  build(g,A){[-1,1].forEach(s=>{archOver(g,-20,-60+s*3,6,0xf1ece0,Math.PI/2);});fort(g,20,-72,16,0xc9a065);bx(g,14,.3,6,0x8a8f90,-20,-.2,-60).castShadow=false;roofTown(g,{n:40,x0:-76,x1:-40,z0:-92,z1:-66,walls:[0xefe6d2,0xe2d6bc],roofs:[0x8a8f90,0xb06a3a]});boats(g,70,-20,5,[0x8a6a45,0xf4f1e8],A,true);scatter(g,'baobab',[[-78,42,-92,-80]],.35);scatter(g,'palm',RECTS_D,.9);}}
+};
+const RECTS_O=[[-75,-48,32,44],[-70,-45,50,78],[44,64,48,78],[20,36,-52,-43],[-40,10,-52,-43],[0,12,10,36],[30,37,24,33],[-118,-112,-30,60],[-30,-14,-60,-50]];
+function clearGroup(g){while(g.children.length){const c=g.children.pop();c.traverse(o=>{if(o.geometry)o.geometry.dispose();});}}
+let destKey='ABJ';
+function applyOriginTheme(k){const th=OT[k]||OT.CPT;clearGroup(themeO);themeAnimsO=[];land.material.color.setHex(th.ground);orchardGround.material.color.setHex(th.orchard);th.build(themeO,themeAnimsO);}
+function applyDestTheme(k){const th=DT[k]||DT.ABJ;destKey=k;clearGroup(themeD);themeAnimsD=[];destLand.material.color.setHex(th.ground);th.build(themeD,themeAnimsD);}
 
 /* =========================================================
    LABELS
@@ -843,7 +1016,7 @@ function kv(rows){return '<dl class="kv">'+rows.map(([k,v])=>`<dt>${esc(k)}</dt>
 let aboutOpen=false;const detail=$('#detail');detail.addEventListener('pointerenter',()=>hoverDetail=true);detail.addEventListener('pointerleave',()=>hoverDetail=false);
 function renderDetail(){
  const s=selected;let h='';
- if(!s){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Origin · ${esc(PORTS[origin].name)}</div><h2>Today's chain</h2>
+ if(!s){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Origin · ${esc(PORTS[origin].name)}</div><h2>Today's chain</h2><p class="hint">${esc(OT[origin].desc)}</p>
   <p class="hint">Pickers fill field bins, bin trucks take them to the bin cold room, and the packhouse washes, grades and packs the fruit into cartons. Reefer trucks collect empties at the depot, load pallets at the packhouse and drop them at the port, where cranes load the vessel. Other exporters' trucks share the road, gate and stacks. GFS reefers carry a green roof tag. Click anything to follow it.</p>`+
   kv([['Bins collected today',stats.bins.toLocaleString('en-ZA')],['Bins in cold room',Math.floor(stats.binsCold)],['Cartons packed today',(stats.pallets*CARTONS_PER_PALLET).toLocaleString('en-ZA')],['GFS reefer trucks',trucks.filter(t=>t.kind!=='other').length],['Other exporters on the road',trucks.filter(t=>t.kind==='other').length],['Cold store stock',stats.coldStore+' plts'],['Yard reefers plugged',YARD.filter(y=>y.used).length+' / '+YARD.length],['Vessel at berth',vessel.state==='berthed'?esc(vessel.name):vessel.state==='anchored'||vessel.state==='toAnchor'?esc(vessel.name)+' (delayed)':'—'],['Reefers at staging depot',stagingQ.length],['Lanes from '+PORTS[origin].name,lanesFrom(origin).length]])+
   `<p class="hint">Lanes and carriers come from the FREIGHT 2025 sheet. Rates are not shown. Ports marked "Added manually" are not in that sheet yet.</p>`;}
@@ -881,7 +1054,7 @@ function renderDetail(){
   h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Transport partners & dispatch</div><h2>Transporter office</h2><span class="chip ok">${trucks.filter(t=>t.kind!=='other'&&t.cont).length} loads on the road</span><ul class="lanes">${rows}</ul><p class="hint">Each partner's trucks collect inspected empties and are sent to the allocated farm.</p>`;}
  else if(s.type==='dtruck'){const t=s.ref;const c=t.cont;h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Client-hired truck · ${esc(t.id)}</div><h2>${esc(t.plate)}</h2><span class="chip ok">${esc(t.status)}</span>`+
   kv([['Company',esc(t.company)],['Driver',esc(t.driver)],['Container',c?`<a href="#" data-cont="${esc(c.id)}" style="color:inherit">${esc(c.id)}</a>`:'—'],['Customs',c?(c.cleared?'Cleared':'Pending'):'—'],['Pallets on board',c?(c.step>=8?0:t.unloading?20-Math.floor(t.unload):20):'—'],['Next stop',esc({pickup:'Port stack',customs:'Customs',warehouse:'Client warehouse',return:'Shipping line depot'}[DSTOPS[t.stopIdx].k])]]);}
- else if(s.type==='dstack'){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Port of discharge</div><h2>Discharge stack</h2><span class="chip ok">${destQueue.length} GFS reefers waiting</span>`+(destQueue.length?`<ul class="lanes">${destQueue.slice(0,6).map(c=>`<li><a href="#" data-cont="${esc(c.id)}" style="color:inherit;font-family:var(--f-data);font-size:12px">${esc(c.id)}</a><span class="chip">${esc(PORTS[c.pod].name)}</span></li>`).join('')}</ul>`:'')+`<p class="hint">Reefers stay plugged in until the client's truck collects them after customs.</p>`;}
+ else if(s.type==='dstack'){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Port of discharge</div><h2>Discharge stack</h2><p class="hint">${esc(DT[destKey].desc)}</p><span class="chip ok">${destQueue.length} GFS reefers waiting</span>`+(destQueue.length?`<ul class="lanes">${destQueue.slice(0,6).map(c=>`<li><a href="#" data-cont="${esc(c.id)}" style="color:inherit;font-family:var(--f-data);font-size:12px">${esc(c.id)}</a><span class="chip">${esc(PORTS[c.pod].name)}</span></li>`).join('')}</ul>`:'')+`<p class="hint">Reefers stay plugged in until the client's truck collects them after customs.</p>`;}
  else if(s.type==='customs'){const n=clientTrucks.filter(t=>DSTOPS[t.stopIdx].k==='customs'&&t.dwell>0).length;h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Destination</div><h2>Customs inspection</h2><span class="chip ${n?'warn':'ok'}">${n?'Inspecting':'Clear'}</span>`+kv([['Method','Scanner arch, 1 in 4 opened'],['Cleared today',containers.filter(c=>c.step>=7&&c.times[7]!=null).length]]);}
  else if(s.type==='warehouse'){const u=clientTrucks.find(t=>t.unloading);h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Client · destination</div><h2>Client warehouse</h2><span class="chip ${u?'ok':''}">${u?'Forklift unloading':'Dock free'}</span>`+kv([['Pallets received today',(stats.delivered||0)+(u?Math.floor(u.unload):0)],['Containers unloaded',Math.floor((stats.delivered||0)/20)],['Dock doors',1]]);}
  else if(s.type==='ddepot'){h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">Shipping line · destination</div><h2>Empty return depot</h2><span class="chip ok">Accepting empties</span>`+kv([['Empties returned today',containers.filter(c=>c.step>=9).length]])+`<p class="hint">Once the client has unloaded, the empty goes back to the shipping line here, which closes the loop.</p>`;}
@@ -897,7 +1070,7 @@ function renderDetail(){
  else if(s.type==='port'){const p=s.ref;const ls=LANES.filter(l=>l.o===p.key||l.d===p.key);
   h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">${p.role==='o'?'Port of loading':'Port of discharge'} · ${esc(p.code)}</div><h2>${esc(p.name)}</h2><span class="chip">${esc(p.country)}</span> ${ls.every(l=>l.src==='Added manually')?'<span class="chip src">Added manually</span>':''}`+
   `<ul class="lanes">`+ls.map(l=>{const other=PORTS[l.o===p.key?l.d:l.o];return `<li><span>${l.o===p.key?'→':'←'} ${esc(other.name)} <small style="color:var(--muted)">${route(l.o,l.d).days} d</small></span><span>${carrierChips(l.carriers,l.src)}</span></li>`;}).join('')+`</ul>`+
-  (p.role==='o'?`<p class="hint"><a href="#" data-origin="${p.key}" style="color:var(--accent)">Run the local chain from ${esc(p.name)}</a></p>`:'');}
+  `<p class="hint">${esc((p.role==='o'?OT[p.key]:DT[p.key])?.desc||'')}</p>`+(p.role==='o'?`<p class="hint"><a href="#" data-origin="${p.key}" style="color:var(--accent)">Visit ${esc(p.name)} (loading side)</a></p>`:`<p class="hint"><a href="#" data-dest="${p.key}" style="color:var(--accent)">Visit ${esc(p.name)} (discharge side)</a></p>`);}
  else if(s.type==='ship'){const sh=s.ref;const pct=Math.round(sh.dist/sh.r.len*100);const left=Math.max(0,Math.round((1-sh.dist/sh.r.len)*sh.r.days*10)/10);
   h=`<button class="closebtn" aria-label="Close">×</button><div class="eyebrow">${esc(sh.carrier)} · Voy ${esc(sh.voyage)}</div><h2>${esc(sh.name)}</h2><span class="chip ok">${sh.done?'Arrived':'At sea'}</span>`+
   kv([['Lane',esc(PORTS[sh.o].name)+' → '+esc(PORTS[sh.d].name)],['GFS reefers',sh.boxes.length||sh.gfsCount],['Progress',pct+'%'],['Est. days to go',left+' d']])+`<div class="bar"><i style="width:${pct}%"></i></div>`+
@@ -905,7 +1078,8 @@ function renderDetail(){
  detail.innerHTML=h;detail.hidden=false;detail.toggleAttribute('data-empty',!s&&!aboutOpen);
  const cb=detail.querySelector('.closebtn');if(cb)cb.onclick=()=>{aboutOpen=false;$('#aboutBtn').setAttribute('aria-pressed','false');select(null);};
  detail.querySelectorAll('[data-cont]').forEach(a=>a.onclick=e=>{e.preventDefault();const c=containers.find(x=>x.id===a.dataset.cont);if(c)selectContainer(c);});
- detail.querySelectorAll('[data-origin]').forEach(a=>a.onclick=e=>{e.preventDefault();setOrigin(a.dataset.origin);setArea('port');});
+ detail.querySelectorAll('[data-origin]').forEach(a=>a.onclick=e=>{e.preventDefault();setOrigin(a.dataset.origin);setArea('overview');});
+ detail.querySelectorAll('[data-dest]').forEach(a=>a.onclick=e=>{e.preventDefault();setDest(a.dataset.dest);setArea('dest');});
 }
 const STOP_NAMES={depot:'Empty depot',pack:'Farm packhouse',weigh:'Weighbridge',stage:'Staging depot',gate:'Port gate',drop:'Reefer stack'};
 function selectContainer(c){if(c.mesh&&c.where!=='At sea'&&c.where!=='Delivered')select({type:'container',ref:c});else{selected={type:'container',ref:c};follow=null;highlightLane(null,null,c);const sh=ships.find(s=>s.boxes.includes(c));if(sh){const p=sh.g.getWorldPosition(new THREE.Vector3());flyTo([p.x,0,p.z],[0,60,46]);follow={sel:{type:'ship',ref:sh},last:p};}renderDetail();renderTracker();renderTable();}}
@@ -946,7 +1120,10 @@ document.querySelectorAll('#areas button').forEach(b=>b.onclick=()=>setArea(b.da
 const originSel=$('#origin');
 Object.entries(PORTS).filter(([,p])=>p.role==='o').forEach(([k,p])=>{const o=document.createElement('option');o.value=k;o.textContent=p.name+(p.src==='manual'?' (manual)':'');originSel.appendChild(o);});
 originSel.onchange=()=>setOrigin(originSel.value);
-function setOrigin(k,silent){origin=k;originSel.value=k;areaLabels.port.t.textContent='Port of '+PORTS[k].name;
+const destSel=$('#destSel');Object.entries(PORTS).filter(([,p])=>p.role==='d').forEach(([k,p])=>{const o=document.createElement('option');o.value=k;o.textContent=p.name;destSel.appendChild(o);});destSel.value=destKey;
+function setDest(k,silent){applyDestTheme(k);destSel.value=k;destLabels.port.t.textContent='Port of '+PORTS[k].name;if(!silent)toast('Destination side now shows '+PORTS[k].name);renderDetail();}
+destSel.onchange=()=>{setDest(destSel.value);setArea('dest');};
+function setOrigin(k,silent){if(k!==origin||!themeO.children.length)applyOriginTheme(k);origin=k;originSel.value=k;areaLabels.port.t.textContent='Port of '+PORTS[k].name;
  areaLabels.depot.s.textContent='Wash & PTI · '+PORTS[k].name;
  if(vessel.state==='berthed'&&vessel.gfs===0)newVoyage();renderDetail();renderTable();if(!silent)toast('Local chain now runs from '+PORTS[k].name);}
 $('#weather').onchange=e=>{weather=e.target.value;applyWeather();};
@@ -1057,9 +1234,15 @@ const CLIENT_CO=['Client hire · Trans-Lagune','Client hire · Golfe Transit','C
 function addClientTruck(i,s0){const {g,hl}=makeTruck(i+1);world.remove(g);scene.add(g);
  const t={id:'CLT-'+String(i+1).padStart(2,'0'),kind:'client',company:CLIENT_CO[i%3],plate:'CI '+Math.floor(rnd(1000,9999))+' '+pick(['AB','GH','KM','TR']),driver:pick(['Koffi A.','Moussa D.','Awa S.','Jean-Marc O.']),g,hl,s:s0,v:0,dwell:0,cont:null,unload:0,stopIdx:0,status:'Heading to port'};
  t.stopIdx=DSTOPS.findIndex(st=>st.s>s0);if(t.stopIdx<0)t.stopIdx=0;tag(g,'dtruck',t);clientTrucks.push(t);return t;}
+const bgQueue=[];
+function bgArrive(c){c.step=6;c.times[6]=sim;c.where='Discharged at '+PORTS[c.pod].name;c.mesh=null;bgQueue.push(c);}
+function bgStep(){for(let i=bgQueue.length-1;i>=0;i--){const c=bgQueue[i];const t0=c.times[6];
+ if(c.step===6&&sim>t0+30){c.step=7;c.times[7]=sim;c.where='Customs cleared, '+PORTS[c.pod].name;}
+ else if(c.step===7&&sim>t0+75){c.step=8;c.times[8]=sim;c.where='Client warehouse, '+PORTS[c.pod].name;}
+ else if(c.step===8&&sim>t0+120){c.step=9;c.times[9]=sim;c.where='Empty returned to shipping line';bgQueue.splice(i,1);}}}
 function destArrive(c){c.step=6;c.times[6]=sim;c.where='Discharged at '+PORTS[c.pod].name;const slot=DSTACK.find(x=>!x.used);
  const m=makeContainer(null,true);if(slot){slot.used=c;c.slot=slot;m.position.set(slot.x,slot.y,slot.z);dest.add(m);}c.mesh=m;tag(m,'container',c);destQueue.push(c);}
-function feedDestination(){const lanes=lanesFrom(origin).filter(l=>l.carriers.length);const l=pick(lanes.length?lanes:LANES);
+function feedDestination(){let ls=LANES.filter(l=>l.d===destKey&&l.o===origin);if(!ls.length)ls=LANES.filter(l=>l.d===destKey);const l=ls.length?pick(ls):{o:origin,d:destKey,carriers:['MSC'],src:'Added manually'};
  const c={id:isoNumber(OWNER[l.carriers[0]]||'TBCU'),carrier:l.carriers[0]||'TBC',booking:'GFS'+(3900+Math.floor(rnd(0,200))),pol:l.o,pod:l.d,src:l.src,pallets:20,commodity:'Navel oranges',setpoint:'+4.5 °C',vent:'25 m³/h',vgm:Math.round(rnd(25400,25900)),farm:FARM_NAME,
   step:5,times:[sim-15000,sim-14980,sim-14950,sim-14930,sim-14900,sim-14500,null,null,null,null],where:'At sea',shipped:true,vessel:'Earlier sailing'};containers.push(c);destArrive(c);}
 function clientStep(t,dt,ahead){const st=DSTOPS[t.stopIdx];const c=t.cont;
@@ -1112,7 +1295,7 @@ function destStep(dt){
  else{forklift.position.z=-9;fkPallet.visible=false;}
  const n=Math.min(48,Math.floor(((stats.delivered||0)+(u?Math.floor(u.unload):0))/2)%49);for(let i=0;i<48;i++){if(i<n){dummy.position.set(-26+(i%8)*1.3,.65+Math.floor(i/24)*1.35,-2-Math.floor((i%24)/8)*1.4);dummy.scale.set(1,1,1);}else dummy.scale.set(0,0,0);dummy.rotation.set(0,0,0);dummy.updateMatrix();whPalletI.setMatrixAt(i,dummy.matrix);}whPalletI.instanceMatrix.needsUpdate=true;
  dTrolley.position.x=12+Math.sin(clockT*.6)*8;
- if(destQueue[0])destLabels.port.t.textContent='Port of '+PORTS[destQueue[0].pod].name;}
+ bgStep();}
 // depot prep line: stack → wash → PTI → ready
 function depotItemStep(slot,dt){const it=depotSlots[slot];if(!it)return;
  if(it.moving){it.t+=dt/1.8;const k=ease(Math.min(1,it.t));it.mesh.position.lerpVectors(it.from,it.to,k);it.mesh.position.y+=Math.sin(k*Math.PI)*1.2;reach.position.set(it.mesh.position.x-3,0,it.mesh.position.z);
@@ -1203,7 +1386,7 @@ function vesselStep(dt){
 function shipStep(dt){for(let i=ships.length-1;i>=0;i--){const sh=ships[i];
  if(sh.done){sh.fade-=dt;sh.g.scale.setScalar(Math.max(.01,sh.fade/2*1.15));if(sh.fade<=0){map.remove(sh.g);ships.splice(i,1);if(selected&&selected.ref===sh)select(null);}continue;}
  sh.dist+=dt*sh.speed;if(sh.dist>=sh.r.len){sh.done=true;sh.fade=2;
-  if(sh.boxes.length){sh.boxes.forEach(c=>destArrive(c));alertMsg(`${sh.name} arrived ${PORTS[sh.d].name}: ${sh.boxes.length} GFS reefers discharged`);if(selected&&selected.type==='container')renderTracker();}
+  if(sh.boxes.length){sh.boxes.forEach(c=>c.pod===destKey?destArrive(c):bgArrive(c));alertMsg(`${sh.name} arrived ${PORTS[sh.d].name}: ${sh.boxes.length} GFS reefers discharged`);if(selected&&selected.type==='container')renderTracker();}
   else{const l=pick(LANES);spawnShip(l.o,l.d);}continue;}
  let d=sh.dist,pts=sh.r.pts,k=0;while(k<pts.length-2){const seg=Math.hypot(pts[k+1].x-pts[k].x,pts[k+1].z-pts[k].z);if(d<=seg)break;d-=seg;k++;}
  const a=pts[k],b=pts[k+1];const seg=Math.hypot(b.x-a.x,b.z-a.z)||1;const u=clamp(d/seg,0,1);
@@ -1230,6 +1413,7 @@ for(let i=0;i<3;i++){const t={g:new THREE.Group(),cont:null,trip:null};world.add
 LANES.filter(l=>l.o===origin&&l.carriers.length).slice(0,3).forEach((l,i)=>{const arr=[];for(let k=0;k<3;k++){const c={id:isoNumber(OWNER[l.carriers[0]]),carrier:l.carriers[0],booking:'GFS'+(4100+i*10+k),pol:l.o,pod:l.d,src:l.src,pallets:20,commodity:'Navel oranges',setpoint:'+4.5 °C',vent:'25 m³/h',vgm:25600+k*90,step:5,times:[sim-2900,sim-2860,sim-2830,sim-2790,sim-2760,sim-2400,null],farm:FARM_NAME,mesh:null,where:'At sea',vessel:'',shipped:true};containers.push(c);arr.push(c);}
  const r=route(l.o,l.d);const sh=spawnShip(l.o,l.d,{carrier:l.carriers[0],boxes:arr,start:r.len*rnd(.2,.7)});arr.forEach(c=>c.vessel=sh.name);});
 stats.pallets=312;stats.bins=520;stats.turn=[52,47,58];
+applyOriginTheme('CPT');applyDestTheme(destKey);destLabels.port.t.textContent='Port of '+PORTS[destKey].name;
 applyLight();renderDetail();renderTracker();renderTable();renderKPIs();refreshDatalist();setOrigin('CPT',true);
 
 let clockT=0,uiT=0,prodAcc=0,last=performance.now();
@@ -1268,7 +1452,7 @@ function tick(now){requestAnimationFrame(tick);let dt=Math.max(0,Math.min(.05,(n
  // pallet stock visual
  const shown=Math.min(60,Math.ceil(stats.coldStore/3.5));for(let i=0;i<60;i++){if(i<shown){dummy.position.set(12.5+(i%3)*1.25,.65+Math.floor(i/30)*1.35,-19+Math.floor((i%30)/3)*1.3);dummy.scale.set(1,1,1);}else{dummy.scale.set(0,0,0);}dummy.rotation.set(0,0,0);dummy.updateMatrix();palletI.setMatrixAt(i,dummy.matrix);}palletI.instanceMatrix.needsUpdate=true;
  const cs=[...clientTrucks].sort((a,b)=>a.s-b.s);cs.forEach((t,i)=>{const ahead=cs[(i+1)%cs.length];clientStep(t,dt,ahead!==t?ahead:null);const p=dCurve.getPointAt(cu(t.s,DLOOP),tmpP);const tg=dCurve.getTangentAt(cu(t.s,DLOOP),tmpT);t.g.position.set(p.x,0,p.z);t.g.rotation.y=Math.atan2(tg.x,tg.z);});
- destStep(dt);planeStep(dt);airTrucks.forEach(t=>{airTruckStep(t,dt);const p=airCurve.getPointAt(cu(t.s,ALOOP),tmpP);const tg=airCurve.getTangentAt(cu(t.s,ALOOP),tmpT);t.g.position.set(p.x,0,p.z);t.g.rotation.y=Math.atan2(tg.x,tg.z);});
+ destStep(dt);planeStep(dt);tourTick(dt);themeAnimsO.forEach(f=>f(dt));themeAnimsD.forEach(f=>f(dt));airTrucks.forEach(t=>{airTruckStep(t,dt);const p=airCurve.getPointAt(cu(t.s,ALOOP),tmpP);const tg=airCurve.getTangentAt(cu(t.s,ALOOP),tmpT);t.g.position.set(p.x,0,p.z);t.g.rotation.y=Math.atan2(tg.x,tg.z);});
  depotStep(dt);craneStep(dt);vesselStep(dt);shipStep(dt);
  if(rain.visible){const a=rainGeo.attributes.position.array;for(let i=0;i<RAIN_N;i++){a[i*3+1]-=dt*38;if(a[i*3+1]<0)a[i*3+1]=60;}rainGeo.attributes.position.needsUpdate=true;rain.position.set(controls.target.x,0,controls.target.z);}
  // camera fly / follow
@@ -1290,6 +1474,48 @@ function tick(now){requestAnimationFrame(tick);let dt=Math.max(0,Math.min(.05,(n
   renderTracker();if(!hoverTable&&$('#tablebox').classList.contains('open'))renderTable();if(Math.random()<.1)refreshDatalist();}
 }
 function labelText(s){return s.type==='truck'?s.ref.plate:s.type==='container'?s.ref.id:s.type==='ship'?s.ref.name:s.type==='port'?s.ref.name:s.type==='vessel'?vessel.name:s.type==='crane'?s.ref.name:s.type==='farm'?'Block 7':s.type==='pack'?'Packhouse':s.type==='depot'?'Empty depot':s.type==='yard'?'Reefer stack':s.type==='bintruck'?s.ref.plate:s.type==='coldroom'?'Bin cold room':s.type==='staging'?'Plug-in depot':s.type==='airtruck'?s.ref.plate:s.type==='plane'?'GFS freighter':s.type==='airport'?'Air freight terminal':s.type==='hq'?'GFS HQ':s.type==='transport'?'Transporter office':s.type==='dtruck'?s.ref.plate:s.type==='dstack'?'Discharge stack':s.type==='customs'?'Customs':s.type==='warehouse'?'Client warehouse':s.type==='ddepot'?'Empty return depot':'';}
+/* =========================================================
+   GUIDED TOUR — "How GFS works"
+   ========================================================= */
+const O=()=>PORTS[origin].name,D=()=>PORTS[destKey].name;
+const TOUR_DIR=new THREE.Vector3(.55,.75,.85).normalize();
+function focus(sel,dist){select(sel,{noFly:true});const p=worldPosOf(sel);if(!p)return;flyTo([p.x,0,p.z],TOUR_DIR.clone().multiplyScalar(dist).toArray());if(follow)follow.last=null;}
+const firstGfsTruck=pred=>trucks.find(t=>t.kind!=='other'&&pred(t))||trucks.find(t=>t.kind!=='other');
+const TOUR=[
+ {t:()=>'Welcome to the GFS chain',x:()=>`This mini world shows how fresh fruit travels from a farm near ${O()} to a customer in ${D()}. Many companies each do one step. GFS organises all of them.`,g:'Follow the steps. Each one shows something real moving in the world.',go:()=>setArea('overview')},
+ {t:()=>'1. Picking the fruit',x:()=>'Farm workers pick the fruit by hand and tip it into big wooden bins in the orchard.',g:'GFS plans how much fruit is coming and when it must ship.',go:()=>focus({type:'farm',obj:farmHit},75)},
+ {t:()=>'2. Bins to the cold room',x:()=>'Bin trucks carry the full bins to the cold room, so the fruit cools down quickly and stays fresh.',go:()=>focus({type:'bintruck',ref:binTrucks[0]},38)},
+ {t:()=>'3. Washing and packing',x:()=>`In the packhouse the fruit is washed, dried, sorted by size and quality, and packed into 15 kg cartons. ${CARTONS_PER_PALLET} cartons make one pallet.`,go:()=>focus({type:'pack',obj:packHit},50)},
+ {t:()=>'4. Waiting in the cold store',x:()=>'Finished pallets wait in the pallet cold store at about +4 °C until transport arrives.',g:'GFS books space on a ship and orders an empty container from the shipping line.',go:()=>{select(null);flyTo([7,0,-13],TOUR_DIR.clone().multiplyScalar(40).toArray());}},
+ {t:()=>'5. Preparing the empty container',x:()=>"At the shipping line's depot, an empty fridge container (a reefer) is washed and its cooling unit is tested. This test is called a PTI.",go:()=>focus({type:'depot',obj:depotHit},50)},
+ {t:()=>'6. The trucking company',x:()=>'GFS hires a trucking company. Their truck collects the clean, tested empty container.',g:'GFS chooses the transporter and tells the driver which farm to go to.',go:()=>focus({type:'transport',obj:transHit},55)},
+ {t:()=>'7. Loading at the farm',x:()=>'The truck drives to the allocated farm. 20 pallets are loaded into the container and the doors are sealed.',go:()=>focus({type:'truck',ref:firstGfsTruck(t=>t.cont&&!t.cont.loaded)},40)},
+ {t:()=>'8. Weighing',x:()=>'The loaded container crosses the weighbridge. Every export container must have a verified gross mass (VGM).',g:'GFS submits the weight and the export documents.',go:()=>{select(null);flyTo([14,0,0],TOUR_DIR.clone().multiplyScalar(40).toArray());}},
+ {t:()=>'9. Into the port',x:()=>'At the port, trucks queue at the gate for checks. The container is then dropped in the stack and plugged into power to stay cold.',go:()=>focus({type:'yard',obj:yardHit},60)},
+ {t:()=>'10. When the ship is late',x:()=>'If the vessel is delayed, the container goes to a plug-in depot instead and is taken to the port on another day.',g:'GFS watches ship schedules and re-plans the trucks.',go:()=>focus({type:'staging',obj:stageHit},50)},
+ {t:()=>'11. Loading the ship',x:()=>'When the ship arrives, cranes lift the containers on board. Each container sails with its own shipping line.',go:()=>focus({type:'vessel',ref:vessel},95)},
+ {t:()=>'12. At sea',x:()=>`The ship sails to the customer's country. From ${O()}, that takes roughly 5 to 25 days depending on the port.`,g:'GFS tracks every container at sea and keeps the customer informed.',go:()=>{const sh=ships.find(x=>x.boxes.length)||ships[0];if(sh)select({type:'ship',ref:sh},{noFly:true});setArea('network');}},
+ {t:()=>`13. Arriving in ${D()}`,x:()=>'At the destination port the container is lifted off the ship and plugged in again in the stack.',go:()=>{select(null);setArea('dest');}},
+ {t:()=>'14. Customs',x:()=>'Customs scan the container, and sometimes open it, before it may leave the port.',g:'GFS sends the documents the customer needs to clear customs.',go:()=>focus({type:'customs',obj:customsHit},48)},
+ {t:()=>'15. Delivery to the customer',x:()=>"The customer's hired truck takes the container to their warehouse, where a forklift unloads the pallets.",go:()=>focus({type:'warehouse',obj:whHit},55)},
+ {t:()=>'16. Returning the empty',x:()=>"The empty container goes back to the shipping line's depot, ready for its next load. The cycle starts again.",go:()=>focus({type:'ddepot',obj:dDepotHit},55)},
+ {t:()=>'Also by air',x:()=>'Some fruit flies instead. Pallets go to the airport, are packed into air containers (ULDs) and flown out.',go:()=>{select(null);setArea('air');}},
+ {t:()=>'GFS HQ',x:()=>'All of this is planned and controlled from GFS HQ: bookings, trucks, documents, tracking and fixing problems when something goes wrong.',go:()=>focus({type:'hq',obj:hqHit},70)},
+ {t:()=>"That's the job",x:()=>'Farm → packhouse → container → port → ship → customer. Each company does one step. GFS connects them all so the fruit arrives fresh.',g:'Try it yourself: click any truck, building or ship, or change the origin, destination and conditions at the top.',go:()=>setArea('overview')}
+];
+let tourI=-1,tourAuto=true,tourT=0;const TOUR_SECS=9;
+function tourShow(i){tourI=clamp(i,0,TOUR.length-1);const st=TOUR[tourI];tourT=0;
+ $('#tourCount').textContent=(tourI+1)+' / '+TOUR.length;$('#tourTitle').textContent=st.t();$('#tourText').textContent=st.x();$('#tourGfs').textContent=st.g?'GFS: '+st.g:'';
+ $('#tourDots').innerHTML=TOUR.map((_,k)=>`<i class="${k<=tourI?'on':''}"></i>`).join('');$('#tourPrev').disabled=tourI===0;$('#tourNext').textContent=tourI===TOUR.length-1?'Finish':'Next →';
+ try{st.go();}catch(e){setArea('overview');}}
+function tourStart(){document.body.classList.add('touring');$('#tour').hidden=false;tourAuto=true;$('#tourPlay').textContent='Pause';aboutOpen=false;tourShow(0);}
+function tourEnd(){document.body.classList.remove('touring');$('#tour').hidden=true;tourI=-1;select(null);setArea('overview');}
+$('#tourCta').onclick=tourStart;$('#tourBtn2').onclick=tourStart;$('#tourClose').onclick=tourEnd;
+$('#tourNext').onclick=()=>{if(tourI>=TOUR.length-1)tourEnd();else tourShow(tourI+1);};
+$('#tourPrev').onclick=()=>tourShow(tourI-1);
+$('#tourPlay').onclick=()=>{tourAuto=!tourAuto;tourT=0;$('#tourPlay').textContent=tourAuto?'Pause':'Play';};
+addEventListener('keydown',e=>{if(tourI<0)return;if(e.key==='ArrowRight')$('#tourNext').click();if(e.key==='ArrowLeft'&&tourI>0)tourShow(tourI-1);if(e.key==='Escape')tourEnd();});
+function tourTick(dt){if(tourI<0||!tourAuto)return;tourT+=dt;if(tourT>TOUR_SECS){if(tourI>=TOUR.length-1){tourAuto=false;$('#tourPlay').textContent='Play';}else tourShow(tourI+1);}}
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
 requestAnimationFrame(tick);
 })();
