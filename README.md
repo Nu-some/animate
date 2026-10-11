@@ -51,3 +51,7 @@ Pick an **Origin** and a **Destination** in the top bar. The landscape and landm
 4. The empty goes back to the shipping line's depot.
 
 All trucks, containers and timings are simulated. Container numbers use valid ISO 6346 check digits.
+
+## Credits
+- Buildings, cars, streetlights, traffic lights and street props: **KayKit City Builder Bits** by Kay Lousberg (kaylousberg.com). The licence is CC0, so commercial use is allowed. The models are embedded in `index.html`.
+- Trucks, containers, cranes, vessels, aircraft and all logistics equipment are modelled in code.
