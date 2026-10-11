@@ -2,6 +2,8 @@
 
 A live 3D operations view of the GFS export chain, built as a single HTML file with three.js. Open `index.html` in a browser.
 
+**Website:** every push publishes the page to GitHub Pages at `https://nu-some.github.io/animate/` (see `.github/workflows/pages.yml`). GitHub Pages must be enabled for the repository under Settings → Pages → Source: GitHub Actions.
+
 Press **How GFS works** for a guided, plain-language tour through every step of the job.
 
 ## Every port has its own look
