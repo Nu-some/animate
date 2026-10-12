@@ -166,66 +166,11 @@ body.touring .detail,body.touring .bottom{display:none!important}
   .seg button{padding:5px 8px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
-/* Story mode: the landing page. The 3D world stays fixed behind a scrolling column of
-   operation cards; scroll position drives the camera from the city map into each step. */
-#story,.st-bar,.st-rail,.st-prog{display:none}
-html.story,html.story body{height:auto;overflow:visible}
-html.story body{overflow-x:hidden}
-html.story .hud,html.story #barBtn,html.story #tour,html.story #editor,html.story #toast{display:none!important}
-html.story #stage canvas{pointer-events:none;touch-action:auto}
-html.story #story{display:block;position:relative;z-index:5}
-html.story .st-bar{display:flex;position:fixed;top:0;left:0;right:0;z-index:9;align-items:center;gap:12px;padding:calc(12px + env(safe-area-inset-top,0px)) 20px 12px;background:linear-gradient(rgba(8,19,14,.55),rgba(8,19,14,0));pointer-events:none}
-.st-bar>*{pointer-events:auto}
-.st-logo{display:flex;align-items:center;gap:10px;font:700 18px var(--f-display);color:#fff;letter-spacing:.01em;text-shadow:0 1px 8px rgba(0,0,0,.35)}
-.st-logo i{width:30px;height:30px;border-radius:9px;background:var(--accent);display:grid;place-items:center;font:700 13px var(--f-data);color:#08130e;font-style:normal}
-.st-bar .sp{flex:1}
-.st-btn{border:0;border-radius:999px;padding:9px 16px;background:#fff;color:#0d1714;font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,.18)}
-.st-btn.ghost{background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.4);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-html.story .st-prog{display:block;position:fixed;top:0;left:0;height:3px;width:100%;z-index:10;background:var(--accent);transform-origin:0 50%;transform:scaleX(0)}
-html.story .st-rail{display:flex;position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:8;flex-direction:column;gap:3px;padding:10px 8px;border-radius:14px;background:rgba(13,23,20,.62);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);max-height:calc(100vh - 120px);overflow:auto}
-.st-rail button{display:flex;align-items:center;gap:9px;border:0;background:none;padding:3px 6px;border-radius:8px;color:rgba(234,242,238,.6);font:500 12px var(--f-body);text-align:left;white-space:nowrap}
-.st-rail button b{width:20px;height:20px;flex:none;border-radius:50%;display:grid;place-items:center;font:600 10px var(--f-data);background:rgba(255,255,255,.1);color:#cfe3d8}
-.st-rail button.done b{background:rgba(61,187,116,.35)}
-.st-rail button.on{color:#fff;background:rgba(255,255,255,.08)}
-.st-rail button.on b{background:var(--accent);color:#08130e}
-.st-sec{height:150vh;position:relative}
-.st-sec:last-child{height:100vh}
-.st-card{position:absolute;top:18vh;left:max(16px,6vw);width:min(440px,calc(100% - 32px));padding:22px 24px 20px;border-radius:18px;background:rgba(255,255,255,.94);color:#16211d;box-shadow:0 24px 60px rgba(8,19,14,.28);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
-.st-sec.r .st-card{left:auto;right:max(16px,calc(6vw + 190px))}
-.st-phase{display:flex;align-items:center;gap:10px;font:600 11.5px var(--f-data);letter-spacing:.08em;text-transform:uppercase;color:#2f8f5a}
-.st-phase span{font:700 30px/1 var(--f-display);letter-spacing:0;color:var(--accent)}
-.st-card h2{margin:8px 0 8px;font:700 28px/1.12 var(--f-display);text-wrap:balance;color:#0d1714}
-.st-card p{margin:0;font-size:16px;line-height:1.55;color:#33443d}
-.st-card .gfs{margin-top:12px;padding:10px 12px;border-radius:10px;background:#eaf7ef;color:#1f5b3a;font-size:14px}
-.st-card .facts{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
-.st-card .facts em{font:600 11.5px var(--f-data);font-style:normal;padding:4px 8px;border-radius:6px;background:#f1f4f2;color:#40524a}
-.st-hero .st-card,.st-end .st-card{top:24vh;background:rgba(13,23,20,.8);color:var(--fg);width:min(620px,calc(100% - 32px))}
-.st-hero h1{margin:6px 0 12px;font:700 clamp(34px,6vw,62px)/1.02 var(--f-display);color:#fff;text-wrap:balance}
-.st-hero p,.st-end p{color:#cfe0d7;font-size:17px}
-.st-end h2{color:#fff}
-.st-hint{margin-top:18px;font:600 12px var(--f-data);letter-spacing:.1em;text-transform:uppercase;color:#9ee6bd;animation:stBob 1.8s ease-in-out infinite}
-@keyframes stBob{50%{transform:translateY(5px)}}
-.st-end .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
-@media (max-width:860px){
- html.story .st-rail{display:none}
- .st-sec.r .st-card{right:auto;left:16px}
- .st-card{top:54vh;left:16px;width:calc(100% - 32px);padding:16px 18px}
- .st-card h2{font-size:22px}.st-card p{font-size:15px}
- .st-hero .st-card,.st-end .st-card{top:44vh}
- .st-bar .st-btn.ghost{display:none}
- .st-logo{font-size:15px;white-space:nowrap}.st-bar{padding-left:16px;padding-right:16px}.st-bar .st-btn{padding:8px 12px;font-size:13px}
-}
-@media (prefers-reduced-motion:reduce){.st-hint{animation:none}}
 </style>
 </head>
 <body>
 <div id="stage"></div>
 <div id="labels"></div>
-
-<div class="st-prog" id="stProg"></div>
-<header class="st-bar"><div class="st-logo"><i>GFS</i>Orchard to the world</div><span class="sp"></span><button class="st-btn ghost" id="stTop">Back to start</button><button class="st-btn" id="stExplore">Explore the live map</button></header>
-<nav class="st-rail" id="stRail" aria-label="Steps"></nav>
-<main id="story" aria-label="How GFS moves fruit, step by step"></main>
 
 <button class="panel" id="barBtn" aria-label="Hide top bar" aria-pressed="true" title="Show or hide the top bar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path id="barIcon" d="M6 15l6-6 6 6"/></svg></button>
 <div class="hud">
@@ -470,7 +415,6 @@ function wallMat(color,tex,rx,ry){const t=tex.clone();t.needsUpdate=true;t.wrapS
 function signTex(text,bg,fg,sub){return canvasTex(512,128,(c,w,h)=>{c.fillStyle=bg;c.fillRect(0,0,w,h);c.fillStyle='#3dbb74';c.beginPath();c.arc(64,64,40,0,7);c.fill();c.fillStyle=bg;c.beginPath();c.arc(64,70,18,0,7);c.fill();
  c.fillStyle=fg;c.font='bold 52px Arial, sans-serif';c.textBaseline='middle';c.fillText(text,124,sub?50:66);if(sub){c.font='28px Arial, sans-serif';c.globalAlpha=.75;c.fillText(sub,126,98);}});}
 function gableEnd(g,x,D,H,rise,mat){const sh=new THREE.Shape();sh.moveTo(-D/2,0);sh.lineTo(D/2,0);sh.lineTo(0,rise);sh.lineTo(-D/2,0);const m=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,{depth:.3,bevelEnabled:false}),mat);m.rotation.y=Math.PI/2;m.position.set(x-.15,.5+H,0);m.castShadow=true;g.add(m);}
-const SHEDS=[]; // every shed, so story mode can lift its roof off and show the inside
 function shed(parent,o){const g=new THREE.Group();g.position.set(o.x,0,o.z);if(o.ry)g.rotation.y=o.ry;parent.add(g);
  const W=o.w,D=o.d,H=o.h,t=.3,tex=o.panel?panelTex:corrWallTex;const mx=wallMat(o.wall,tex,o.panel?1:W/1.4,o.panel?H/1.6:1),mz=wallMat(o.wall,tex,o.panel?1:D/1.4,o.panel?H/1.6:1);
  rbox(g,W+.3,.5,D+.3,0xbfc4c7,0,0,0,.05);
@@ -493,7 +437,6 @@ function shed(parent,o){const g=new THREE.Group();g.position.set(o.x,0,o.z);if(o
   [-1,1].forEach(sx=>cyl(g,.14,.14,1,0xf2c14e,x+sx*(w/2+.9),0,z+zs*1.2,10));
 });
  if(o.sign){const sp=new THREE.Mesh(new THREE.PlaneGeometry(o.signW||6,(o.signW||6)/4),new THREE.MeshBasicMaterial({map:signTex(o.sign,'#ffffff','#1d2b26',o.signSub)}));sp.position.set(o.signX||0,.5+H-1.3,D/2+.2);g.add(sp);}
- SHEDS.push({g,H});
  return g;}
 function bayLines(parent,x,z,w,d,ry){const g=new THREE.Group();g.position.set(x,.06,z);g.rotation.y=ry||0;parent.add(g);const ym=M(0xf2c14e);[[w,.12,0,-d/2],[w,.12,0,d/2],[.12,d,-w/2,0],[.12,d,w/2,0]].forEach(([a,b,px,pz])=>{const m=new THREE.Mesh(new THREE.BoxGeometry(a,.02,b),ym);m.position.set(px,0,pz);g.add(m);});return g;}
 
@@ -1993,7 +1936,7 @@ addEventListener('pointermove',e=>{if(!edit.drag)return;mouse.set(e.clientX/inne
  const o=edit.drag.o;const wp=hit.add(edit.drag.off);const lp=o.parent.worldToLocal(wp.clone());o.position.x=lp.x;o.position.z=lp.z;editBox.setFromObject(o);editInfo();});
 addEventListener('pointerup',()=>{if(!edit.drag)return;saveLayout(edit.drag.o);edit.drag=null;controls.enabled=true;});
 addEventListener('keydown',e=>{if(/input|select|textarea/i.test(e.target.tagName)||e.ctrlKey||e.metaKey||e.altKey)return;
- if(e.key==='e'||e.key==='E'){if(tourI>=0||story.on)return;setEdit(!edit.on);return;}
+ if(e.key==='e'||e.key==='E'){if(tourI>=0)return;setEdit(!edit.on);return;}
  if(!edit.on)return;const o=edit.sel;
  if(e.key==='Escape'){editSelect(null);return;}if(!o)return;
  const step=e.shiftKey?2:.5;let changed=true;
@@ -2044,8 +1987,7 @@ function tick(now){requestAnimationFrame(tick);let dt=Math.max(0,Math.min(.05,(n
  depotStep(dt);craneStep(dt);updateCables();vesselStep(dt);shipStep(dt);
  if(rain.visible){const a=rainGeo.attributes.position.array;for(let i=0;i<RAIN_N;i++){a[i*3+1]-=dt*38;if(a[i*3+1]<0)a[i*3+1]=60;}rainGeo.attributes.position.needsUpdate=true;rain.position.set(controls.target.x,0,controls.target.z);}
  // camera fly / follow
- if(story.on)storyCam();
- else if(fly){fly.t+=dt/fly.dur;const k=ease(Math.min(1,fly.t));camera.position.lerpVectors(fly.p0,fly.p1,k);controls.target.lerpVectors(fly.t0,fly.t1,k);if(fly.t>=1){fly=null;if(follow){const p=worldPosOf(follow.sel);if(p)follow.last=p;}}}
+ if(fly){fly.t+=dt/fly.dur;const k=ease(Math.min(1,fly.t));camera.position.lerpVectors(fly.p0,fly.p1,k);controls.target.lerpVectors(fly.t0,fly.t1,k);if(fly.t>=1){fly=null;if(follow){const p=worldPosOf(follow.sel);if(p)follow.last=p;}}}
  else if(follow){const p=worldPosOf(follow.sel);if(p&&follow.last){const d=p.clone().sub(follow.last);camera.position.add(d);controls.target.add(d);follow.last=p;}}
  // selection ring
  if(selected){const p=worldPosOf(selected.type==='container'&&!selected.ref.mesh?{type:'none'}:selected.type==='person'&&!selected.ref.g.visible?{type:'none'}:selected);
@@ -2055,7 +1997,7 @@ function tick(now){requestAnimationFrame(tick);let dt=Math.max(0,Math.min(.05,(n
    selLabel.el.hidden=false;selLabel.obj=null;selLabel.pos=new THREE.Vector3(pp.x,pp.y+(pp.z<-200?6:selected.type==='vessel'||selected.type==='voyager'||selected.type==='waiting'?14:6),pp.z);selLabel.el.textContent=labelText(selected);}
   else{ring.visible=false;selLabel.el.hidden=true;}}
  else{ring.visible=false;selLabel.el.hidden=true;}
- if(!story.on&&!fly&&tourI<0&&performance.now()-lastInput>25000)controls.autoRotate=true;
+ if(!fly&&tourI<0&&performance.now()-lastInput>25000)controls.autoRotate=true;
  sun.target.position.copy(controls.target);sun.position.copy(controls.target).add(SUN_OFF);
  {const ext=clamp(camera.position.distanceTo(controls.target)*1.05,110,380);const sc=sun.shadow.camera;if(Math.abs(ext-sc.right)>12){sc.left=-ext;sc.right=ext;sc.top=ext*.9;sc.bottom=-ext*.9;sc.far=200+ext*1.4;sc.updateProjectionMatrix();}}
  controls.update();skyDome.position.copy(camera.position);clouds.children.forEach((c,i)=>{c.position.x+=dt*(1.5+i%3);if(c.position.x>320)c.position.x=-320;});ocean.material.normalMap.offset.x+=dt*.003;ocean.material.normalMap.offset.y+=dt*.0015;
@@ -2106,7 +2048,7 @@ function tourShow(i){tourI=clamp(i,0,TOUR.length-1);const st=TOUR[tourI];tourT=0
  $('#tourCount').textContent=(tourI+1)+' / '+TOUR.length;$('#tourTitle').textContent=st.t();$('#tourText').textContent=st.x();$('#tourGfs').textContent=st.g?'GFS: '+st.g:'';
  $('#tourDots').innerHTML=TOUR.map((_,k)=>`<i class="${k<=tourI?'on':''}"></i>`).join('');$('#tourPrev').disabled=tourI===0;$('#tourNext').textContent=tourI===TOUR.length-1?'Finish':'Next →';
  try{st.go();}catch(e){setArea('overview');}}
-function tourStart(){if(story.on)return;document.body.classList.add('touring');$('#tour').hidden=false;tourAuto=true;$('#tourPlay').textContent='Pause';aboutOpen=false;tourShow(0);}
+function tourStart(){document.body.classList.add('touring');$('#tour').hidden=false;tourAuto=true;$('#tourPlay').textContent='Pause';aboutOpen=false;tourShow(0);}
 function tourEnd(){document.body.classList.remove('touring');$('#tour').hidden=true;tourI=-1;select(null);setArea('overview');}
 $('#tourClose').onclick=tourEnd;
 // the guided tour is deliberately tucked away: press T, or the small link at the end of the About panel
@@ -2117,86 +2059,6 @@ $('#tourPrev').onclick=()=>tourShow(tourI-1);
 $('#tourPlay').onclick=()=>{tourAuto=!tourAuto;tourT=0;$('#tourPlay').textContent=tourAuto?'Pause':'Play';};
 addEventListener('keydown',e=>{if(tourI<0)return;if(e.key==='ArrowRight')$('#tourNext').click();if(e.key==='ArrowLeft'&&tourI>0)tourShow(tourI-1);if(e.key==='Escape')tourEnd();});
 function tourTick(dt){if(tourI<0||!tourAuto)return;tourT+=dt;if(tourT>TOUR_SECS){if(tourI>=TOUR.length-1){tourAuto=false;$('#tourPlay').textContent='Play';}else tourShow(tourI+1);}}
-/* =========================================================
-   STORY MODE — the scrolling landing page
-   Scroll position is the camera: between two steps the camera lifts back
-   towards the city map and drops into the next operation.
-   ========================================================= */
-const WP=o=>o?o.getWorldPosition(new THREE.Vector3()):null;
-const NODE=(x,z)=>()=>new THREE.Vector3(x,0,z);
-const STORY=[
- {hero:1,k:'GFS · Fresh fruit logistics',t:()=>'From the orchard to the world',x:()=>`Scroll to follow one pallet of fruit from a farm inland from ${O()} to a customer in ${D()}. Every step is happening live on the map behind this page.`,at:NODE(-60,50),d:270,dir:[110,175,205]},
- {k:'Origin · Farm',t:()=>'Picking',x:()=>'Pickers harvest citrus, apples and table grapes by hand and tip the fruit into wooden field bins between the rows.',g:'GFS plans volumes with the grower: what is ripe, how much, and which week it must ship.',f:['Hand-picked','Field bins'],at:()=>WP(farmHit),d:62,sel:()=>({type:'farm',obj:farmHit})},
- {k:'Origin · Farm',t:()=>'Bins to the cold room',x:()=>'Bin trucks carry the full bins from the orchard to the bin cold room. Inside, the bins are stacked and cooled so the fruit loses its field heat quickly.',f:['Field heat removed','Bin truck'],at:()=>WP(coldHit),d:30,inside:6,dir:[-.5,1.3,.6],sel:()=>({type:'coldroom',obj:coldHit})},
- {k:'Origin · Packhouse',t:()=>'Washing, grading and packing',x:()=>`The packhouse tips, washes, dries and grades the fruit by size and quality, then packs it into 15 kg cartons. ${CARTONS_PER_PALLET} cartons make one pallet.`,f:['Wash','Grade','Pack','Palletise'],at:()=>WP(packHit).add(new THREE.Vector3(-3,0,0)),d:34,inside:6,dir:[.25,1.25,.8],sel:()=>({type:'pack',obj:packHit})},
- {k:'Origin · Cold store',t:()=>'Storing at +4 °C',x:()=>'Finished pallets are strapped, labelled and moved by forklift into the pallet cold store, where they wait at about +4 °C for transport.',g:'GFS books space on a vessel and orders an empty reefer from the shipping line.',f:['+4 °C','Pallet labels'],at:()=>farmG.localToWorld(new THREE.Vector3(7,0,-13)),d:26,inside:4,dir:[.55,1.35,.55]},
- {k:'Empty depot',t:()=>'Preparing the empty container',x:()=>"At the shipping line's depot near the port, an empty refrigerated container is washed and its cooling unit tested (PTI) before release.",f:['Wash','PTI check','Release'],at:()=>WP(depotHit),d:50,sel:()=>({type:'depot',obj:depotHit})},
- {k:'Transport',t:()=>'The truck is dispatched',x:()=>'A transport partner sends a truck from its yard. It collects the inspected empty at the depot and drives out to the allocated farm.',g:'GFS chooses the transporter and tells the driver which farm and which container.',at:()=>WP(transHit),d:50,sel:()=>({type:'transport',obj:transHit})},
- {k:'Origin · Loading bay',t:()=>'Loading the back of the truck',x:()=>'At the packhouse loading bay a forklift drives the pallets into the back of the reefer, one by one, until all 20 are in. The doors are closed and sealed.',f:['20 pallets','Seal number','Temp. recorder'],at:()=>{const s=STORY[7];if(!s._v||!vehicles.includes(s._v))s._v=vehicles.find(v=>v.kind==='gfs'&&/^(Loading at |Sealing)/.test(v.status||''))||null;return s._v?WP(s._v.g):new THREE.Vector3(-83,0,-4);},d:24,dir:[-.5,.75,.8]},
- {k:'On the road',t:()=>'Through the city',x:()=>'The farm is inland, so every loaded truck drives back along the main road and through the city towards the port, sharing the streets with local traffic.',at:NODE(-20,0),d:72,dir:[20,46,52]},
- {k:'Port · Weighbridge',t:()=>'The truck is weighed',x:()=>'Before the port gate the loaded truck crosses the weighbridge. Every export container needs a verified gross mass (VGM) before it may be loaded on a ship.',g:'GFS submits the VGM and the export documents.',f:['VGM','Weighbridge ticket'],at:NODE(27,0),d:28},
- {k:'Port · Terminal',t:()=>'Container off-loaded into the stack',x:()=>'Trucks queue at the gate for checks. Inside, the container is lifted off the truck, placed in the reefer stack and plugged into power to keep it cold.',f:['Gate-in','Reefer plug','Stack'],at:()=>WP(yardHit),d:44,sel:()=>({type:'yard',obj:yardHit})},
- {k:'Port · Plan B',t:()=>'When the vessel is late',x:()=>'If the ship is delayed and the stack is closed, the truck turns off to a plug-in depot in town. The reefer waits there, powered, until the stack reopens.',g:'GFS watches the schedules and re-plans the trucks.',at:()=>WP(stageHit),d:46,sel:()=>({type:'staging',obj:stageHit})},
- {k:'Port · Quay',t:()=>'Loaded onto the vessel',x:()=>'When the vessel is alongside, the ship-to-shore cranes lift each reefer from the stack into its slot on board, where it is plugged in again.',f:['STS crane','On-board power'],at:()=>WP(cranes[0]&&cranes[0].g)||WP(yardHit),d:70,dir:[.75,.7,.6],sel:()=>({type:'vessel',ref:vessel})},
- {k:'At sea',t:()=>'Crossing the sea',x:()=>`The loaded vessel sails to ${D()}. In real life that takes roughly 5 to 25 days, with the container kept at its set temperature the whole way.`,g:'GFS tracks every container at sea and keeps the customer informed.',at:()=>WP(voyagers[0]&&voyagers[0].g)||new THREE.Vector3(235,0,-12),d:130,dir:[0,1,.75]},
- {k:()=>'Destination · '+D(),t:()=>'Container discharged',x:()=>'At the destination port the crane lifts the container off the vessel and sets it down in the stack, where it is plugged in again.',f:['Discharge','Reefer stack'],at:()=>WP(dCrane),d:56,dir:[-.6,.75,.8]},
- {k:()=>'Destination · '+D(),t:()=>'Customs clearance',x:()=>'Customs scan the container, and sometimes open it, before it may leave the port.',g:'GFS sends the documents the customer needs to clear customs.',at:()=>WP(customsHit),d:34,sel:()=>({type:'customs',obj:customsHit})},
- {k:()=>'Destination · Warehouse',t:()=>'Pallets into the cold room',x:()=>"The customer's truck takes the container to their warehouse. A forklift unloads the pallets and moves them straight into the cold room.",f:['Forklift','Cold room'],at:()=>WP(whHit),d:32,inside:6,dir:[.3,1.25,.8],sel:()=>({type:'warehouse',obj:whHit})},
- {k:()=>'Destination · Empty return',t:()=>'The empty container is picked up',x:()=>"The empty is collected and returned to the shipping line's depot, ready to be washed, tested and loaded again. The cycle starts over.",at:()=>WP(dDepotHit),d:46,sel:()=>({type:'ddepot',obj:dDepotHit})},
- {k:'Other routes',t:()=>'By road and by air',x:()=>'Not everything goes by sea. Local market trucks take pallets to the supermarket distribution centre, and urgent fruit flies: pallets are built into air containers and the freighter takes off.',at:()=>WP(airHit),d:90,sel:()=>({type:'airport',obj:airHit})},
- {end:1,k:'GFS',t:()=>"That's the chain",x:()=>'Farm → packhouse → container → port → ship → customer. Many companies each do one step. GFS connects them all so the fruit arrives fresh.',at:NODE(-60,50),d:270,dir:[110,175,205]}
-];
-const story={on:false,p:0,goal:0,active:-1};
-const lbl=s=>typeof s.k==='function'?s.k():s.k;
-function storyBuild(){let n=0;
- $('#story').innerHTML=STORY.map((s,i)=>{const num=s.hero||s.end?'':String(++n).padStart(2,'0');s.num=num;
-  const body=s.hero?`<div class="st-phase">${lbl(s)}</div><h1>${s.t()}</h1><p>${s.x()}</p><div class="st-hint">Scroll ↓</div>`
-   :s.end?`<div class="st-phase">${lbl(s)}</div><h2>${s.t()}</h2><p>${s.x()}</p><div class="row"><button class="st-btn" data-explore>Explore the live map</button><button class="st-btn ghost" data-top>Start again</button></div>`
-   :`<div class="st-phase"><span>${num}</span>${lbl(s)}</div><h2>${s.t()}</h2><p>${s.x()}</p>${s.g?`<p class="gfs"><b>GFS:</b> ${s.g}</p>`:''}${s.f?`<div class="facts">${s.f.map(f=>`<em>${f}</em>`).join('')}</div>`:''}`;
-  return `<section class="st-sec${s.hero?' st-hero':s.end?' st-end':i%2?'':' r'}" data-i="${i}"><article class="st-card">${body}</article></section>`;}).join('');
- $('#stRail').innerHTML=STORY.map((s,i)=>s.hero||s.end?'':`<button data-i="${i}"><b>${s.num}</b>${s.t()}</button>`).join('');}
-const secH=()=>innerHeight*1.5;
-function storyJump(i){scrollTo({top:i*secH(),behavior:reduceMotion?'auto':'smooth'});}
-function storyScroll(){const max=document.documentElement.scrollHeight-innerHeight;story.goal=clamp(scrollY/secH(),0,STORY.length-1);$('#stProg').style.transform=`scaleX(${max>0?scrollY/max:0})`;
- const a=clamp(Math.floor(story.goal+.4),0,STORY.length-1);if(a!==story.active){story.active=a;STORY.forEach(s=>s._v=null);
-  document.querySelectorAll('#stRail button').forEach(b=>{const k=+b.dataset.i;b.classList.toggle('on',k===a);b.classList.toggle('done',k<a);if(k===a)b.scrollIntoView({block:'nearest'});});}}
-function shot(s){let t=null;try{t=s.at();}catch(e){}if(!t)t=new THREE.Vector3(-60,0,50);t.y=0;const dir=s.dir?new THREE.Vector3(...s.dir).normalize():TOUR_DIR.clone();return {t,dir,d:s.d};}
-const cardSide=i=>STORY[i].hero||STORY[i].end?0:i%2?1:-1; // card on the left → subject sits right of centre, and vice versa
-function storyCam(){const now=performance.now(),rt=Math.min(.5,(now-(story.last||now))/1000);story.last=now; // wall-clock, so slow frames still catch up
- story.p+=(story.goal-story.p)*(reduceMotion?1:Math.min(1,rt*3.5));
- const n=STORY.length,p=clamp(story.p,0,n-1),i=Math.min(Math.floor(p),n-2),f=p-i;
- const A=shot(STORY[i]),B=shot(STORY[i+1]);
- const k=ease(clamp((f-.3)/.7,0,1)); // hold on the step while its card is read, then travel
- const t=A.t.clone().lerp(B.t,k),dir=A.dir.clone().lerp(B.dir,k).normalize();
- const hop=Math.sin(Math.PI*k)*Math.min(A.t.distanceTo(B.t)*.55,240); // lift out to the city map between distant steps
- const narrow=innerWidth<=860,dist=(A.d+(B.d-A.d)*k+hop)*(camera.aspect<1?1+(1/camera.aspect-1)*.6:1),side=narrow?0:(cardSide(i)*(1-k)+cardSide(i+1)*k);
- if(narrow){const fw=dir.clone().negate(),r=new THREE.Vector3().crossVectors(fw,new THREE.Vector3(0,1,0)).normalize(),up=new THREE.Vector3().crossVectors(r,fw);t.addScaledVector(up,-dist*Math.tan(camera.fov*Math.PI/360)*.45);} // phones: card sits low, so lift the subject into the top half
- if(side){const right=new THREE.Vector3().crossVectors(dir,new THREE.Vector3(0,1,0)).normalize();t.addScaledVector(right,side*dist*Math.tan(camera.fov*Math.PI/360)*camera.aspect*.3);}
- controls.target.copy(t);camera.position.copy(t).addScaledVector(dir,dist);
- const S=k<.5?STORY[i]:STORY[i+1],near=1-Math.sin(Math.PI*k);setRoofs(k<.5?A.t:B.t,S.inside?S.inside+6:0,near,rt);}
-// cutaway: a step with `inside` lifts the roofs of the sheds around its target and fades them out
-const roofs=SHEDS.map(sh=>({sh,open:0,parts:sh.g.children.filter(c=>c.position.y>=.5+sh.H-.75).map(m=>(m.userData.y0=m.position.y,m))}));
-function setRoofs(t,inR,amt,rt){const c=new THREE.Vector3();roofs.forEach(r=>{r.sh.g.getWorldPosition(c);const want=inR&&c.distanceTo(t)<inR?amt:0;
- r.open+=(want-r.open)*(reduceMotion?1:Math.min(1,rt*5));if(r.open<.002)r.open=0;
- r.parts.forEach(m=>{m.position.y=m.userData.y0+ease(r.open)*9;m.visible=r.open<.8;});});}
-// fill the cold rooms, so there is something to see once the roof is off
-{const binC=farmG.localToWorld(new THREE.Vector3(-23,0,-16));const loc=farmG.worldToLocal(binC.clone());for(let i=0;i<12;i++)makeBin(farmG,loc.x-2.2+(i%4)*1.45,Math.floor(i/8)*.9,loc.z-1.4+Math.floor((i%8)/4)*2.8,1);
- const N=24,pi=new THREE.InstancedMesh(cartonGeo,cartonMat,N),pb=new THREE.InstancedMesh(palletGeo,M(0xb08a5a),N),d=new THREE.Object3D();
- for(let i=0;i<N;i++){d.position.set(4.6+(i%2)*1.3+Math.floor(i/12)*3.6,.65+(Math.floor(i/2)%2)*1.35,-18.5+Math.floor((i%12)/4)*1.5);d.updateMatrix();pi.setMatrixAt(i,d.matrix);pb.setMatrixAt(i,d.matrix);}
- pi.castShadow=true;farmG.add(pi,pb);
- const wi=new THREE.InstancedMesh(cartonGeo,cartonMat,20),wb=new THREE.InstancedMesh(palletGeo,M(0xb08a5a),20);for(let i=0;i<20;i++){d.position.set(-26+(i%10)*1.3,.65+Math.floor(i/10)*1.35,-10.6);d.updateMatrix();wi.setMatrixAt(i,d.matrix);wb.setMatrixAt(i,d.matrix);}wi.castShadow=true;dest.add(wi,wb);const fk=forklift.clone();fk.position.set(7.2,0,-9.2);fk.rotation.y=Math.PI;farmG.add(fk);}
-function storyStart(){document.documentElement.classList.add('story');story.on=true;fly=null;follow=null;controls.enabled=false;controls.autoRotate=false;storyBuild();story.active=-1;storyScroll();story.p=story.goal;}
-function storyStop(){setRoofs(new THREE.Vector3(),0,0,99);document.documentElement.classList.remove('story');story.on=false;controls.enabled=true;scrollTo(0,0);select(null);setArea('overview');history.replaceState(null,'','?explore');}
-addEventListener('scroll',()=>{if(story.on)storyScroll();},{passive:true});
-addEventListener('resize',()=>{if(story.on)storyScroll();});
-$('#stExplore').onclick=storyStop;$('#stTop').onclick=()=>storyJump(0);
-$('#story').addEventListener('click',e=>{if(e.target.closest('[data-explore]'))storyStop();if(e.target.closest('[data-top]'))storyJump(0);});
-$('#stRail').addEventListener('click',e=>{const b=e.target.closest('button');if(b)storyJump(+b.dataset.i);});
-addEventListener('keydown',e=>{if(!story.on||/input|select|textarea/i.test(e.target.tagName))return;
- if(e.key==='ArrowDown'||e.key==='PageDown'||e.key===' '){e.preventDefault();storyJump(Math.min(STORY.length-1,story.active+1));}
- if(e.key==='ArrowUp'||e.key==='PageUp'){e.preventDefault();storyJump(Math.max(0,story.active-1));}},true);
-// the scroll story is the landing page; ?explore (or the button) opens the free interactive map
-if(!/[?&]explore\b/.test(location.search))storyStart();
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);if(composer){composer.setSize(innerWidth,innerHeight);fxaa.material.uniforms.resolution.value.set(1/(innerWidth*renderer.getPixelRatio()),1/(innerHeight*renderer.getPixelRatio()));}});
 requestAnimationFrame(tick);
 })();
