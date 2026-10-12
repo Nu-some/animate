@@ -6,6 +6,13 @@ A live 3D operations view of the GFS export chain, built as a single HTML file w
 
 A guided, plain-language tour exists but is tucked away: press **T** on the keyboard, or use the small "Guided tour" link at the end of the About panel (the ⓘ button).
 
+## Scroll story (the landing page)
+The page opens as a scrolling story, in the style of emons.de: the live city map stays fixed in the background and each scroll step flies the camera from the big picture into one operation, in order:
+
+picking → bins to the bin cold room → washing, grading and packing → storing at +4 °C → preparing the empty container (PTI) → truck dispatched → loading the back of the truck → through the city → weighbridge (VGM) → container off-loaded into the port stack → plug-in depot when the vessel is late → loaded onto the vessel → crossing the sea → container discharged → customs → pallets into the client's cold room → empty container picked up → road and air routes.
+
+Between two distant steps the camera lifts back out towards the city map before dropping into the next one. On steps inside a building (bin cold room, packhouse, pallet cold store, client warehouse) the roof lifts off and fades away so you look inside. The side rail jumps to any step; arrow keys, Page Up/Down and Space step through. **Explore the live map** (or `index.html?explore`) opens the free interactive view with all panels.
+
 ## Every port has its own look
 Pick an **Origin** and a **Destination** in the top bar. The landscape and landmarks change with each port:
 
